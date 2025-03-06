@@ -11,13 +11,25 @@ public class MapManager : MonoBehaviour
 
     public class MapData{
         public TileBase texture;
+        public tileTypes type;
+
+        public bool can_walk=true;
+        public bool can_build=true;
+        public bool can_plant=true;
+
+        public float fertility=1.0f;
+        public float humidity=0.0f;
+        public float light=1.0f;
+
+        
+        public float walk_speed=1.0f;
     }
     
-    public Tilemap mapTiles;
+    public Tilemap landTilemap;
+    public Tilemap buildingTilemap;
 
     public enum tileTypes{
-        grass,
-        total
+        grass,path,water,tree,total
     }
     public TileBase[] tiles = new TileBase[(int)tileTypes.total];
 
@@ -28,6 +40,7 @@ public class MapManager : MonoBehaviour
         for (int x = 0; x < MAP_SIZE; x++){
             for (int y = 0; y < MAP_SIZE; y++){
                 mapDatas[x, y] = new MapData();
+                mapDatas[x, y].type = tileTypes.grass;
                 mapDatas[x, y].texture = tiles[(int)tileTypes.grass];
             }
         }
@@ -36,7 +49,7 @@ public class MapManager : MonoBehaviour
     public void GenerateMapTiles(){
         for (int x = 0; x < MAP_SIZE; x++){
             for (int y = 0; y < MAP_SIZE; y++){
-                mapTiles.SetTile(new Vector3Int(x, y, 0), mapDatas[x, y].texture);
+                landTilemap.SetTile(new Vector3Int(x, y, 0), mapDatas[x, y].texture);
             }
         }
     }
@@ -45,5 +58,26 @@ public class MapManager : MonoBehaviour
         GenerateMapData();
         GenerateMapTiles();
     }
-    
+
+    public void Update(){
+        if(Input.GetMouseButtonDown(0)){
+            Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Vector3Int tilePos = landTilemap.WorldToCell(mouseWorldPos);
+
+            if(tilePos.x >= 0 && tilePos.x < MAP_SIZE && tilePos.y >= 0 && tilePos.y < MAP_SIZE)
+                DebugChangeNextTile(tilePos);
+        }
+    }
+
+    /// <summary>
+    /// dev用.改变鼠标点击Tile的类型
+    /// </summary>
+    public void DebugChangeNextTile(Vector3Int pos){
+        mapDatas[pos.x, pos.y].type ++;
+        if(mapDatas[pos.x, pos.y].type == tileTypes.total)
+            mapDatas[pos.x, pos.y].type = tileTypes.grass;
+        
+        mapDatas[pos.x, pos.y].texture = tiles[(int)mapDatas[pos.x, pos.y].type];
+        landTilemap.SetTile(pos, mapDatas[pos.x, pos.y].texture);
+    }
 }
