@@ -44,6 +44,9 @@ TagManager:
   - name: MapMesh
     uniqueID: 1501829081
     locked: 0
+  - name: UI
+    uniqueID: 115061923
+    locked: 0
   - name: DebugPanel
     uniqueID: 1274709385
     locked: 0
