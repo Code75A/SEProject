@@ -1,32 +1,50 @@
-using System.Collections;
+
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.UIElements;
 
 public class UIManager : MonoBehaviour
 {
+    public BuildManager buildManager;
+
+    [Header("Debug表盘")]
     public GameObject debugPanelCanvas;
     public GameObject debugTextContent;
     public TextMeshProUGUI debugText;
+
+    //相对于原始大小的缩放比例，初始需载入一次
     private float  scale_y;
 
     bool is_debugPanel_active = false;
-
+    
+    [Header("地图缩放")]
     public ScrollRect mapScrollRect;
     public ScrollContentController scrollContentController;
 
+    [Header("建造菜单")]
+    public Transform buildingMenuConvas;
+    public GameObject buildingMenuBar;
+    public GameObject buildingMenuSquare;
+
+    //建造菜单UI定位相关参数
+    //DeltaX/Y = Width/Height * Scale
+    const float BAR_ANCHOR_X = -1136f, BAR_ANCHOR_Y = -673.9189f, BAR_DELTAX = 288f, BAR_DELTAY = 92.16f; //scale = 144f
+    const float SQUARE_ANCHOR_X = -521f, SQUARE_ANCHOR_Y = -609.408f, SQUARE_DELTAX = 221.184f, SQUARE_DELTAY = 221.184f; //scale = 10.8f
+
+    public Vector3 bar_anchor, square_anchor;
+    public Vector3 bar_deltax, bar_deltay, square_deltax, square_deltay;
+    
+    public GameObject[] buildingMenuBars = new GameObject[(int)BuildManager.BuildingType.Total];
+    public GameObject[] buildingMenuSquares ;//最多一行放8个
+
+    const int tempBuildingSpritesCount = 6;
+    public Sprite[] tempBuildingSprites = new Sprite[tempBuildingSpritesCount];
+
+
     void Start(){
-        is_debugPanel_active = false;
-        debugPanelCanvas.SetActive(false);
-
-        GetScaleY();
-
-        DebugTextClear();
-        
-        DebugTextAdd("Debug Panel Initialized.");
-        DebugTextAdd("Press ~ to toggle Debug Panel.");
+        InitDebugPanel();
+        InitBuildingMenu();
     }
 
     void Update(){
@@ -40,7 +58,87 @@ public class UIManager : MonoBehaviour
             
         }
     }
+    
+//--------------------------初始化函数--------------------------
+    void InitDebugPanel(){
+        is_debugPanel_active = false;
+        debugPanelCanvas.SetActive(false);
 
+        RectTransform debugText_rtrans = debugText.GetComponent<RectTransform>();
+        scale_y = debugText_rtrans.localScale.y;
+
+        DebugTextClear();
+        
+        DebugTextAdd("Debug Panel Initialized.");
+        DebugTextAdd("Press ~ to toggle Debug Panel.");
+    }
+    void InitBuildingMenu(){
+
+        bar_anchor = new Vector3(BAR_ANCHOR_X, BAR_ANCHOR_Y, 0f);square_anchor = new Vector3(SQUARE_ANCHOR_X, SQUARE_ANCHOR_Y, 0f);
+        bar_deltax = new Vector3(BAR_DELTAX, 0f, 0f);bar_deltay = new Vector3(0f, BAR_DELTAY, 0f);
+        square_deltax = new Vector3(SQUARE_DELTAX, 0f, 0f); square_deltay = new Vector3(0f, SQUARE_DELTAY, 0f);
+
+        Vector3 current_anchor = bar_anchor - bar_deltay;
+
+        for(int i = 0; i < (int)BuildManager.BuildingType.Total; i++){
+
+            buildingMenuBars[i] = Instantiate(buildingMenuBar,buildingMenuConvas);
+            buildingMenuBars[i].GetComponent<BuildingMenuBarLoadController>().Init(this,(BuildManager.BuildingType)i);
+
+            if(i % 2 == 0)
+            {
+                current_anchor += bar_deltay;
+                buildingMenuBars[i].GetComponent<RectTransform>().localPosition = current_anchor;
+            }
+            else{
+                buildingMenuBars[i].GetComponent<RectTransform>().localPosition = current_anchor + bar_deltax;
+            }
+
+            buildingMenuBars[i].GetComponentInChildren<TextMeshProUGUI>().text = ((BuildManager.BuildingType)i).ToString();
+        }
+    }
+//--------------------------初始化函数--------------------------
+
+
+
+//--------------------------BuildingMenu相关函数--------------------------
+    public void LoadBuildingMenuSquares(BuildManager.BuildingType type){
+        //最多一行加载8个，如果超过8个时需要另行设计
+        ClearBuildingMenuSquares();
+
+        List<BuildManager.Building> currentBuildingList = buildManager.LoadBuildingList(type);
+        buildingMenuSquares = new GameObject[currentBuildingList.Count];
+
+        Vector3 current_anchor = square_anchor - square_deltay;
+
+        for(int i = 0; i < currentBuildingList.Count; i++){
+            int index = i % 8;
+            
+            buildingMenuSquares[i] = Instantiate(buildingMenuSquare,buildingMenuConvas);
+            
+            if(index == 0){
+                current_anchor += square_deltay;
+                buildingMenuSquares[i].GetComponent<RectTransform>().localPosition = current_anchor;
+            }
+            else{
+                buildingMenuSquares[i].GetComponent<RectTransform>().localPosition = current_anchor + square_deltax * index;
+            }
+
+            buildingMenuSquares[i].GetComponent<BuildingMenuSquareLoadController>().Init(currentBuildingList[i].name,tempBuildingSprites[currentBuildingList[i].id]);
+
+        }
+        
+    }
+
+    void ClearBuildingMenuSquares(){
+        foreach(GameObject menuSquare in buildingMenuSquares)
+            Destroy(menuSquare);
+    }
+//--------------------------BuildingMenu相关函数--------------------------
+
+
+
+//--------------------------DebugPanel相关函数--------------------------
 /// <summary>
 /// 调整Stage上所有物件的可操纵性为value
 /// </summary>
@@ -60,14 +158,6 @@ public class UIManager : MonoBehaviour
         
     }
 /// <summary>
-/// 获取DebugTextContent的缩放比例，存入scale_y
-/// </summary>
-    void GetScaleY(){
-        RectTransform debugText_rtrans = debugText.GetComponent<RectTransform>();
-        scale_y = debugText_rtrans.localScale.y;
-    }
-
-/// <summary>
 /// 向DebugText中添加一行字符串显示
 /// </summary>
 /// <param name="text">待添加的字符串。不需要加换行符</param>
@@ -82,13 +172,11 @@ public class UIManager : MonoBehaviour
 
         debugContent_rtrans.sizeDelta = new_size;
     }
-
 /// <summary>
 /// 清空DebugText
 /// </summary>
     public void DebugTextClear(){
         debugText.text = "";
     }
-
-
+//--------------------------DebugPanel相关函数--------------------------
 }

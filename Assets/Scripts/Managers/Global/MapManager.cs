@@ -1,9 +1,7 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEngine.Tilemaps;
-using UnityEngine.WSA;
+
 
 public class MapManager : MonoBehaviour
 {
@@ -13,16 +11,15 @@ public class MapManager : MonoBehaviour
         public TileBase texture;
         public tileTypes type;
 
-        public bool can_walk=true;
-        public bool can_build=true;
-        public bool can_plant=true;
+        public bool can_walk = true;
+        public bool can_build = true;
+        public bool can_plant = true;
 
-        public float fertility=1.0f;
-        public float humidity=0.0f;
-        public float light=1.0f;
+        public float fertility = 1.0f;
+        public float humidity = 0.0f;
+        public float light = 1.0f;
 
-        
-        public float walk_speed=1.0f;
+        public float walk_speed = 1.0f;
     }
     
     public Tilemap landTilemap;
@@ -31,6 +28,7 @@ public class MapManager : MonoBehaviour
     public enum tileTypes{
         grass,path,water,tree,total
     }
+    
     public TileBase[] tiles = new TileBase[(int)tileTypes.total];
 
     public MapData[,] mapDatas = new MapData[MAP_SIZE, MAP_SIZE];
@@ -59,25 +57,4 @@ public class MapManager : MonoBehaviour
         GenerateMapTiles();
     }
 
-    public void Update(){
-        if(Input.GetMouseButtonDown(0)){
-            Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Vector3Int tilePos = landTilemap.WorldToCell(mouseWorldPos);
-
-            if(tilePos.x >= 0 && tilePos.x < MAP_SIZE && tilePos.y >= 0 && tilePos.y < MAP_SIZE)
-                DebugChangeNextTile(tilePos);
-        }
-    }
-
-    /// <summary>
-    /// dev用.改变鼠标点击Tile的类型
-    /// </summary>
-    public void DebugChangeNextTile(Vector3Int pos){
-        mapDatas[pos.x, pos.y].type ++;
-        if(mapDatas[pos.x, pos.y].type == tileTypes.total)
-            mapDatas[pos.x, pos.y].type = tileTypes.grass;
-        
-        mapDatas[pos.x, pos.y].texture = tiles[(int)mapDatas[pos.x, pos.y].type];
-        landTilemap.SetTile(pos, mapDatas[pos.x, pos.y].texture);
-    }
 }
