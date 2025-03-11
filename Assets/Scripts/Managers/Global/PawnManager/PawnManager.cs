@@ -1,6 +1,4 @@
 
-//前言：task和tool的定义还未给出，仅为示意代码。后续还需要进行更改。
-
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -27,11 +25,11 @@ public class PawnManager : MonoBehaviour{
     public class Pawn{
         public int id; // 游戏内唯一标识符
         public bool isOnTask = false; // 记录 Pawn 是否正在执行任务
-        public Task handlingTask = null; // 记录 Pawn 当前正在处理的任务  (目前没有task文件定义，仅为示意代码)
+        public Task handlingTask = null; // 记录 Pawn 当前正在处理的任务  
         public float moveSpeed = 1.0f; // 移动速度（默认 100%）
         public float workSpeed = 1.0f; // 工作速度（默认 100%）
         public Vector2 position; // 当前位置
-        public Tool handlingTool; // 当前所持工具  （tool的结构待确定待定义）
+        public Tool handlingTool; // 当前所持工具  
     }
 
     // 添加新的 Pawn，并将其实例化
