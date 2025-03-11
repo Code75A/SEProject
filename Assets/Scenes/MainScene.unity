@@ -343,6 +343,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad1354bd631cddb4a93d3d0dd5ff487a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TaskManager: {fileID: 398816329}
+  ItemManager: {fileID: 398816336}
+  pawnPrefab: {fileID: 0}
 --- !u!114 &398816331
 MonoBehaviour:
   m_ObjectHideFlags: 0
