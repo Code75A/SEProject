@@ -5,6 +5,7 @@ using TMPro;
 
 public class BuildManager : MonoBehaviour
 {
+    public static BuildManager Instance { get; private set; }
     public UIManager uiManager;
     public enum BuildingType{
         Dev,Wall,Farm,Total
@@ -27,11 +28,30 @@ public class BuildManager : MonoBehaviour
     public Building currentBuilding = null;
     public List<Building> currentBuildingList ;
 
+    //单例模式
+    void Awake(){
+        if(Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
     void Start()
     {
         InitBuildingListsData();
         
         //uiManager.InitBuildMenu();
+    }
+
+    void Update()
+    {
+        if(Input.GetMouseButtonDown(1)){
+            CancelCurrentBuilding();
+        }
     }
 
     void InitBuildingListsData(){
@@ -56,5 +76,8 @@ public class BuildManager : MonoBehaviour
         currentBuildingList = buildingLists[type];
         return currentBuildingList;
     }
-    
+
+    public void CancelCurrentBuilding(){ currentBuilding = null; }
+    public void SetCurrentBuilding(Building building){ currentBuilding = building; }
+
 }

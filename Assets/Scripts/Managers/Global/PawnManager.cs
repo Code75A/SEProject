@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class PawnManager : MonoBehaviour{
-    //public static PawnManager Instance { get; private set; } // 单例模式，确保全局唯一
+    public static PawnManager Instance { get; private set; } // 单例模式，确保全局唯一
     
     public TaskManager TaskManager; // 引用唯一的 TaskManager 对象
     public ItemManager ItemManager; // 引用唯一的 ItemManager 对象
@@ -12,17 +12,15 @@ public class PawnManager : MonoBehaviour{
     public Pawn SelectingPawn; // 当前被选中的 Pawn
     private List<Pawn> pawns = new List<Pawn>(); // 存储所有 Pawn 对象的列表
 
-    //不排除可能会有多个PawnManager，暂时不使用单例模式
-
-    // private void Awake(){
-    //     // 实现单例模式，确保 PawnManager 只有一个实例
-    //     if (Instance == null){
-    //         Instance = this;
-    //     }
-    //     else{
-    //         Destroy(gameObject);
-    //     }
-    // }
+    private void Awake(){
+        // 实现单例模式，确保 PawnManager 只有一个实例
+        if (Instance == null){
+            Instance = this;
+        }
+        else{
+            Destroy(gameObject);
+        }
+    }
 
     // Pawn 类的定义
     public class Pawn{

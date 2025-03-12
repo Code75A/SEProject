@@ -6,7 +6,8 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
-    public BuildManager buildManager;
+    public static UIManager Instance { get; private set; }
+    public BuildManager buildManager = BuildManager.Instance;
 
     [Header("Debug表盘")]
     public GameObject debugPanelCanvas;
@@ -41,6 +42,18 @@ public class UIManager : MonoBehaviour
     const int tempBuildingSpritesCount = 6;
     public Sprite[] tempBuildingSprites = new Sprite[tempBuildingSpritesCount];
 
+    //单例模式
+    void Awake(){
+        if(Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
 
     void Start(){
         InitDebugPanel();
@@ -124,7 +137,7 @@ public class UIManager : MonoBehaviour
                 buildingMenuSquares[i].GetComponent<RectTransform>().localPosition = current_anchor + square_deltax * index;
             }
 
-            buildingMenuSquares[i].GetComponent<BuildingMenuSquareLoadController>().Init(currentBuildingList[i].name,tempBuildingSprites[currentBuildingList[i].id]);
+            buildingMenuSquares[i].GetComponent<BuildingMenuSquareLoadController>().Init(currentBuildingList[i],tempBuildingSprites[currentBuildingList[i].id]);
 
         }
         
