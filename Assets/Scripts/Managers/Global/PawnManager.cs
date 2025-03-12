@@ -29,8 +29,7 @@ public class PawnManager : MonoBehaviour{
         public int id; // 游戏内唯一标识符
         public bool isOnTask = false; // 记录 Pawn 是否正在执行任务
 
-        public class Task{}
-        public Task handlingTask = null; // 记录 Pawn 当前正在处理的任务  
+        public TaskManager.Task handlingTask = null; // 记录 Pawn 当前正在处理的任务  
         //public TaskManager.Task handlingTask = null; // 记录 Pawn 当前正在处理的任务  
         public float moveSpeed = 1.0f; // 移动速度（默认 100%）
         public float workSpeed = 1.0f; // 工作速度（默认 100%）
