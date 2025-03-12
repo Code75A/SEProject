@@ -1,18 +1,30 @@
 
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using UnityEngine.EventSystems;
 
 
 public class MapManager : MonoBehaviour
 {
+    public static MapManager Instance { get; private set; }
     public const int MAP_SIZE = 64;
 
     public class MapData{
         public TileBase texture;
         public tileTypes type;
 
+        //has_print：是否显示蓝图
+        public bool has_print = false;
+        public bool has_item = false; public ItemManager.Item item = null;
+        //has_building：如果采用实例化building为item子类，则has_building = true必然说明has_item = true
+        public bool has_building = false;
+
+        //can_walk的情况: (has_building = false) 或 (has_building = true但building.can_walk = true/building.type != wall)
+        //用于维护寻路点阵图
         public bool can_walk = true;
+        //can_build的情况: (has_building = false) 或 (has_item = true但item.type != building)
         public bool can_build = true;
+        //can_plant的情况: has_building = true并且item.type = farm
         public bool can_plant = true;
 
         public float fertility = 1.0f;
@@ -52,9 +64,74 @@ public class MapManager : MonoBehaviour
         }
     }
 
+    //单例模式
+    void Awake(){
+        if(Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
     public void Start(){
         GenerateMapData();
         GenerateMapTiles();
     }
 
+    void Update()
+    {
+        if(Input.GetMouseButtonDown(0)){
+            // 排除点击 UI 的情况？
+            // TODO: 需要更妥善地处理UI
+            //if (EventSystem.current.IsPointerOverGameObject()) return;
+
+            Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition); 
+            Vector2 mousePos2D = new Vector2(mouseWorldPos.x, mouseWorldPos.y);
+
+            // 排除带有 Collider2D 的 Sprite 的情况
+            RaycastHit2D hitSprite = Physics2D.Raycast(mousePos2D, Vector2.zero, 0f);
+            if (hitSprite.collider != null){
+            //TODO： 加入更多Tag区分交互对象
+            //&& hitSprite.collider.gameObject.CompareTag("Interactable"))
+                Debug.Log("点击到了 Sprite: " + hitSprite.collider.gameObject.name);
+                return; 
+            }
+            
+            Vector3Int cellPos = landTilemap.WorldToCell(mouseWorldPos);
+            if(IsInBoard(cellPos)){
+                TileBase clickedTile = landTilemap.GetTile(cellPos);
+
+                if (clickedTile != null){
+                    Debug.Log("点击到了 Tile: " + cellPos);
+
+                    BuildManager.Building building = BuildManager.Instance.currentBuilding;
+                    if(building != null){
+                        Debug.Log("放置建筑: " + building.name);
+
+                        if(building.type == BuildManager.BuildingType.Dev){
+                            DebugUpdateTile(cellPos, building.id);
+                        }
+
+                    }
+                }
+            }
+            else{
+                BuildManager.Instance.CancelCurrentBuilding();
+            }
+        }
+    }
+
+    public void DebugUpdateTile(Vector3Int cellPos, int id){
+        mapDatas[cellPos.x, cellPos.y].type = (tileTypes)id;
+        mapDatas[cellPos.x, cellPos.y].texture = tiles[id];
+        landTilemap.SetTile(cellPos, mapDatas[cellPos.x, cellPos.y].texture);
+    }
+
+    public bool IsInBoard(Vector3Int pos){
+        return pos.x >= 0 && pos.x < MAP_SIZE && pos.y >= 0 && pos.y < MAP_SIZE;
+    }
 }

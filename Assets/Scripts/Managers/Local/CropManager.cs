@@ -4,15 +4,36 @@ using UnityEngine;
 
 public class CropManager : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
+    public static CropManager Instance { get; private set; }
+    public class Crop{
+        public int id;
+        public string name;
+    }
+    public List<Crop> cropList = new List<Crop>();
+
+    //单例模式
+    void Awake(){
+        if(Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+    void Start(){
+        InitCropListData();
+    }
+
+    void InitCropListData(){
+        cropList.Add(new Crop{id = 0, name="水稻"});
+        cropList.Add(new Crop{id = 1, name="土豆"});
+        cropList.Add(new Crop{id = 2, name="小麦"});
+        cropList.Add(new Crop{id = 3, name="棉花"});
+        cropList.Add(new Crop{id = 4, name="葡萄"});
+        cropList.Add(new Crop{id = 5, name="树"});
     }
 }
