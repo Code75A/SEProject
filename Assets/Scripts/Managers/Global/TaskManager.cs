@@ -29,38 +29,34 @@ public class TaskManager : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update(){
+    void Update() {
         // 检测并分配 availableTaskList 中的任务
-        for (int i = 0; i < Mathf.Min(MAX_TASKS_PER_FRAME, availableTaskList.Count); i++){
-            Task task = availableTaskList[i];
+        for (int i = 0; i < MAX_TASKS_PER_FRAME; i++) {
+            if(availableTaskList.Count == 0) break; // 防止 availableTaskList 为空时的异常
+            Task task = availableTaskList[0];
             PawnManager.Pawn availablePawn = pawnManager.GetAvailablePawn();
-            if (availablePawn != null){
+            if (availablePawn != null) {
                 availablePawn.isOnTask = true;
                 availablePawn.handlingTask = task;
-                availableTaskList.RemoveAt(i);
-                i--; // 调整索引以处理移除元素后的列表
-            }
-            else{
+                availableTaskList.RemoveAt(0);
+            } else {
                 inavailableTaskList.Add(task);
-                availableTaskList.RemoveAt(i);
-                i--; // 调整索引以处理移除元素后的列表
+                availableTaskList.RemoveAt(0);
             }
         }
 
         // 检测并处理 inavailableTaskList 中的任务
-        for (int i = 0; i < Mathf.Min(MAX_TASKS_PER_FRAME, inavailableTaskList.Count); i++){
-            Task task = inavailableTaskList[i];
+        for (int i = 0; i < MAX_TASKS_PER_FRAME; i++) {
+            if(inavailableTaskList.Count == 0) break; // 防止 inavailableTaskList 为空时的异常
+            Task task = inavailableTaskList[0];
             PawnManager.Pawn availablePawn = pawnManager.GetAvailablePawn();
-            if (availablePawn != null){
+            if (availablePawn != null) {
                 availablePawn.isOnTask = true;
                 availablePawn.handlingTask = task;
-                inavailableTaskList.RemoveAt(i);
-                i--; // 调整索引以处理移除元素后的列表
-            }
-            else{
+                inavailableTaskList.RemoveAt(0);
+            } else {
                 inavailableTaskList.Add(task); // 将任务移到列表尾部
-                inavailableTaskList.RemoveAt(i);
-                i--; // 调整索引以处理移除元素后的列表
+                inavailableTaskList.RemoveAt(0); // 移除列表首部的任务                
             }
         }
     }
