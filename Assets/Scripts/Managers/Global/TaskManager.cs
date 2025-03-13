@@ -60,4 +60,12 @@ public class TaskManager : MonoBehaviour
             }
         }
     }
+
+    public void AddTask(Vector3Int pos, TaskTypes type) {
+        Task newTask = new Task {
+            position = pos,
+            type = type
+        };
+        availableTaskList.Add(newTask);
+    }
 }
