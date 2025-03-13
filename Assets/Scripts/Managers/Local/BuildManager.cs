@@ -19,7 +19,12 @@ public class BuildManager : MonoBehaviour
         //游戏属性
         public int width,height;
         public int durability;
-        
+
+        public bool can_build ;
+        public bool can_walk ;
+        public bool can_plant ;
+
+        //TODO: 拓展为List<bool> cans + enum canTypes{walk,build,plant}
     }
 
     public Dictionary<BuildingType, List<Building>> buildingLists = new Dictionary<BuildingType, List<Building>>();
@@ -58,14 +63,14 @@ public class BuildManager : MonoBehaviour
         for(int i = 0; i < (int)BuildingType.Total; i++)
             buildingLists.Add((BuildingType)i, new List<Building>());
         
-        buildingLists[BuildingType.Dev].Add(new Building{id = 0, name="草地", type = BuildingType.Dev, width = 1, height = 1, durability = -1});
-        buildingLists[BuildingType.Dev].Add(new Building{id = 1, name="路径", type = BuildingType.Dev, width = 1, height = 1, durability = -1});
-        buildingLists[BuildingType.Dev].Add(new Building{id = 2, name="水地", type = BuildingType.Dev, width = 1, height = 1, durability = -1});
-        buildingLists[BuildingType.Dev].Add(new Building{id = 3, name="树木", type = BuildingType.Dev, width = 1, height = 1, durability = -1});
+        buildingLists[BuildingType.Dev].Add(new Building{id = 0, name="草地", type = BuildingType.Dev, width = 1, height = 1, durability = -1, can_build = true, can_walk = true, can_plant = true});
+        buildingLists[BuildingType.Dev].Add(new Building{id = 1, name="路径", type = BuildingType.Dev, width = 1, height = 1, durability = -1, can_build = false, can_walk = true, can_plant = false});
+        buildingLists[BuildingType.Dev].Add(new Building{id = 2, name="水地", type = BuildingType.Dev, width = 1, height = 1, durability = -1, can_build = false, can_walk = false, can_plant = false});
+        buildingLists[BuildingType.Dev].Add(new Building{id = 3, name="树木", type = BuildingType.Dev, width = 1, height = 1, durability = -1, can_build = false, can_walk = false, can_plant = false});
 
-        buildingLists[BuildingType.Wall].Add(new Building{id = 4, name="墙", type = BuildingType.Wall, width = 1, height = 1, durability = 100});
+        buildingLists[BuildingType.Wall].Add(new Building{id = 4, name="墙", type = BuildingType.Wall, width = 1, height = 1, durability = 100, can_build = false, can_walk = false, can_plant = false});
 
-        buildingLists[BuildingType.Farm].Add(new Building{id = 5, name="农田", type = BuildingType.Farm, width = 1, height = 1, durability = -1});
+        buildingLists[BuildingType.Farm].Add(new Building{id = 5, name="农田", type = BuildingType.Farm, width = 1, height = 1, durability = -1, can_build = false, can_walk = false, can_plant = true});
     }
 
     /// <summary>
@@ -79,5 +84,6 @@ public class BuildManager : MonoBehaviour
 
     public void CancelCurrentBuilding(){ currentBuilding = null; }
     public void SetCurrentBuilding(Building building){ currentBuilding = building; }
+
 
 }
