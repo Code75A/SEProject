@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class PawnManager : MonoBehaviour{
     public static PawnManager Instance { get; private set; } // 单例模式，确保全局唯一
-    
     public TaskManager TaskManager; // 引用唯一的 TaskManager 对象
     public ItemManager ItemManager; // 引用唯一的 ItemManager 对象
     public GameObject pawnPrefab; // Pawn 预设体，用于实例化 Pawn
