@@ -1,18 +1,50 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
+public class TimeManager : MonoBehaviour{
 
-public class TimeManager : MonoBehaviour
-{
-    // Start is called before the first frame update
-    void Start()
-    {
-        
+    public static TimeManager Instance { get; private set; }   //单例模式，确保只有一个timemanager
+    public float realityTime { get; private set; } = 0f; // 现实时间
+    public float gameTime { get; private set; } = 0f; // 游戏内时间
+    public float timeScale = 1f; // 时间倍率
+
+     // 绑定 UI 组件，显示游戏时间
+    public TMP_Text gameTimeText; 
+    private void Awake(){
+        if (Instance == null){
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else{
+            Destroy(gameObject);
+        }
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update(){
+        float deltaTime = Time.deltaTime;//利用帧间隔时间计算现实时间
+        // 现实时间累加
+        realityTime += deltaTime;
+        // 游戏时间受 timeScale 影响
+        gameTime += deltaTime * timeScale;
+        // 更新 UI
+        UpdateGameTimeUI();
+    }
+
+    private void UpdateGameTimeUI(){
+        if (gameTimeText != null){
+            gameTimeText.text = $"游戏时间: {gameTime:F2}s (x{timeScale})";//显示游戏时间，保留两位小数点，并显示倍率
+            //todo:注意这里计时是多少多少秒，到实际显示需要转换成游戏中的"日期“等数值，比如10秒后是几点几分等。
+        }
+        else{
+            Debug.LogError("gameTimeText 未绑定！");
+        }
+    }
+
+    // 修改时间倍率
+    public void SetTimeScale(float newScale)
     {
-        
+        timeScale = Mathf.Clamp(newScale, 0.1f, 10f); // 限制倍率范围在（0.1-10）之间
+        //具体倍率输入即可，这里做了范围限制
     }
 }
