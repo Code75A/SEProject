@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class TaskManager : MonoBehaviour
 {
+    public static TaskManager Instance { get; private set; }
     public PawnManager pawnManager; // 引用唯一的 PawnManager 对象
 
     public enum TaskTypes{
@@ -23,6 +24,15 @@ public class TaskManager : MonoBehaviour
 
     private const int MAX_TASKS_PER_FRAME = 5; // 每帧检测任务上限
 
+    void Awake(){
+        if (Instance == null){
+            Instance = this;
+        }
+        else{
+            Destroy(gameObject);
+        }
+    }
+    
     // Start is called before the first frame update
     void Start(){
         pawnManager = FindObjectOfType<PawnManager>(); // 获取 PawnManager 实例
