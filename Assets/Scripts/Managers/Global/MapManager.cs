@@ -107,7 +107,8 @@ public class MapManager : MonoBehaviour
             if (hitSprite.collider != null){
             //TODO： 加入更多Tag区分交互对象
             //&& hitSprite.collider.gameObject.CompareTag("Interactable"))
-                Debug.Log("点击到了 Sprite: " + hitSprite.collider.gameObject.name);
+                
+                //Debug.Log("点击到了 Sprite: " + hitSprite.collider.gameObject.name);
                 return; 
             }
             

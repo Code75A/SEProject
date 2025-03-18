@@ -36,4 +36,16 @@ public class CropManager : MonoBehaviour
         cropList.Add(new Crop{id = 4, name="葡萄"});
         cropList.Add(new Crop{id = 5, name="树"});
     }
+    
+    public Crop GetCrop(int id){
+        //未来：Cache
+        foreach (var crop in cropList){
+            if (crop.id == id){
+                return crop;
+            }
+        }
+
+        Debug.LogError("GetCrop收到无效id: " + id);
+        return null;
+    }
 }
