@@ -1978,6 +1978,7 @@ GameObject:
   - component: {fileID: 988757800}
   - component: {fileID: 988757799}
   - component: {fileID: 988757798}
+  - component: {fileID: 988757801}
   m_Layer: 0
   m_Name: Stage
   m_TagString: Untagged
@@ -2038,6 +2039,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   uiManager: {fileID: 398816334}
+--- !u!114 &988757801
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 988757796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b34299d481bb004f9c14c64aef89028, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  uiManager: {fileID: 398816334}
+  slManager: {fileID: 398816328}
+  pawnManager: {fileID: 398816330}
+  itemManager: {fileID: 398816336}
+  buildManager: {fileID: 988757800}
+  cropManager: {fileID: 988757799}
 --- !u!1 &1022533043
 GameObject:
   m_ObjectHideFlags: 0

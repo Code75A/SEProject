@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 using System.Collections.Generic;
 using System;
 using System.Data;
+using System.Threading.Tasks;
 
 
 public class MapManager : MonoBehaviour
@@ -13,6 +14,7 @@ public class MapManager : MonoBehaviour
     public const int MAP_SIZE = 64;
 
     public class MapData{
+        public Vector3Int position;
         public TileBase texture;
         public tileTypes type;
 
@@ -22,9 +24,7 @@ public class MapManager : MonoBehaviour
         public bool has_building = false;
         //has_item：has_item = true 后通过item的类型判断
 
-            //TODO :ItemInstance类
-            public class ItemInstance{};
-        public bool has_item = false; public ItemInstance item = null;
+        public bool has_item = false; public ItemInstanceManager.ItemInstance item = null;
 
         //用于维护寻路点阵图
         public bool can_walk = true;
@@ -62,6 +62,7 @@ public class MapManager : MonoBehaviour
                 mapDatas[x, y] = new MapData();
                 mapDatas[x, y].type = tileTypes.grass;
                 mapDatas[x, y].texture = tiles[(int)tileTypes.grass];
+                mapDatas[x, y].position = new Vector3Int(x, y, 0);
             }
         }
     }
@@ -143,6 +144,7 @@ public class MapManager : MonoBehaviour
                         if(building.type == BuildManager.BuildingType.Dev || building.type == BuildManager.BuildingType.Farm){
                             landTilemap.SetTile(cellPos, clickedData.texture);
                         }
+
                     }
                 }
             }
@@ -168,13 +170,14 @@ public class MapManager : MonoBehaviour
     }
     void SetTilePrint(MapData data, BuildManager.Building building){
 
+        TaskManager.Instance.AddTask(data.position, TaskManager.TaskTypes.Build);
+
         data.has_print = true;
         data.has_item = true;
         data.can_build = false;
         data.can_plant = false;
 
-        data.item = new MapData.ItemInstance();
-        //data.item = new ItemInstance(Print);
+        data.item = ItemInstanceManager.Instance.SpawnItem(data.position, building.id, ItemInstanceManager.ItemInstanceType.PrintItemInstance);
     }
     void SetTileFarm(MapData data, BuildManager.Building building){
     
@@ -192,8 +195,7 @@ public class MapManager : MonoBehaviour
         data.can_build = false;
         data.can_plant = true;
 
-        data.item = new MapData.ItemInstance();
-        //data.item = new ItemInstance(Farm);
+        data.item = ItemInstanceManager.Instance.SpawnItem(data.position, building.id, ItemInstanceManager.ItemInstanceType.BuildingInstance);
     }
 
     bool IsInBoard(Vector3Int pos){
