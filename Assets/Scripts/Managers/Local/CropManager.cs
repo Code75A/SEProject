@@ -8,8 +8,11 @@ public class CropManager : MonoBehaviour
     public class Crop{
         public int id;
         public string name;
+        public Sprite texture;
     }
     public List<Crop> cropList = new List<Crop>();
+    const int tempCropSpritesCount = 6;
+    public Sprite[] tempCropSprites = new Sprite[tempCropSpritesCount];
 
     //单例模式
     void Awake(){
