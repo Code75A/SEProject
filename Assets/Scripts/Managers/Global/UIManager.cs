@@ -39,8 +39,6 @@ public class UIManager : MonoBehaviour
     public GameObject[] buildingMenuBars = new GameObject[(int)BuildManager.BuildingType.Total];
     public GameObject[] buildingMenuSquares ;//最多一行放8个
 
-    const int tempBuildingSpritesCount = 6;
-    public Sprite[] tempBuildingSprites = new Sprite[tempBuildingSpritesCount];
 
     //单例模式
     void Awake(){
@@ -137,7 +135,7 @@ public class UIManager : MonoBehaviour
                 buildingMenuSquares[i].GetComponent<RectTransform>().localPosition = current_anchor + square_deltax * index;
             }
 
-            buildingMenuSquares[i].GetComponent<BuildingMenuSquareLoadController>().Init(currentBuildingList[i],tempBuildingSprites[currentBuildingList[i].id]);
+            buildingMenuSquares[i].GetComponent<BuildingMenuSquareLoadController>().Init(currentBuildingList[i], currentBuildingList[i].texture);
 
         }
         
