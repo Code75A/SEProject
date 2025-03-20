@@ -39,7 +39,7 @@ public class ItemInstanceManager : MonoBehaviour
         /// 本项为ItemInstance的模版id, 用于标记在ItemManager/CropManager/BuildManager中的对应的Item/Crop/Building
         /// </summary>
         public int item_id;
-        public Vector2 position;
+        public Vector3Int position;
     }
     public class ToolInstance : ItemInstance{
         public int durability;
@@ -80,7 +80,7 @@ public class ItemInstanceManager : MonoBehaviour
     #region 用于创建各种ItemInstance的子函数
 
     #region (1)主要指定位置和模版
-    private ItemInstance makeToolInstance(int item_id, Vector2 position){
+    private ItemInstance makeToolInstance(int item_id, Vector3Int position){
         ItemManager.Item sample = itemManager.GetItem(item_id, ItemManager.ItemType.Tool);
         if(sample == null){
             UIManager.Instance.DebugTextAdd(
@@ -98,7 +98,7 @@ public class ItemInstanceManager : MonoBehaviour
         }
         return new_ins;
     }
-    private ItemInstance makeMaterialInstance(int item_id, Vector2 position, int amount){
+    private ItemInstance makeMaterialInstance(int item_id, Vector3Int position, int amount){
         ItemManager.Item sample = itemManager.GetItem(item_id, ItemManager.ItemType.Material);
         if(sample == null){
             UIManager.Instance.DebugTextAdd(
@@ -116,7 +116,7 @@ public class ItemInstanceManager : MonoBehaviour
         }
         return new_ins;
     }
-    private ItemInstance makeCropInstance(int crop_id, Vector2 position){
+    private ItemInstance makeCropInstance(int crop_id, Vector3Int position){
         // TODO3: CropManager应该有获得信息的接口
         CropManager.Crop sample = null; // (cropManager.Crop)cropManager.GetCrop(sample_id);
         if(sample == null){
@@ -135,7 +135,7 @@ public class ItemInstanceManager : MonoBehaviour
         }
         return new_ins;
     }
-    private ItemInstance makeBuildingInstance(int building_id, Vector2 position){
+    private ItemInstance makeBuildingInstance(int building_id, Vector3Int position){
         // TODO1: BuildManager应该有获得信息的接口
         BuildManager.Building sample = null; // (buildManager.Building)buildManager.GetBuilding(sample_id);
         if(sample == null){
@@ -154,7 +154,7 @@ public class ItemInstanceManager : MonoBehaviour
         }
         return new_ins;
     }
-    private ItemInstance makePrintInstance(int building_id, Vector2 position){
+    private ItemInstance makePrintInstance(int building_id, Vector3Int position){
         // TODO1: BuildManager应该有获得信息的接口
         BuildManager.Building sample = null; // (buildManager.Building)buildManager.GetBuilding(sample_id);
         if(sample == null){
@@ -205,23 +205,22 @@ public class ItemInstanceManager : MonoBehaviour
     /// <param name="amount">default 1, used for type like `Material`</param>
     /// <returns></returns>
     public ItemInstance SpawnItem(Vector3Int position, int sample_id, ItemInstanceType type, int amount=1){
-        Vector2 pos = new Vector2(position.x, position.y);
         ItemInstance new_ins = null;
         switch (type){
             case ItemInstanceType.ToolInstance:
-                new_ins = makeToolInstance(sample_id, pos);
+                new_ins = makeToolInstance(sample_id, position);
                 break;
             case ItemInstanceType.MaterialInstance:
-                new_ins = makeMaterialInstance(sample_id, pos, amount);
+                new_ins = makeMaterialInstance(sample_id, position, amount);
                 break;
             case ItemInstanceType.CropInstance:
-                new_ins = makeCropInstance(sample_id, pos);
+                new_ins = makeCropInstance(sample_id, position);
                 break;
             case ItemInstanceType.BuildingInstance:
-                new_ins = makeBuildingInstance(sample_id, pos);
+                new_ins = makeBuildingInstance(sample_id, position);
                 break;
             case ItemInstanceType.PrintItemInstance:
-                new_ins = makePrintInstance(sample_id, pos);
+                new_ins = makePrintInstance(sample_id, position);
                 break;
             default:
                 UIManager.Instance.DebugTextAdd(
