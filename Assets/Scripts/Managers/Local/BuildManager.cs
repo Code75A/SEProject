@@ -73,6 +73,18 @@ public class BuildManager : MonoBehaviour
         buildingLists[BuildingType.Farm].Add(new Building{id = 5, name="农田", type = BuildingType.Farm, width = 1, height = 1, durability = -1, can_build = false, can_walk = false, can_plant = true});
     }
 
+    public Building GetBuilding(int id){
+        //TODO:CACHE
+        
+        foreach(var list in buildingLists.Values){
+            foreach(var building in list){
+                if(building.id == id)
+                    return building;
+            }
+        }
+        return null;
+    }
+
     /// <summary>
     /// 将type类型的建筑列表加载到currentBuildingList，返回值该List传递回uiManager
     /// </summary>
