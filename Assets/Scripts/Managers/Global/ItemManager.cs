@@ -19,7 +19,7 @@ public class ItemManager : MonoBehaviour
         else{
             Destroy(gameObject);
             UIManager.Instance.DebugTextAdd(
-                "Error: Your operation of initing the second ItemManager instance FAILED, becauese it's not allowed. ");
+                "<<Error>> Initing the second ItemManager instance FAILED, becauese it's not allowed. ");
         }
     }
 
@@ -42,7 +42,7 @@ public class ItemManager : MonoBehaviour
         public int id;
         public string name;
         public ItemType type;
-        public SpriteRenderer texture;
+        public Sprite texture;
     }
     public class Tool : Item{
         // TODO: EnhanceType应该归Tool所有吗？还是直接为小人建立属性列表，然后引用到Tool实现内？
