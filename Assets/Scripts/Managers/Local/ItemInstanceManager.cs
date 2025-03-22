@@ -23,9 +23,11 @@ public class ItemInstanceManager : MonoBehaviour
         else{
             Destroy(gameObject);
             UIManager.Instance.DebugTextAdd(
-                "Error: Your operation of initing the second ItemManager instance FAILED, becauese it's not allowed. ");
+                "<<Error>> Initing the second ItemManager instance FAILED, becauese it's not allowed. ");
         }
     }
+
+    public GameObject itemInstance;
 
     //====================================ItemInstance Class Part====================================
     public enum ItemInstanceType{
@@ -40,6 +42,7 @@ public class ItemInstanceManager : MonoBehaviour
         /// </summary>
         public int item_id;
         public Vector3Int position;
+        public GameObject instance;
     }
     public class ToolInstance : ItemInstance{
         public int durability;
@@ -79,12 +82,24 @@ public class ItemInstanceManager : MonoBehaviour
     
     #region 用于创建各种ItemInstance的子函数
 
+    #region (0)
+    /// <summary>
+    /// 添加一个ItemInstance到列表中，并Instantiate
+    /// </summary>
+    /// <param name="new_ins"></param>
+    public void initInstance(ItemInstance new_ins, Sprite texture){
+        new_ins.instance = Instantiate(itemInstance, this.transform); 
+        new_ins.instance.GetComponent<SpriteRenderer>().sprite = texture;
+        //TODO: new_ins.instance.transform
+    }
+    #endregion
+
     #region (1)主要指定位置和模版
-    private ItemInstance makeToolInstance(int item_id, Vector3Int position){
+    public ItemInstance makeToolInstance(int item_id, Vector3Int position){
         ItemManager.Item sample = itemManager.GetItem(item_id, ItemManager.ItemType.Tool);
         if(sample == null){
             UIManager.Instance.DebugTextAdd(
-               "【Error】Spawning ToolInstance FAILED, because the item_id for Tool is not found in ItemManager. "
+               "<<Error>> Spawning ToolInstance FAILED, because the item_id for Tool is not found in ItemManager. "
             );
             return null;
         }
@@ -93,16 +108,14 @@ public class ItemInstanceManager : MonoBehaviour
             id=GetNewId(), type=ItemInstanceType.ToolInstance, item_id=item_id, position=position, 
             durability=((ItemManager.Tool)sample).max_durability
         };
-        if(new_ins != null){
-            itemInstanceList.Add(new_ins);
-        }
+        initInstance(new_ins, sample.texture);
         return new_ins;
     }
-    private ItemInstance makeMaterialInstance(int item_id, Vector3Int position, int amount){
+    public ItemInstance makeMaterialInstance(int item_id, Vector3Int position, int amount){
         ItemManager.Item sample = itemManager.GetItem(item_id, ItemManager.ItemType.Material);
         if(sample == null){
             UIManager.Instance.DebugTextAdd(
-               "【Error】Spawning MaterialInstance FAILED: the item_id for Material is not found in ItemManager. "
+               "<<Error>> Spawning MaterialInstance FAILED: the item_id for Material is not found in ItemManager. "
             );
             return null;
         }
@@ -111,17 +124,14 @@ public class ItemInstanceManager : MonoBehaviour
             id=GetNewId(), type=ItemInstanceType.MaterialInstance, item_id=item_id, position=position, 
             amount=amount
         };
-        if(new_ins != null){
-            itemInstanceList.Add(new_ins);
-        }
+        initInstance(new_ins, sample.texture);
         return new_ins;
     }
-    private ItemInstance makeCropInstance(int crop_id, Vector3Int position){
-        // TODO3: CropManager应该有获得信息的接口
-        CropManager.Crop sample = null; // (cropManager.Crop)cropManager.GetCrop(sample_id);
+    public ItemInstance makeCropInstance(int crop_id, Vector3Int position){
+        CropManager.Crop sample = cropManager.GetCrop(crop_id);
         if(sample == null){
             UIManager.Instance.DebugTextAdd(
-               "【Error】Spawning an Cropinstance FAILED: the crop_id is not found in CropManager. "
+               "<<Error>>Spawning an Cropinstance FAILED: the crop_id is not found in CropManager. "
             );
             return null;
         }
@@ -130,17 +140,14 @@ public class ItemInstanceManager : MonoBehaviour
             id=GetNewId(), type=ItemInstanceType.CropInstance, item_id=crop_id, position=position, 
             growth_countdown=0  //sample.max_growth
         };
-        if(new_ins != null){
-            itemInstanceList.Add(new_ins);
-        }
+        initInstance(new_ins, sample.texture);
         return new_ins;
     }
-    private ItemInstance makeBuildingInstance(int building_id, Vector3Int position){
-        // TODO1: BuildManager应该有获得信息的接口
-        BuildManager.Building sample = null; // (buildManager.Building)buildManager.GetBuilding(sample_id);
+    public ItemInstance makeBuildingInstance(int building_id, Vector3Int position){
+        BuildManager.Building sample = buildManager.GetBuilding(building_id);
         if(sample == null){
             UIManager.Instance.DebugTextAdd(
-               "【Error】Spawning an BuildingInstance FAILED: the building_id is not found in BuildManager. "
+               "<<Error>> Spawning an BuildingInstance FAILED: the building_id is not found in BuildManager. "
             );
             return null;
         }
@@ -149,17 +156,14 @@ public class ItemInstanceManager : MonoBehaviour
             id=GetNewId(), type=ItemInstanceType.BuildingInstance, item_id=building_id, position=position, 
             durability=0        //sample.max_durability
         };
-        if(new_ins != null){
-            itemInstanceList.Add(new_ins);
-        }
+        initInstance(new_ins, sample.texture);
         return new_ins;
     }
-    private ItemInstance makePrintInstance(int building_id, Vector3Int position){
-        // TODO1: BuildManager应该有获得信息的接口
-        BuildManager.Building sample = null; // (buildManager.Building)buildManager.GetBuilding(sample_id);
+    public ItemInstance makePrintInstance(int building_id, Vector3Int position){
+        BuildManager.Building sample = buildManager.GetBuilding(building_id);
         if(sample == null){
             UIManager.Instance.DebugTextAdd(
-               "【Error】Spawning an PrintInstance FAILED: the building_id is not found in BuildManager. "
+               "<<Error>> Spawning an PrintInstance FAILED: the building_id is not found in BuildManager. "
             );
             return null;
         }
@@ -168,13 +172,11 @@ public class ItemInstanceManager : MonoBehaviour
             id=GetNewId(), type=ItemInstanceType.PrintItemInstance, item_id=building_id, position=position, 
             material_list=new Dictionary<int, PrintInstance.Progress>()
         };
-        // TODO2: 从BuildManager中获取的Building应当提供蓝图所需材料列表
+        initInstance(new_ins, BuildManager.Instance.printSprite);
+        // TODO: 从BuildManager中获取的Building应当提供蓝图所需材料列表
         // foreach (var it in sample.material_list){
         //    ((PrintInstance)new_ins).material_list.Add(it.Key, new PrintInstance.Progress{current=0, need=it.Value});
         // }
-        if(new_ins != null){
-            itemInstanceList.Add(new_ins);
-        }
         return new_ins;
     }
     #endregion
@@ -224,9 +226,12 @@ public class ItemInstanceManager : MonoBehaviour
                 break;
             default:
                 UIManager.Instance.DebugTextAdd(
-                    "【Error】Spawning an ItemInstance FAILED: the type is not found in ItemInstanceManager. "
+                    "<<Error>>Spawning an ItemInstance FAILED: the type is not found in ItemInstanceManager. "
                 );
                 break;
+        }
+        if(new_ins != null){
+            itemInstanceList.Add(new_ins);
         }
         return new_ins;
     }
@@ -241,5 +246,6 @@ public class ItemInstanceManager : MonoBehaviour
         }
         return aim_ins;
     }
+
 
 }
