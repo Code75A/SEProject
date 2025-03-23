@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.VersionControl;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class ItemInstanceManager : MonoBehaviour
 {
@@ -26,6 +28,11 @@ public class ItemInstanceManager : MonoBehaviour
                 "<<Error>> Initing the second ItemManager instance FAILED, becauese it's not allowed. ");
         }
     }
+
+    //<代码源：3.24Update --cjh >
+    public Tilemap landTilemap;
+    public GameObject content;
+    //</代码源：3.24Update --cjh >
 
     public GameObject itemInstance;
 
@@ -88,9 +95,32 @@ public class ItemInstanceManager : MonoBehaviour
     /// </summary>
     /// <param name="new_ins"></param>
     public void initInstance(ItemInstance new_ins, Sprite texture){
-        new_ins.instance = Instantiate(itemInstance, this.transform); 
-        new_ins.instance.GetComponent<SpriteRenderer>().sprite = texture;
+        
         //TODO: new_ins.instance.transform
+
+        //<代码源：3.24Update --cjh >
+        Vector3 worldPosition = landTilemap.GetCellCenterWorld(new_ins.position);
+        Vector3 localPosition = this.transform.InverseTransformPoint(worldPosition);
+
+        new_ins.instance = Instantiate(itemInstance,this.transform); 
+        new_ins.instance.transform.position = worldPosition;
+        
+        // 消除缩放影响
+        //Vector3 managerScale = this.transform.lossyScale;
+        Vector3 contentLossyScale = content.transform.lossyScale;
+        Vector3 contentLocalScale = content.transform.localScale;
+        Vector3 totalScale = new Vector3(
+            contentLocalScale.x / contentLossyScale.x,
+            contentLocalScale.y / contentLossyScale.y,
+            contentLocalScale.z / contentLossyScale.z
+        );
+
+        new_ins.instance.transform.localScale = totalScale ;
+
+        new_ins.instance.GetComponent<SpriteRenderer>().sprite = texture;
+        
+        new_ins.id = GetNewId();
+        //</代码源：3.24Update --cjh >
     }
     #endregion
 
@@ -189,7 +219,12 @@ public class ItemInstanceManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        //<代码源：3.24Update --cjh >
+
+        // 同步尺寸
+        GetComponent<RectTransform>().sizeDelta = content.GetComponent<RectTransform>().sizeDelta;
+
+        //</代码源：3.24Update --cjh >
     }
 
     // Update is called once per frame

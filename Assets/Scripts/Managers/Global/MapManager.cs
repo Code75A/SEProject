@@ -40,8 +40,6 @@ public class MapManager : MonoBehaviour
     }
     
     public Tilemap landTilemap;
-    public Tilemap buildingTilemap;
-
     public enum tileTypes{
         grass,path,water,tree,farm,total
     }
