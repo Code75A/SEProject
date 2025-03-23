@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
+    //NOTE: Grid.Height/Width = tilemap.Size * tilemap.Scale * Content.Scale 
     public static UIManager Instance { get; private set; }
     public BuildManager buildManager = BuildManager.Instance;
 
