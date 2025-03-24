@@ -1295,7 +1295,7 @@ RectTransform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 14.985999, y: 35.09272, z: 35.09272}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 338176608}
   m_Father: {fileID: 1818987302}
@@ -2394,7 +2394,7 @@ RectTransform:
   m_GameObject: {fileID: 1740071163}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 6.25, y: 6.25, z: 6.25}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1818987302}
@@ -2423,7 +2423,6 @@ MonoBehaviour:
   buildManager: {fileID: 988757800}
   cropManager: {fileID: 988757799}
   landTilemap: {fileID: 338176610}
-  grid: {fileID: 576202026}
   content: {fileID: 1818987301}
   itemInstance: {fileID: 2763344453965122472, guid: b05a13837a3fab34fa477246b8a33488, type: 3}
 --- !u!1 &1809658382
