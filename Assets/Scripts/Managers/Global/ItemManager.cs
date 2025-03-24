@@ -57,6 +57,9 @@ public class ItemManager : MonoBehaviour
     }
     public class Material : Item{}
 
+    const int tempItemSpritesCount = 6;
+    public Sprite[] tempItemSprites = new Sprite[tempItemSpritesCount];
+
     //=========================================Manager Fuction Part=======================================
     //=========================================Private Fuction Part=======================================
     public Dictionary<ItemType, List<Item>> itemLists = new Dictionary<ItemType, List<Item>>();
@@ -71,21 +74,21 @@ public class ItemManager : MonoBehaviour
         #region 动态载入初始Item, 仅供测试
         // Tool
         itemLists[ItemType.Tool].Add(
-            new Tool{id = 0, type = ItemType.Tool, texture = null, max_durability = 100,
-                    enhancements = new Dictionary<Tool.EnhanceType, int>{{Tool.EnhanceType.Speed,100},{Tool.EnhanceType.Power,0}}});
+            new Tool{id=0, name="采矿镐", type=ItemType.Tool, texture=tempItemSprites[0], max_durability=100,
+                    enhancements=new Dictionary<Tool.EnhanceType, int>{{Tool.EnhanceType.Speed,100},{Tool.EnhanceType.Power,0}}});
         itemLists[ItemType.Tool].Add(
-            new Tool{id = 1, type = ItemType.Tool, texture = null, max_durability = 100, 
-                    enhancements = new Dictionary<Tool.EnhanceType, int>{{Tool.EnhanceType.Speed,0},{Tool.EnhanceType.Power,200}}});
+            new Tool{id=1, name="镰刀", type=ItemType.Tool, texture=tempItemSprites[1], max_durability=100, 
+                    enhancements=new Dictionary<Tool.EnhanceType, int>{{Tool.EnhanceType.Speed,0},{Tool.EnhanceType.Power,200}}});
         itemLists[ItemType.Tool].Add(
-            new Tool{id = 2, type = ItemType.Tool, texture = null, max_durability = 100, 
-                    enhancements = new Dictionary<Tool.EnhanceType, int>{{Tool.EnhanceType.Speed,10},{Tool.EnhanceType.Power,100}}});
+            new Tool{id=2, name="斧头", type=ItemType.Tool, texture=tempItemSprites[2], max_durability=100, 
+                    enhancements=new Dictionary<Tool.EnhanceType, int>{{Tool.EnhanceType.Speed,10},{Tool.EnhanceType.Power,100}}});
         // Material
         itemLists[ItemType.Material].Add(
-            new Material{id = 3, type = ItemType.Material, texture = null});
+            new Material{id=3, name="蓝莓", type=ItemType.Material, texture=tempItemSprites[3]});
         itemLists[ItemType.Material].Add(
-            new Material{id = 4, type = ItemType.Material, texture = null});
+            new Material{id=4, name="草莓", type=ItemType.Material, texture=tempItemSprites[4]});
         itemLists[ItemType.Material].Add(
-            new Material{id = 5, type = ItemType.Material, texture = null});
+            new Material{id=5, name="木材", type=ItemType.Material, texture=tempItemSprites[5]});
         #endregion 
     }
     void Start()

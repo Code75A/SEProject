@@ -78,6 +78,10 @@ public class ItemInstanceManager : MonoBehaviour
     //======================================Private Fuction Part=====================================
     #region ID生成和分发
     private static int ID_COUNTER = 0;
+    /// <summary>
+    /// 唯一ID生成器，用于为ItemInstance分配唯一ID。
+    /// 我们约定它只被‘initInstance’调用，以确保ID的唯一性。
+    /// </summary>
     private int GetNewId(){
         // TODO: Make sure the ID is unique and safe
         int new_id = ID_COUNTER;
@@ -91,9 +95,11 @@ public class ItemInstanceManager : MonoBehaviour
 
     #region (0)
     /// <summary>
-    /// 添加一个ItemInstance到列表中，并Instantiate
+    /// 为填充了基本后端信息的ItemInstance分配唯一ID；
+    /// 为其instance成员变量装载预制体，设置transforom组件（包括poistion和scale），加载材质；
+    /// 是创建合法ItemInstance的唯一工具。
     /// </summary>
-    /// <param name="new_ins"></param>
+    /// <param name="new_ins">待初始化的ItemInstance，应当被填充基本后端信息</param>
     public void initInstance(ItemInstance new_ins, Sprite texture){
         
         //TODO: new_ins.instance.transform
@@ -135,7 +141,7 @@ public class ItemInstanceManager : MonoBehaviour
         }
         ItemInstance new_ins;
         new_ins = new ToolInstance{
-            id=GetNewId(), type=ItemInstanceType.ToolInstance, item_id=item_id, position=position, 
+            id=-1, type=ItemInstanceType.ToolInstance, item_id=item_id, position=position, 
             durability=((ItemManager.Tool)sample).max_durability
         };
         initInstance(new_ins, sample.texture);
@@ -151,7 +157,7 @@ public class ItemInstanceManager : MonoBehaviour
         }
         ItemInstance new_ins;
         new_ins = new MaterialInstance{
-            id=GetNewId(), type=ItemInstanceType.MaterialInstance, item_id=item_id, position=position, 
+            id=-1, type=ItemInstanceType.MaterialInstance, item_id=item_id, position=position, 
             amount=amount
         };
         initInstance(new_ins, sample.texture);
@@ -167,7 +173,7 @@ public class ItemInstanceManager : MonoBehaviour
         }
         ItemInstance new_ins;
         new_ins = new CropInstance{
-            id=GetNewId(), type=ItemInstanceType.CropInstance, item_id=crop_id, position=position, 
+            id=-1, type=ItemInstanceType.CropInstance, item_id=crop_id, position=position, 
             growth_countdown=0  //sample.max_growth
         };
         initInstance(new_ins, sample.texture);
@@ -183,7 +189,7 @@ public class ItemInstanceManager : MonoBehaviour
         }
         ItemInstance new_ins;
         new_ins = new BuildingInstance{
-            id=GetNewId(), type=ItemInstanceType.BuildingInstance, item_id=building_id, position=position, 
+            id=-1, type=ItemInstanceType.BuildingInstance, item_id=building_id, position=position, 
             durability=0        //sample.max_durability
         };
         initInstance(new_ins, sample.texture);
@@ -199,7 +205,7 @@ public class ItemInstanceManager : MonoBehaviour
         }
         ItemInstance new_ins;
         new_ins = new PrintInstance{
-            id=GetNewId(), type=ItemInstanceType.PrintItemInstance, item_id=building_id, position=position, 
+            id=-1, type=ItemInstanceType.PrintItemInstance, item_id=building_id, position=position, 
             material_list=new Dictionary<int, PrintInstance.Progress>()
         };
         initInstance(new_ins, BuildManager.Instance.printSprite);
@@ -210,6 +216,7 @@ public class ItemInstanceManager : MonoBehaviour
         return new_ins;
     }
     #endregion
+    
     #region (2)PrintInstance转BuildInstance
     // TODO
     #endregion
