@@ -226,7 +226,7 @@ public class ItemInstanceManager : MonoBehaviour
         }
         new_ins = new PrintInstance{
             id=-1, type=ItemInstanceType.PrintItemInstance, item_id=building_id, position=position, 
-            material_list=new List<KeyValuePair<int, PrintInstance.Progress> >()
+            material_list=temp
         };
         InitInstance(new_ins, BuildManager.Instance.printSprite);
         // TODO: 从BuildManager中获取的Building应当提供蓝图所需材料列表
