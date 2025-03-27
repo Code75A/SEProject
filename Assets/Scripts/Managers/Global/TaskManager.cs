@@ -17,7 +17,17 @@ public class TaskManager : MonoBehaviour
     public class Task{
         public Vector3Int position; // 完成此任务的地点
         public TaskTypes type; // 任务类型
+
+        public int id;//任务id，每一个任务的唯一标识
+
     }
+    //todo:添加任务时自动为任务分配id的taskid生成器
+    private int TaskIdUpdate(){
+        //todo:此处应有逻辑生成id，此处仅为示意
+
+        return 0;
+    }
+
 
     private List<Task> availableTaskList = new List<Task>(); // 满足条件的任务列表
     private List<Task> inavailableTaskList = new List<Task>(); // 不满足条件的任务列表
