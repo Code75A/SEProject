@@ -180,7 +180,7 @@ public class ItemInstanceManager : MonoBehaviour
         CropManager.Crop sample = cropManager.GetCrop(crop_id);
         if(sample == null){
             UIManager.Instance.DebugTextAdd(
-               "<<Error>>Spawning an Cropinstance FAILED: the crop_id is not found in CropManager. "
+               "<<Error>>Spawning an CropInstance FAILED: the crop_id is not found in CropManager. "
             );
             return null;
         }
@@ -243,7 +243,7 @@ public class ItemInstanceManager : MonoBehaviour
     #region 3.销毁各种ItemInstance个体的子函数
     /// <summary>
     /// 用于确认DestroyItem函数的销毁模式。
-    /// Hard表示摧毁并产生部分遗留物；Soft表示摧毁但不产生任何遗留物；Middle表示有部分遗留物，配合remain_rate使用。
+    /// Hard表示不产生任何遗留物；Soft表示产生最大数量的遗留物；Middle表示产生部分遗留物，配合remain_rate使用。
     /// </summary>
     public enum DestroyMode{
         Hard, Soft, Middle, Total
@@ -275,10 +275,10 @@ public class ItemInstanceManager : MonoBehaviour
             );
             return;
         }
-        if(mode == DestroyMode.Soft){
+        if(mode == DestroyMode.Hard){
             ;
         }
-        else if (mode == DestroyMode.Hard || mode == DestroyMode.Middle){
+        else if (mode == DestroyMode.Soft || mode == DestroyMode.Middle){
             List<KeyValuePair<int,int> > temp = new List<KeyValuePair<int,int> >();
             int item_id, amount;
             foreach (KeyValuePair<int,PrintInstance.Progress> it in ((PrintInstance)aim_ins).material_list){
