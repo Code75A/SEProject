@@ -173,9 +173,11 @@ public class MapManager : MonoBehaviour
         data.has_building = false;
         data.has_item = false;
 
-        if(data.item != null)
-            //data.item.Destroy();
-        data.item = null;
+        if(data.item != null){
+            ItemInstanceManager.ItemInstance to_destroy = data.item;
+            data.item = null;
+            ItemInstanceManager.Instance.DestroyInstance(to_destroy, ItemInstanceManager.DestroyMode.Soft, 1);
+        }
 
         landTilemap.SetTile(data.position, data.texture);
     }
@@ -244,14 +246,14 @@ public class MapManager : MonoBehaviour
 
             if(mapDatas[cur_check_pos.x, cur_check_pos.y].has_item){
                 ItemInstanceManager.ItemInstance the_instance = mapDatas[cur_check_pos.x, cur_check_pos.y].item;
-                if(the_instance is ItemInstanceManager.MaterialInstance)
+                if(the_instance is not ItemInstanceManager.MaterialInstance)
                     continue;
                 else
                 {   
                     ItemInstanceManager.MaterialInstance the_material_instance = the_instance as ItemInstanceManager.MaterialInstance;
 
-                    if(material_list.Any(kpv=>kpv.Key == the_instance.id)){
-                        KeyValuePair<int, int> result = material_list.Find(kvp => kvp.Key == the_instance.id);
+                    if(material_list.Any(kpv => kpv.Key == the_material_instance.id)){
+                        KeyValuePair<int, int> result = material_list.Find(kvp => kvp.Key == the_material_instance.id);
 
                         int unload_material_num = Math.Min(result.Value, DEBUG_MAX_PILE_NUM - the_material_instance.amount);
                         the_material_instance.amount += unload_material_num;
