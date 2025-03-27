@@ -19,7 +19,7 @@ public class ItemManager : MonoBehaviour
         else{
             Destroy(gameObject);
             UIManager.Instance.DebugTextAdd(
-                "<<Error>> Initing the second ItemManager instance FAILED, becauese it's not allowed. ");
+                "<<Error>> Initing the second ItemManager instance FAILED, because it's not allowed. ");
         }
     }
 
@@ -60,8 +60,8 @@ public class ItemManager : MonoBehaviour
     const int tempItemSpritesCount = 6;
     public Sprite[] tempItemSprites = new Sprite[tempItemSpritesCount];
 
-    //=========================================Manager Fuction Part=======================================
-    //=========================================Private Fuction Part=======================================
+    //=========================================Manager Function Part=======================================
+    //=========================================Private Function Part=======================================
     public Dictionary<ItemType, List<Item>> itemLists = new Dictionary<ItemType, List<Item>>();
     void InitItemListsData(){
         #region itemLists初始化
@@ -97,7 +97,7 @@ public class ItemManager : MonoBehaviour
     }
     //void Update(){}
 
-    //=========================================Public Fuction Part=======================================
+    //=========================================Public Function Part=======================================
     /// <summary>
     /// 获取指定id的Item
     /// </summary>
