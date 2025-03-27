@@ -8,9 +8,6 @@ public class ItemManager : MonoBehaviour
 {
     //======================================Global Reference Part====================================
     public static ItemManager Instance { get; private set; } // 单例模式，确保全局唯一
-    public UIManager uiManager;
-    public SLManager slManager;
-    public PawnManager pawnManager;
     private void Awake(){
         // 实现单例模式，确保 ItemManager 只有一个实例
         if (Instance == null){
