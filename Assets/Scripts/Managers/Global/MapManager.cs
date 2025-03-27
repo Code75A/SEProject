@@ -6,12 +6,16 @@ using System.Collections.Generic;
 using System;
 using System.Data;
 using System.Threading.Tasks;
+using System.Linq;
 
 
 public class MapManager : MonoBehaviour
 {
     public static MapManager Instance { get; private set; }
+
     public const int MAP_SIZE = 64;
+    public Vector3Int[] DIRECTIONS = {new Vector3Int(0, 1, 0), new Vector3Int(1, 0, 0), new Vector3Int(0, -1, 0), new Vector3Int(-1, 0, 0)};
+    public const int DEBUG_MAX_PILE_NUM = 100;//TODO: 区分不同物品堆叠数量
 
     public class MapData{
         public Vector3Int position;
@@ -47,6 +51,9 @@ public class MapManager : MonoBehaviour
     public TileBase[] tiles = new TileBase[(int)tileTypes.total];
 
     public MapData[,] mapDatas = new MapData[MAP_SIZE, MAP_SIZE];
+
+    //TODO: 维护一个bool二位数组，用于优化物品放置时的检测
+    //public bool[,] set_material_state = new bool[MAP_SIZE, MAP_SIZE];
 
     Dictionary<BuildManager.BuildingType, Action<MapData, BuildManager.Building>> buildActions =new Dictionary<BuildManager.BuildingType, Action<MapData, BuildManager.Building>>{
         {BuildManager.BuildingType.Dev, (data, building) => Instance.SetTileDev(data, building)},
@@ -86,7 +93,7 @@ public class MapManager : MonoBehaviour
         }
     }
 
-    public void Start(){
+    void Start(){
         GenerateMapData();
         GenerateMapTiles();
     }
@@ -164,7 +171,13 @@ public class MapManager : MonoBehaviour
 
         data.has_print = false;
         data.has_building = false;
-        data.has_item = false;data.item = null;
+        data.has_item = false;
+
+        if(data.item != null)
+            //data.item.Destroy();
+        data.item = null;
+
+        landTilemap.SetTile(data.position, data.texture);
     }
     void SetTilePrint(MapData data, BuildManager.Building building){
 
@@ -194,6 +207,79 @@ public class MapManager : MonoBehaviour
         data.can_plant = true;
 
         data.item = ItemInstanceManager.Instance.SpawnItem(data.position, building.id, ItemInstanceManager.ItemInstanceType.BuildingInstance);
+    }
+
+    /// <summary>
+    /// 将material_list中的物品以pos为中心放置到地图上。直到地图上无空格或material_list中的物品放置完毕。
+    /// </summary>
+    /// <param name="pos">要放置的中心位置（包含越界检测）</param>
+    /// <param name="material_list">需要放置的(id,num)列表</param>
+    /// <returns></returns>
+    public int SetMaterial(Vector3Int pos, List<KeyValuePair<int, int>> material_list){
+        if(!IsInBoard(pos)){
+            Debug.Log("Error: SetMaterial越界");
+            return -1;
+        }
+
+        bool[,] visited = new bool[MAP_SIZE, MAP_SIZE];
+        for(int i = 0; i < MAP_SIZE; i++){
+            for(int j = 0; j < MAP_SIZE; j++){
+                visited[i, j] = false;
+            }
+        }
+
+        Queue<Vector3Int> checklist = new Queue<Vector3Int>();
+        checklist.Enqueue(pos);
+
+        while(checklist.Count > 0 && material_list.Count > 0){
+            Vector3Int cur_check_pos = checklist.Dequeue();
+            visited[cur_check_pos.x, cur_check_pos.y] = true;
+
+            foreach(Vector3Int dir in DIRECTIONS){
+                Vector3Int next_pos = cur_check_pos + dir;
+                if(IsInBoard(next_pos) && !visited[next_pos.x, next_pos.y]){
+                    checklist.Enqueue(next_pos);
+                }
+            }
+
+            if(mapDatas[cur_check_pos.x, cur_check_pos.y].has_item){
+                ItemInstanceManager.ItemInstance the_instance = mapDatas[cur_check_pos.x, cur_check_pos.y].item;
+                if(the_instance is ItemInstanceManager.MaterialInstance)
+                    continue;
+                else
+                {   
+                    ItemInstanceManager.MaterialInstance the_material_instance = the_instance as ItemInstanceManager.MaterialInstance;
+
+                    if(material_list.Any(kpv=>kpv.Key == the_instance.id)){
+                        KeyValuePair<int, int> result = material_list.Find(kvp => kvp.Key == the_instance.id);
+
+                        int unload_material_num = Math.Min(result.Value, DEBUG_MAX_PILE_NUM - the_material_instance.amount);
+                        the_material_instance.amount += unload_material_num;
+
+                        int material_num = result.Value - unload_material_num;
+                        if (material_num == 0)
+                            material_list.Remove(result);
+                        else
+                            result = new KeyValuePair<int, int>(result.Key, material_num);
+                    }
+                    else continue;
+                }
+            }
+            else{
+                int unload_material_num = Math.Min(material_list[0].Value, DEBUG_MAX_PILE_NUM);
+                mapDatas[cur_check_pos.x, cur_check_pos.y].has_item = true;
+                mapDatas[cur_check_pos.x, cur_check_pos.y].item = ItemInstanceManager.Instance.SpawnItem(
+                    cur_check_pos, material_list[0].Key, ItemInstanceManager.ItemInstanceType.MaterialInstance, unload_material_num);
+                
+                int material_num = material_list[0].Value - unload_material_num;
+                if (material_num == 0)
+                    material_list.RemoveAt(0);
+                else
+                    material_list[0] = new KeyValuePair<int, int>(material_list[0].Key, material_num);
+            }
+        }
+        
+        return 1;
     }
 
     bool IsInBoard(Vector3Int pos){

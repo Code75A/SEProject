@@ -21,9 +21,11 @@ public class BuildManager : MonoBehaviour
         public int width, height;
         public int durability;
 
-        public bool can_build ;
-        public bool can_walk ;
-        public bool can_plant ;
+        public bool can_build;
+        public bool can_walk;
+        public bool can_plant;
+
+        public List<KeyValuePair<int, int>> material_list = new List<KeyValuePair<int, int>>();
 
         //TODO: 拓展为List<bool> cans + enum canTypes{walk,build,plant}
     }
@@ -68,14 +70,30 @@ public class BuildManager : MonoBehaviour
         for(int i = 0; i < (int)BuildingType.Total; i++)
             buildingLists.Add((BuildingType)i, new List<Building>());
         
-        buildingLists[BuildingType.Dev].Add(new Building{id = 0, name="草地", texture = tempBuildingSprites[0], type = BuildingType.Dev, width = 1, height = 1, durability = -1, can_build = true, can_walk = true, can_plant = true});
-        buildingLists[BuildingType.Dev].Add(new Building{id = 1, name="路径", texture = tempBuildingSprites[1], type = BuildingType.Dev, width = 1, height = 1, durability = -1, can_build = false, can_walk = true, can_plant = false});
-        buildingLists[BuildingType.Dev].Add(new Building{id = 2, name="水地", texture = tempBuildingSprites[2], type = BuildingType.Dev, width = 1, height = 1, durability = -1, can_build = false, can_walk = false, can_plant = false});
-        buildingLists[BuildingType.Dev].Add(new Building{id = 3, name="树木", texture = tempBuildingSprites[3], type = BuildingType.Dev, width = 1, height = 1, durability = -1, can_build = false, can_walk = false, can_plant = false});
+        //TODO: 目前的material_list直接参考id，后续应该改为引用
 
-        buildingLists[BuildingType.Wall].Add(new Building{id = 4, name="墙", texture = tempBuildingSprites[4], type = BuildingType.Wall, width = 1, height = 1, durability = 100, can_build = false, can_walk = false, can_plant = false});
+        buildingLists[BuildingType.Dev].Add(new Building{
+            id = 0, name="草地", texture = tempBuildingSprites[0], type = BuildingType.Dev, width = 1, height = 1, durability = -1,
+            can_build = true, can_walk = true, can_plant = true, material_list = new List<KeyValuePair<int, int>>()});
+        buildingLists[BuildingType.Dev].Add(new Building{
+            id = 1, name="路径", texture = tempBuildingSprites[1], type = BuildingType.Dev, width = 1, height = 1, durability = -1,
+            can_build = false, can_walk = true, can_plant = false, material_list = new List<KeyValuePair<int, int>>()});
+        buildingLists[BuildingType.Dev].Add(new Building{
+            id = 2, name="水地", texture = tempBuildingSprites[2], type = BuildingType.Dev, width = 1, height = 1, durability = -1,
+            can_build = false, can_walk = false, can_plant = false, material_list = new List<KeyValuePair<int, int>>()});
+        buildingLists[BuildingType.Dev].Add(new Building{
+            id = 3, name="树木", texture = tempBuildingSprites[3], type = BuildingType.Dev, width = 1, height = 1, durability = -1,
+            can_build = false, can_walk = false, can_plant = false, material_list = new List<KeyValuePair<int, int>>()});
 
-        buildingLists[BuildingType.Farm].Add(new Building{id = 5, name="农田", texture = tempBuildingSprites[5], type = BuildingType.Farm, width = 1, height = 1, durability = -1, can_build = false, can_walk = false, can_plant = true});
+        buildingLists[BuildingType.Wall].Add(new Building{
+            id = 4, name="墙", texture = tempBuildingSprites[4], type = BuildingType.Wall, width = 1, height = 1, durability = 100,
+            can_build = false, can_walk = false, can_plant = false, material_list = new List<KeyValuePair<int, int>>{
+                new KeyValuePair<int, int>(5, 10)
+            }});
+
+        buildingLists[BuildingType.Farm].Add(new Building{
+            id = 5, name="农田", texture = tempBuildingSprites[5], type = BuildingType.Farm, width = 1, height = 1, durability = -1,
+            can_build = false, can_walk = false, can_plant = true, material_list = new List<KeyValuePair<int, int>>()});
     }
 
     public Building GetBuilding(int id){
