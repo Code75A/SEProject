@@ -277,7 +277,9 @@ public class ItemInstanceManager : MonoBehaviour
                 item_id = it.Key;
                 amount = it.Value.current;
                 if(mode == DestroyMode.Middle) amount = (int)System.Math.Truncate((double)(amount*remain_rate));
-                temp.Add(new KeyValuePair<int, int>(item_id, amount));
+                
+                if(amount > 0)
+                    temp.Add(new KeyValuePair<int, int>(item_id, amount));
             }
             int set_res = MapManager.Instance.SetMaterial(aim_ins.position, temp);
             UIManager.Instance.DebugTextAdd("[Log]From mapManager get set-material-result: "+ set_res + ". ");
