@@ -6,7 +6,6 @@ using TMPro;
 public class BuildManager : MonoBehaviour
 {
     public static BuildManager Instance { get; private set; }
-    public UIManager uiManager;
     public enum BuildingType{
         Dev,Wall,Farm,Total
     }
@@ -31,10 +30,12 @@ public class BuildManager : MonoBehaviour
     }
 
     public Dictionary<BuildingType, List<Building>> buildingLists = new Dictionary<BuildingType, List<Building>>();
-    
-    //当前建筑
-    public Building currentBuilding = null;
     public List<Building> currentBuildingList ;
+
+    public Building currentBuilding = null;
+    public GameObject currentBuilding_preview;
+    public SpriteRenderer currentBuilding_preview_spriteRenderer;
+    
 
     const int tempBuildingSpritesCount = 6;
     public Sprite[] tempBuildingSprites = new Sprite[tempBuildingSpritesCount];
@@ -55,8 +56,10 @@ public class BuildManager : MonoBehaviour
     void Start()
     {
         InitBuildingListsData();
-        
-        //uiManager.InitBuildMenu();
+        if(currentBuilding_preview!=null)
+            currentBuilding_preview_spriteRenderer = currentBuilding_preview.GetComponent<SpriteRenderer>();
+        else
+            Debug.LogError("Error：请把Managers下的currentBuilding_preview拖到Stage-BuildManager脚本上！");
     }
 
     void Update()
@@ -117,8 +120,16 @@ public class BuildManager : MonoBehaviour
         return currentBuildingList;
     }
 
-    public void CancelCurrentBuilding(){ currentBuilding = null; }
-    public void SetCurrentBuilding(Building building){ currentBuilding = building; }
+    public void CancelCurrentBuilding(){
+        currentBuilding_preview_spriteRenderer.sprite = null;
+        currentBuilding_preview.SetActive(false);
+        currentBuilding = null;
+    }
+    public void SetCurrentBuilding(Building building){ 
+        currentBuilding_preview_spriteRenderer.sprite = building.texture;
+        currentBuilding_preview.SetActive(true);
+        currentBuilding = building;
+    }
 
 
 }

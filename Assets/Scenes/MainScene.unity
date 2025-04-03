@@ -723,9 +723,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40631c8eaea755447a98d6f5bbecfa2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  uiManager: {fileID: 398816334}
-  slManager: {fileID: 398816328}
-  pawnManager: {fileID: 398816330}
   tempItemSprites:
   - {fileID: 0}
   - {fileID: 0}
@@ -2455,15 +2452,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3901510141715614100, guid: ff831dde6e108f643970f2e13662feb2, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 95.36393
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3901510141715614100, guid: ff831dde6e108f643970f2e13662feb2, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 380.84818
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3901510141715614100, guid: ff831dde6e108f643970f2e13662feb2, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -5621.8525
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3901510141715614100, guid: ff831dde6e108f643970f2e13662feb2, type: 3}
       propertyPath: m_LocalRotation.w
@@ -2546,12 +2543,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b34299d481bb004f9c14c64aef89028, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  uiManager: {fileID: 398816334}
-  slManager: {fileID: 398816328}
-  pawnManager: {fileID: 398816330}
-  itemManager: {fileID: 398816336}
-  buildManager: {fileID: 988757800}
-  cropManager: {fileID: 988757799}
+  ISDEBUGMODE: 1
   landTilemap: {fileID: 338176610}
   content: {fileID: 1818987301}
   itemInstance: {fileID: 2763344453965122472, guid: b05a13837a3fab34fa477246b8a33488, type: 3}
