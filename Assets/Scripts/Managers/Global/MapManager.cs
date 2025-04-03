@@ -134,7 +134,7 @@ public class MapManager : MonoBehaviour
                         UIManager.Instance.DebugTextAdd("放置建筑: " + building.name);
 
                         //非Dev建筑占地特判
-                        if(building.type != BuildManager.BuildingType.Dev && (clickedData.has_building || clickedData.has_print)){
+                        if(building.type != BuildManager.BuildingType.Dev && ( !clickedData.can_build )){
                             Debug.Log("此处已有建筑/蓝图，无法放置");
                             return;
                         }
