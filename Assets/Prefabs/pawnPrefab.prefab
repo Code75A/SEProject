@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: 3591461853043865345}
   - component: {fileID: 8514199920401703759}
   - component: {fileID: 2346941448636275324}
+  - component: {fileID: 9115942108426609526}
+  - component: {fileID: 7150357905719140314}
   m_Layer: 0
   m_Name: pawnPrefab
   m_TagString: Untagged
@@ -158,3 +160,27 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &9115942108426609526
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1915718262984641785}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93d454b5481ff474bb0856adadec749b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &7150357905719140314
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1915718262984641785}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88199060229fa424c8c8ed2b36ff8b3f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
