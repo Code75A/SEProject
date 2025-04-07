@@ -8,9 +8,6 @@ public class ItemManager : MonoBehaviour
 {
     //======================================Global Reference Part====================================
     public static ItemManager Instance { get; private set; } // 单例模式，确保全局唯一
-    public UIManager uiManager;
-    public SLManager slManager;
-    public PawnManager pawnManager;
     private void Awake(){
         // 实现单例模式，确保 ItemManager 只有一个实例
         if (Instance == null){
@@ -103,16 +100,8 @@ public class ItemManager : MonoBehaviour
     /// </summary>
     public Item GetItem(int item_id, ItemType type = ItemType.Total){
         Item item = null;
-        if(type != ItemType.Total){
+        if(type != ItemType.Total)
             item = itemLists[type].Find(c => c.id == item_id);
-            
-            if(item is null){
-                UIManager.Instance.DebugTextAdd(
-                    "[Log]Getting Item FAILED: the item_id "+ item_id +" is not found in "+type.ToString()+" List of ItemManager. "
-                );
-            }
-            return item;
-        }
         else{
             for(ItemType i = 0; i < ItemType.Total; i++){
                 if(itemLists[i] is not null)
@@ -120,13 +109,34 @@ public class ItemManager : MonoBehaviour
                 if(item is not null)
                     break;
             }
-
-            if(item is null){
-                UIManager.Instance.DebugTextAdd(
-                    "[Log]Getting Item FAILED: the item_id "+ item_id +" is not found in ItemManager. "
-                );
-            }
-            return item;
         }
+        if(item is null){
+            UIManager.Instance.DebugTextAdd(
+                "[Log]Getting Item FAILED: the item_id "+ item_id +" is not found in "+type.ToString()+" List of ItemManager. "
+            );
+        }
+        return item;
+    }
+    /// <summary>
+    /// 获取指定name的Item
+    /// </summary>
+    public Item GetItem(string item_name, ItemType type = ItemType.Total){
+        Item item = null;
+        if(type != ItemType.Total)
+            item = itemLists[type].Find(c => c.name == item_name);
+        else{
+            for(ItemType i = 0; i < ItemType.Total; i++){
+                if(itemLists[i] is not null)
+                    item = itemLists[i].Find(c => c.name == item_name);
+                if(item is not null)
+                    break;
+            }
+        }
+        if(item is null){
+            UIManager.Instance.DebugTextAdd(
+                "[Log]Getting Item FAILED: the item_name "+ item_name +" is not found in "+type.ToString()+" List of ItemManager. "
+            );
+        }
+        return item;
     }
 }
