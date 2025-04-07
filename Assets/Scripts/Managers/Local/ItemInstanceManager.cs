@@ -14,13 +14,6 @@ public class ItemInstanceManager : MonoBehaviour
     public bool ISDEBUGMODE = true;
     //======================================Global Reference Part====================================
     public static ItemInstanceManager Instance { get; private set; } // 单例
-    public UIManager uiManager;
-    public SLManager slManager;
-    public PawnManager pawnManager;
-    public ItemManager itemManager;
-    public BuildManager buildManager;
-    public CropManager cropManager;
-    public MapManager mapManager;
     private void Awake(){
         // 实现单例模式，确保 ItemManager 只有一个实例
         if (Instance == null){
@@ -145,7 +138,7 @@ public class ItemInstanceManager : MonoBehaviour
 
     #region (1)主要指定位置和模版
     public ItemInstance MakeToolInstance(int item_id, Vector3Int position){
-        ItemManager.Item sample = itemManager.GetItem(item_id, ItemManager.ItemType.Tool);
+        ItemManager.Item sample = ItemManager.Instance.GetItem(item_id, ItemManager.ItemType.Tool);
         if(sample == null){
             UIManager.Instance.DebugTextAdd(
                "<<Error>> Spawning ToolInstance FAILED, because the item_id for Tool is not found in ItemManager. "
@@ -161,7 +154,7 @@ public class ItemInstanceManager : MonoBehaviour
         return new_ins;
     }
     public ItemInstance MakeMaterialInstance(int item_id, Vector3Int position, int amount){
-        ItemManager.Item sample = itemManager.GetItem(item_id, ItemManager.ItemType.Material);
+        ItemManager.Item sample = ItemManager.Instance.GetItem(item_id, ItemManager.ItemType.Material);
         if(sample == null){
             UIManager.Instance.DebugTextAdd(
                "<<Error>> Spawning MaterialInstance FAILED: the item_id for Material is not found in ItemManager. "
@@ -177,7 +170,7 @@ public class ItemInstanceManager : MonoBehaviour
         return new_ins;
     }
     public ItemInstance MakeCropInstance(int crop_id, Vector3Int position){
-        CropManager.Crop sample = cropManager.GetCrop(crop_id);
+        CropManager.Crop sample = CropManager.Instance.GetCrop(crop_id);
         if(sample == null){
             UIManager.Instance.DebugTextAdd(
                "<<Error>>Spawning an CropInstance FAILED: the crop_id is not found in CropManager. "
@@ -193,7 +186,7 @@ public class ItemInstanceManager : MonoBehaviour
         return new_ins;
     }
     public ItemInstance MakeBuildingInstance(int building_id, Vector3Int position){
-        BuildManager.Building sample = buildManager.GetBuilding(building_id);
+        BuildManager.Building sample = BuildManager.Instance.GetBuilding(building_id);
         if(sample == null){
             UIManager.Instance.DebugTextAdd(
                "<<Error>> Spawning an BuildingInstance FAILED: the building_id is not found in BuildManager. "
@@ -203,13 +196,13 @@ public class ItemInstanceManager : MonoBehaviour
         ItemInstance new_ins;
         new_ins = new BuildingInstance{
             id=-1, type=ItemInstanceType.BuildingInstance, item_id=building_id, position=position, 
-            durability=0        //sample.max_durability
+            durability=sample.durability
         };
         InitInstance(new_ins, sample.texture);
         return new_ins;
     }
     public ItemInstance MakePrintInstance(int building_id, Vector3Int position){
-        BuildManager.Building sample = buildManager.GetBuilding(building_id);
+        BuildManager.Building sample = BuildManager.Instance.GetBuilding(building_id);
         if(sample == null){
             UIManager.Instance.DebugTextAdd(
                "<<Error>> Spawning an PrintInstance FAILED: the building_id is not found in BuildManager. "
@@ -229,7 +222,6 @@ public class ItemInstanceManager : MonoBehaviour
             material_list=temp
         };
         InitInstance(new_ins, BuildManager.Instance.printSprite);
-        // TODO: 从BuildManager中获取的Building应当提供蓝图所需材料列表
         return new_ins;
     }
     #endregion
@@ -285,9 +277,11 @@ public class ItemInstanceManager : MonoBehaviour
                 item_id = it.Key;
                 amount = it.Value.current;
                 if(mode == DestroyMode.Middle) amount = (int)System.Math.Truncate((double)(amount*remain_rate));
-                temp.Add(new KeyValuePair<int, int>(item_id, amount));
+                
+                if(amount > 0)
+                    temp.Add(new KeyValuePair<int, int>(item_id, amount));
             }
-            int set_res = mapManager.SetMaterial(aim_ins.position, temp);
+            int set_res = MapManager.Instance.SetMaterial(aim_ins.position, temp);
             UIManager.Instance.DebugTextAdd("[Log]From mapManager get set-material-result: "+ set_res + ". ");
         }
         else{
