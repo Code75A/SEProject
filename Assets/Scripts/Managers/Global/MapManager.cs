@@ -190,7 +190,7 @@ public class MapManager : MonoBehaviour
         data.can_build = false;
         data.can_plant = false;
 
-        data.item = ItemInstanceManager.Instance.SpawnItem(data.position, building.id, ItemInstanceManager.ItemInstanceType.PrintItemInstance);
+        data.item = ItemInstanceManager.Instance.SpawnItem(data.position, building.id, ItemInstanceManager.ItemInstanceType.PrintInstance);
     }
     void SetTileFarm(MapData data, BuildManager.Building building){
     
