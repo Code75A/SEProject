@@ -680,7 +680,7 @@ MonoBehaviour:
   debugPanelCanvas: {fileID: 491922574}
   debugTextContent: {fileID: 13902990}
   debugText: {fileID: 514650669}
-  mapScrollRect: {fileID: 1859811467}
+  mapScrollRect: {fileID: 0}
   scrollContentController: {fileID: 1818987303}
   buildingMenuConvas: {fileID: 770107167}
   buildingMenuBar: {fileID: 1178061389931267234, guid: 4b42e0e319b81454e88e7c4adc788534, type: 3}
@@ -2811,9 +2811,9 @@ RectTransform:
   - {fileID: 1740071164}
   m_Father: {fileID: 869078567}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 1918.2081, y: -4491.869}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 3836.416, y: 8983.736}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1818987303
@@ -2843,7 +2843,7 @@ GameObject:
   - component: {fileID: 1859811466}
   - component: {fileID: 1859811469}
   - component: {fileID: 1859811468}
-  - component: {fileID: 1859811467}
+  - component: {fileID: 1859811470}
   m_Layer: 0
   m_Name: Scroll View
   m_TagString: Untagged
@@ -2871,36 +2871,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 266.4178, y: 350.9274}
   m_Pivot: {x: 0, y: 0}
---- !u!114 &1859811467
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1859811465}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Content: {fileID: 1818987302}
-  m_Horizontal: 1
-  m_Vertical: 1
-  m_MovementType: 1
-  m_Elasticity: 0.1
-  m_Inertia: 1
-  m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 1
-  m_Viewport: {fileID: 869078567}
-  m_HorizontalScrollbar: {fileID: 0}
-  m_VerticalScrollbar: {fileID: 0}
-  m_HorizontalScrollbarVisibility: 2
-  m_VerticalScrollbarVisibility: 2
-  m_HorizontalScrollbarSpacing: -3
-  m_VerticalScrollbarSpacing: -3
-  m_OnValueChanged:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!114 &1859811468
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2939,6 +2909,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1859811465}
   m_CullTransparentMesh: 1
+--- !u!114 &1859811470
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1859811465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 570c06f87302cb34fa2d4345bf5ac4e3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Content: {fileID: 1818987302}
+  m_Horizontal: 0
+  m_Vertical: 0
+  m_MovementType: 2
+  m_Elasticity: 0.1
+  m_Inertia: 1
+  m_DecelerationRate: 0.135
+  m_ScrollSensitivity: 1
+  m_Viewport: {fileID: 869078567}
+  m_HorizontalScrollbar: {fileID: 0}
+  m_VerticalScrollbar: {fileID: 0}
+  m_HorizontalScrollbarVisibility: 0
+  m_VerticalScrollbarVisibility: 0
+  m_HorizontalScrollbarSpacing: 0
+  m_VerticalScrollbarSpacing: 0
+  m_OnValueChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  allowKeyboardInput: 1
 --- !u!1 &1930912690
 GameObject:
   m_ObjectHideFlags: 0
@@ -3231,7 +3232,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_FirstSelected: {fileID: 0}
-  m_sendNavigationEvents: 1
+  m_sendNavigationEvents: 0
   m_DragThreshold: 10
 --- !u!4 &2058646117
 Transform:
