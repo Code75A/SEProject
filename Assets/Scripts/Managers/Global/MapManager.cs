@@ -41,6 +41,8 @@ public class MapManager : MonoBehaviour
         public float light = 1.0f;
 
         public float walk_speed = 1.0f;
+        
+        public bool has_pawn = false; //是否有pawn,用于pawn移动判定
     }
     
     public Tilemap landTilemap;
@@ -287,4 +289,35 @@ public class MapManager : MonoBehaviour
     bool IsInBoard(Vector3Int pos){
         return pos.x >= 0 && pos.x < MAP_SIZE && pos.y >= 0 && pos.y < MAP_SIZE;
     }
+    
+    //检测某个格子上是否有pawn
+    public bool HasPawn(Vector3Int pos){
+        if(!IsInBoard(pos)) return false;
+        return mapDatas[pos.x, pos.y].has_pawn;
+    }
+    // 判断指定位置是否已有Pawn
+    public bool HasPawnAt(Vector3Int cellPos){
+        return mapDatas[cellPos.x, cellPos.y].has_pawn;
+    }
+    //设置某个格子上是否有pawn
+    public void SetPawnState(Vector3Int pos, bool hasPawn){
+        if(!IsInBoard(pos)) return;
+        mapDatas[pos.x, pos.y].has_pawn = hasPawn;
+    }
+    //获取世界坐标对应的格子坐标
+
+    public Vector3Int GetCellPosFromWorld(Vector3 worldPos){
+        return landTilemap.WorldToCell(worldPos);
+    }
+    //获取某个地块的移速
+    public float GetWalkSpeedAt(Vector3Int pos){
+        if(!IsInBoard(pos)) return 1.0f;
+        return mapDatas[pos.x, pos.y].walk_speed;
+    }
+    //获取某个地块的可通行情况
+    public bool IsWalkable(Vector3Int pos){
+        if(!IsInBoard(pos)) return false;
+        return mapDatas[pos.x, pos.y].can_walk && !mapDatas[pos.x, pos.y].has_pawn;
+    }
+
 }
