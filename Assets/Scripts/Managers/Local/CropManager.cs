@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -8,11 +9,35 @@ public class CropManager : MonoBehaviour
 {
     public static CropManager Instance { get; private set; }
     const int GROWTH_STAGE_COUNT = 4;
+    //=========================================Env Factor Part=======================================
+    public enum EnvFactorType{
+        Linear, DiffLinear, Total
+    }
+    public class EnvFactor{
+        public virtual float GetImpacted(float origin, float env_data){
+            return origin;
+        }
+    }
+    public class LinearFactor:EnvFactor{
+        public override float GetImpacted(float origin, float env_data){
+            return origin*env_data;
+        }
+    }
+    public class DiffLinearFactor:EnvFactor{
+        public float expect_env;
+        public override float GetImpacted(float origin, float env_data){
+            //TODO: ensure the calculation logic!!!
+            return origin*(1.0f - (Math.Abs(expect_env-env_data)/expect_env));
+        }
+    }
+
     public class Crop{
         public int id;
         public string name;
-        //public Sprite[] texture;
         public float lifetime;
+        // public EnvFactor fertility_factor;
+        // public EnvFactor humidity_factor;
+        // public EnvFactor light_factor;
     }
     public List<Crop> cropList = new List<Crop>();
     const int CropSpritesCount = 6;
@@ -55,9 +80,11 @@ public class CropManager : MonoBehaviour
         Debug.LogError("GetCrop收到无效id: " + id);
         return null;
     }
-    public float GetRealLifetime(Crop crop, float temp_rate=1.0f){
-        // TODO: float GetRealLifetime(Crop crop, ... (Message from Map)){
-        return crop.lifetime * temp_rate;
+    public float GetRealLifetime(Crop crop, MapManager.MapData env_data){
+        float real_lifetime =  crop.lifetime;
+        real_lifetime = real_lifetime * env_data.fertility * env_data.light * Math.Abs(1.0f-env_data.humidity);
+        // TODO: UseFactor to enable different require for different crop
+        return real_lifetime;
     }
     
     public Sprite GetSprite(int crop_id, int growth_stage){ 
