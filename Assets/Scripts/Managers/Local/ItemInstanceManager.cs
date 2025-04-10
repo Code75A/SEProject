@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.PlasticSCM.Editor.WebApi;
 using Unity.VisualScripting;
 using UnityEditor;
@@ -174,6 +175,8 @@ public class ItemInstanceManager : MonoBehaviour
     }
     public ItemInstance MakeCropInstance(int crop_id, Vector3Int position){
         CropManager.Crop sample = CropManager.Instance.GetCrop(crop_id);
+        MapManager.MapData env_data = MapManager.Instance.GetMapData(position);
+        
         if(sample == null){
             UIManager.Instance.DebugTextAdd(
                "<<Error>>Spawning an CropInstance FAILED: the crop_id is not found in CropManager. "
@@ -183,8 +186,7 @@ public class ItemInstanceManager : MonoBehaviour
         ItemInstance new_ins;
         new_ins = new CropInstance{
             id=-1, type=ItemInstanceType.CropInstance, item_id=crop_id, position=position, 
-            growth=0, real_lifetime=CropManager.Instance.GetRealLifetime(sample, 1.0f)
-                //TODO: real_lifetime = CropManager.Instance.GetRealLifetime(sample, Map.getMessage(position))
+            growth=0, real_lifetime=CropManager.Instance.GetRealLifetime(sample, env_data)
         };
         InitInstance(new_ins, CropManager.Instance.GetSprite(crop_id, 0));
         return new_ins;
