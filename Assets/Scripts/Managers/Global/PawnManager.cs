@@ -13,7 +13,7 @@ public class PawnManager : MonoBehaviour{
     public Pawn SelectingPawn; // 当前被选中的 Pawn
     public List<Pawn> pawns = new List<Pawn>(); // 存储所有 Pawn 对象的列表
 
-    public void Awake(){
+    private void Awake(){
         if (Instance == null){
             Instance = this;
         }

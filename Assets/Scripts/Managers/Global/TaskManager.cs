@@ -8,7 +8,6 @@ public class TaskManager : MonoBehaviour
     public static TaskManager Instance { get; private set; }
     public PawnManager pawnManager; // 引用唯一的 PawnManager 对象
 
-    private ItemManager itemManager;
 
 
     public enum TaskTypes{
@@ -78,8 +77,8 @@ public class TaskManager : MonoBehaviour
     //     Debug.LogWarning($"在{maxDistance}米范围内未找到材料(ID:{materialId})");
     //     return null;
     // }
-    private List<Task> availableTaskList = new List<Task>(); // 满足条件的任务列表
-    private List<Task> inavailableTaskList = new List<Task>(); // 不满足条件的任务列表
+    public List<Task> availableTaskList = new List<Task>(); // 满足条件的任务列表
+    public List<Task> inavailableTaskList = new List<Task>(); // 不满足条件的任务列表
 
     private const int MAX_TASKS_PER_FRAME = 5; // 每帧检测任务上限
 
@@ -95,7 +94,6 @@ public class TaskManager : MonoBehaviour
     // Start is called before the first frame update
     void Start(){
         pawnManager = FindObjectOfType<PawnManager>(); // 获取 PawnManager 实例
-        itemManager = ItemManager.Instance;
     }
 
     // Update is called once per frame
