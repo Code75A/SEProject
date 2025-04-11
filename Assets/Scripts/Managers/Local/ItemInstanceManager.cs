@@ -117,10 +117,8 @@ public class ItemInstanceManager : MonoBehaviour
         new_ins.instance = Instantiate(itemInstance,this.transform); 
         //  设置位置
         Vector3 worldPosition = landTilemap.GetCellCenterWorld(new_ins.position);
-        Vector3 localPosition = this.transform.InverseTransformPoint(worldPosition);
         new_ins.instance.transform.position = worldPosition;
         //  消除缩放影响
-        //Vector3 managerScale = this.transform.lossyScale;
         Vector3 contentLossyScale = content.transform.lossyScale;
         Vector3 contentLocalScale = content.transform.localScale;
         Vector3 totalScale = new Vector3(

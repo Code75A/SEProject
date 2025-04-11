@@ -7,7 +7,7 @@ public class TestPawnSpawner : MonoBehaviour
             Debug.Log("P 键被按下");
 
             // 生成一个随机位置的 Pawn
-            Vector2 randomPos = new Vector2(Random.Range(-5, 5), Random.Range(-5, 5));
+            Vector3Int randomPos = new Vector3Int(32+Random.Range(-5, 5), 32+Random.Range(-5, 5),0);
 
             // 调用 PawnManager 的 CreatePawn 方法
             if (PawnManager.Instance != null){

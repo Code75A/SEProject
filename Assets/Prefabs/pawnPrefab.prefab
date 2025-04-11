@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 8514199920401703759}
   - component: {fileID: 2346941448636275324}
   - component: {fileID: 9115942108426609526}
-  - component: {fileID: 7150357905719140314}
   m_Layer: 3
   m_Name: pawnPrefab
   m_TagString: Untagged
@@ -21,21 +20,25 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &3901510141715614100
-Transform:
+--- !u!224 &3901510141715614100
+RectTransform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1915718262984641785}
-  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 14.986, y: 35.09272, z: 35.09272}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 1, y: 1}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!212 &3591461853043865345
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -172,15 +175,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93d454b5481ff474bb0856adadec749b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &7150357905719140314
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1915718262984641785}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 88199060229fa424c8c8ed2b36ff8b3f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  landTilemap: {fileID: 0}
