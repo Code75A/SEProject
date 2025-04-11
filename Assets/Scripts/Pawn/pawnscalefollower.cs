@@ -1,32 +1,71 @@
+
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class PawnScaleFollower : MonoBehaviour{
-    private Vector3 baseScale; // Pawn 原始缩放
+[RequireComponent(typeof(SpriteRenderer))]
+public class PawnScaleFollower : MonoBehaviour 
+{
+    private Vector3 baseScale;
     private Transform tilemapTransform;
-    private Vector3 initialPositionInMap; // Pawn 在地图上的初始相对位置
+    private SpriteRenderer spriteRenderer;
+    private float lastVisibleTime;
 
-    void Start(){
+    void Start() 
+    {
+        spriteRenderer = GetComponent<SpriteRenderer>();
         tilemapTransform = MapManager.Instance.landTilemap.transform;
-        baseScale = transform.localScale; // 初始 scale
-        // 记录 Pawn 在地图上的相对位置
-        initialPositionInMap = tilemapTransform.InverseTransformPoint(transform.position);
+        baseScale = transform.localScale;
+        
+        // 初始化渲染设置
+        spriteRenderer.forceRenderingOff = false;
+        lastVisibleTime = Time.time;
     }
 
-    void Update(){
-        Vector3 mapScale = tilemapTransform.lossyScale;
-        Vector3 cellSize = MapManager.Instance.landTilemap.cellSize;
+    void Update() 
+    {
+        // 安全缩放计算
+        if (tilemapTransform != null) 
+        {
+            Vector3 newScale = new Vector3(
+                baseScale.x * tilemapTransform.lossyScale.x,
+                baseScale.y * tilemapTransform.lossyScale.y,
+                baseScale.z
+            );
+            
+            // 缩放限制保护
+            newScale.x = Mathf.Clamp(newScale.x, 0.1f, 10f);
+            newScale.y = Mathf.Clamp(newScale.y, 0.1f, 10f);
+            
+            transform.localScale = newScale;
+        }
 
-        // 根据地图缩放重新调整 Pawn 的缩放
-        transform.localScale = new Vector3(
-            baseScale.x * mapScale.x * cellSize.x,
-            baseScale.y * mapScale.y * cellSize.y,
-            baseScale.z
-        );
-
-        // 计算 Pawn 在世界坐标系中的位置，保持相对位置不变
-        Vector3 worldPosition = tilemapTransform.TransformPoint(initialPositionInMap);
-        transform.position = worldPosition;
+        // // 消失保护机制
+        // if (spriteRenderer.isVisible) 
+        // {
+        //     lastVisibleTime = Time.time;
+        // }
+        // else if (Time.time - lastVisibleTime > 0.5f) 
+        // {
+        //     Debug.LogWarning("Pawn异常消失，自动重置位置");
+        //     ResetPosition();
+        // }
     }
+
+    // void ResetPosition()
+    // {
+    //     // 确保Z轴在摄像机范围内
+    //     Vector3 newPos = transform.position;
+    //     newPos.z = 0;
+    //     transform.position = newPos;
+        
+    //     // 强制渲染一帧
+    //     spriteRenderer.forceRenderingOff = false;
+    //     lastVisibleTime = Time.time;
+    // }
+
+    // void OnBecameInvisible() 
+    // {
+    //     Debug.Log("Pawn离开视口，尝试自动修复");
+    //     ResetPosition();
+    // }
 }
-
