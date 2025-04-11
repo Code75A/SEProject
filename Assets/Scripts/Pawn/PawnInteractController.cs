@@ -66,8 +66,8 @@ public class PawnInteractController : MonoBehaviour
             //Debug.Log($"移动参数 | 速度: {pawn.moveSpeed} | 帧时间: {Time.deltaTime}");
             Debug.Log($"当前位置: {transform.position} | 目标位置: {targetPosition}");
 
-            //float step = pawn.moveSpeed * Time.deltaTime;
-            float step = 1.0f;
+            float step = pawn.moveSpeed * Time.deltaTime;
+            //float step = 1.0f;
             transform.position = Vector3.MoveTowards(transform.position, targetPosition, step);
 
 
