@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 
 public class PawnManager : MonoBehaviour{
@@ -10,9 +11,9 @@ public class PawnManager : MonoBehaviour{
     public ItemManager ItemManager; // 引用唯一的 ItemManager 对象
     public GameObject pawnPrefab; // Pawn 预设体，用于实例化 Pawn
     public Pawn SelectingPawn; // 当前被选中的 Pawn
-    private List<Pawn> pawns = new List<Pawn>(); // 存储所有 Pawn 对象的列表
+    public List<Pawn> pawns = new List<Pawn>(); // 存储所有 Pawn 对象的列表
 
-    private void Awake(){
+    public void Awake(){
         if (Instance == null){
             Instance = this;
         }
@@ -31,8 +32,10 @@ public class PawnManager : MonoBehaviour{
         public int id;
         public bool isOnTask = false;
         public TaskManager.Task handlingTask = null;
-        public float moveSpeed = 1.0f;
+        public float moveSpeed = 2.0f;
         public float workSpeed = 1.0f;
+
+        public int capacity;//运载容量
         public Vector2 position;
         public ItemManager.Tool handlingTool;
         public List<TaskManager.Task> PawntaskList = new List<TaskManager.Task>();
@@ -44,9 +47,31 @@ public class PawnManager : MonoBehaviour{
             this.position = startPos;
             Instance = GameObject.Instantiate(pawnPrefab, startPos, Quaternion.identity);
             Instance.name = $"Pawn_{id}";
-            PawnInteractController controller = Instance.AddComponent<PawnInteractController>();
-            controller.pawn = this;
+
+            // 获取已经挂在预制体上的 PawnInteractController 脚本
+            PawnInteractController controller = Instance.GetComponent<PawnInteractController>();
+            if (controller != null)
+            {
+                controller.pawn = this; // 关键点
+            }
+            else
+            {
+                Debug.LogWarning("PawnInteractController 没有挂载在 Pawn 预制体上！");
+            }
         }
+    }
+
+    //根据工具增强属性修改移动速度和搬运容量
+    //todo:增加放下工具的处理逻辑，重置基础属性
+
+    public void GetToolAttribute(Pawn pawn, ItemManager.Tool tool){
+        //暂定比例增强，可后续改动算法
+        float baseSpeed = pawn.moveSpeed; 
+        float speedModifier = 1 + (tool.enhancements[ItemManager.Tool.EnhanceType.Speed] / 100f);
+        float actualSpeed = baseSpeed * speedModifier;
+        pawn.moveSpeed = actualSpeed;
+        //todo:搬运容量itemManager.tool.capacity尚未实现，暂时不修改搬运容量
+
     }
 
     public void CreatePawn(Vector2 startPos)
@@ -73,11 +98,13 @@ public class PawnManager : MonoBehaviour{
         SelectingPawn = pawns.Find(pawn => pawn.id == id);
     }
 
-    public void deleteselectPawn(){
-        if (Input.GetMouseButton(1)){
-            SelectingPawn = null;
-        }
-    }
+    //由于暂定右键移动，暂时取消取消选择这部分，或者后续可以改成长按取消选择
+
+    // public void deleteselectPawn(){
+    //     if (Input.GetMouseButton(1)){
+    //         SelectingPawn = null;
+    //     }
+    // }
 
     public void SetSelectingPawn(Pawn pawn){
         if(pawn != null){
@@ -115,7 +142,7 @@ public class PawnManager : MonoBehaviour{
         }
     }
 
-    private void PawnTaskListUpdate(Pawn pawn){
+    public void PawnTaskListUpdate(Pawn pawn){
         if(pawn.handlingTask == null){
             Debug.LogWarning("没有正在处理的任务，无法更新任务列表！");
             return;
@@ -188,6 +215,5 @@ public class PawnManager : MonoBehaviour{
             Debug.Log("任务失败处理失败：Pawn 或 handlingTask 为 null");
         }
     }
-
 
 }
