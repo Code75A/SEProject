@@ -224,7 +224,7 @@ public class MapManager : MonoBehaviour
         data.can_build = false;
         data.can_plant = false;
 
-        data.item = ItemInstanceManager.Instance.SpawnItem(data.position, building.id, ItemInstanceManager.ItemInstanceType.PrintItemInstance);
+        data.item = ItemInstanceManager.Instance.SpawnItem(data.position, building.id, ItemInstanceManager.ItemInstanceType.PrintInstance);
     }
     void SetTileFarm(MapData data, BuildManager.Building building){
     
@@ -336,8 +336,14 @@ public class MapManager : MonoBehaviour
         if(!IsInBoard(pos)) return;
         mapDatas[pos.x, pos.y].has_pawn = hasPawn;
     }
-    //获取世界坐标对应的格子坐标
 
+    //获取某个地格的所有MapData信息
+    public MapData GetMapData(Vector3Int pos){
+        if(!IsInBoard(pos)) return null;
+        return mapDatas[pos.x, pos.y];
+    }
+
+    //获取世界坐标对应的格子坐标
     public Vector3Int GetCellPosFromWorld(Vector3 worldPos){
         return landTilemap.WorldToCell(worldPos);
     }

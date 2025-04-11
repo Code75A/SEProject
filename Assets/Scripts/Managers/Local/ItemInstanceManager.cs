@@ -1,9 +1,12 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.PlasticSCM.Editor.WebApi;
 using Unity.VisualScripting;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.VersionControl;
 using UnityEngine;
@@ -29,12 +32,12 @@ public class ItemInstanceManager : MonoBehaviour
 
     public Tilemap landTilemap;
     public GameObject content;
-
     public GameObject itemInstance;
+    public const float growthPerFrame = 0.1f; 
 
     //====================================ItemInstance Class Part====================================
     public enum ItemInstanceType{
-        ToolInstance, MaterialInstance, CropInstance, BuildingInstance, PrintItemInstance, Total
+        ToolInstance, MaterialInstance, CropInstance, BuildingInstance, PrintInstance, Total
     }
     
     public class ItemInstance{
@@ -54,7 +57,8 @@ public class ItemInstanceManager : MonoBehaviour
         public int amount;
     }
     public class CropInstance : ItemInstance{
-        public int growth_countdown;
+        public float growth;
+        public float real_lifetime;
     }
     public class BuildingInstance : ItemInstance{
         public int durability;
@@ -171,6 +175,8 @@ public class ItemInstanceManager : MonoBehaviour
     }
     public ItemInstance MakeCropInstance(int crop_id, Vector3Int position){
         CropManager.Crop sample = CropManager.Instance.GetCrop(crop_id);
+        MapManager.MapData env_data = MapManager.Instance.GetMapData(position);
+        
         if(sample == null){
             UIManager.Instance.DebugTextAdd(
                "<<Error>>Spawning an CropInstance FAILED: the crop_id is not found in CropManager. "
@@ -180,9 +186,9 @@ public class ItemInstanceManager : MonoBehaviour
         ItemInstance new_ins;
         new_ins = new CropInstance{
             id=-1, type=ItemInstanceType.CropInstance, item_id=crop_id, position=position, 
-            growth_countdown=0  //sample.max_growth
+            growth=0, real_lifetime=CropManager.Instance.GetRealLifetime(sample, env_data)
         };
-        InitInstance(new_ins, sample.texture);
+        InitInstance(new_ins, CropManager.Instance.GetSprite(crop_id, 0));
         return new_ins;
     }
     public ItemInstance MakeBuildingInstance(int building_id, Vector3Int position){
@@ -218,7 +224,7 @@ public class ItemInstanceManager : MonoBehaviour
             // </DEBUG>
         }
         new_ins = new PrintInstance{
-            id=-1, type=ItemInstanceType.PrintItemInstance, item_id=building_id, position=position, 
+            id=-1, type=ItemInstanceType.PrintInstance, item_id=building_id, position=position, 
             material_list=temp
         };
         InitInstance(new_ins, BuildManager.Instance.printSprite);
@@ -249,7 +255,7 @@ public class ItemInstanceManager : MonoBehaviour
             case ItemInstanceType.CropInstance:     
             case ItemInstanceType.BuildingInstance:
                 break;
-            case ItemInstanceType.PrintItemInstance:
+            case ItemInstanceType.PrintInstance:
                 ClearPrintInstance(aim_ins, mode, remain_rate);
                 break;
             default:
@@ -261,7 +267,7 @@ public class ItemInstanceManager : MonoBehaviour
         return;
     }
     public void ClearPrintInstance(ItemInstance aim_ins, DestroyMode mode, float remain_rate){
-        if(aim_ins.type != ItemInstanceType.PrintItemInstance){
+        if(aim_ins.type != ItemInstanceType.PrintInstance){
             UIManager.Instance.DebugTextAdd(
                 "<<Error>>Clearing PrintInstance FAILED: the iteminstance_id "+ aim_ins.id +" is not a PrintInstance. "
             );
@@ -290,18 +296,61 @@ public class ItemInstanceManager : MonoBehaviour
     }
     #endregion
 
+    #region 4.按时间更新各种ItemInstance个体的子函数
+    /// <summary>
+    /// 更新Instance贴图
+    /// </summary>
+    public void renewSprite(ItemInstance ins, Sprite sprite){
+        ins.instance.GetComponent<SpriteRenderer>().sprite = sprite;
+    }
+    /// <summary>
+    /// CropInstance的生长更新
+    /// </summary>
+    public void UpdateAllCropInstance(){
+        float grow, life;
+        int stage, new_stage;
+        foreach (ItemInstance it in itemInstanceLists[ItemInstanceType.CropInstance]){
+            grow = ((CropInstance)it).growth;
+            life = ((CropInstance)it).real_lifetime;
+            if(grow >= life) continue;
+
+            ((CropInstance)it).growth += growthPerFrame;
+            
+            stage = 3*(int)(grow/life);
+            new_stage = 3*(int)((grow+growthPerFrame)/life);
+            if(new_stage > stage){
+                if(new_stage < 0 || new_stage > 3){
+                    UIManager.Instance.DebugTextAdd("<<Error>> illegal growth stage: " + new_stage);
+                }
+                else{
+                    renewSprite(it, CropManager.Instance.GetSprite(it.item_id,new_stage));
+                }
+            }
+            
+        }
+    }
+    #endregion
     // Start is called before the first frame update
+    void InitInstanceListsData(){
+        #region itemInstanceLists初始化
+        itemInstanceLists.Add(ItemInstanceType.ToolInstance, new List<ItemInstance>());
+        itemInstanceLists.Add(ItemInstanceType.MaterialInstance, new List<ItemInstance>());
+        itemInstanceLists.Add(ItemInstanceType.BuildingInstance, new List<ItemInstance>());
+        itemInstanceLists.Add(ItemInstanceType.CropInstance, new List<ItemInstance>());
+        itemInstanceLists.Add(ItemInstanceType.PrintInstance, new List<ItemInstance>());
+        #endregion
+    }
     void Start()
     {
         // 同步尺寸
         GetComponent<RectTransform>().sizeDelta = content.GetComponent<RectTransform>().sizeDelta;
-
+        InitInstanceListsData();
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        UpdateAllCropInstance();
     }
     //======================================Public Function Part=======================================
     
@@ -325,7 +374,7 @@ public class ItemInstanceManager : MonoBehaviour
             case ItemInstanceType.BuildingInstance:
                 new_ins = MakeBuildingInstance(sample_id, position);
                 break;
-            case ItemInstanceType.PrintItemInstance:
+            case ItemInstanceType.PrintInstance:
                 new_ins = MakePrintInstance(sample_id, position);
                 break;
             default:
@@ -335,7 +384,7 @@ public class ItemInstanceManager : MonoBehaviour
                 break;
         }
         if(new_ins != null){
-            itemInstanceList.Add(new_ins);
+            itemInstanceLists[type].Add(new_ins);
         }
         return new_ins;
     }
@@ -354,7 +403,7 @@ public class ItemInstanceManager : MonoBehaviour
         }
         // 进行销毁
         //  从ItemInstanceList中删除
-        itemInstanceList.Remove(aim_ins);
+        itemInstanceLists[aim_ins.type].Remove(aim_ins);
         //  与InitInstance对应 销毁GameObject
         DestroyInstance(aim_ins, destroy_mode, remain_rate);
         //  回收ID
@@ -362,16 +411,27 @@ public class ItemInstanceManager : MonoBehaviour
         return;
     }
 
-    public List<ItemInstance> itemInstanceList = new List<ItemInstance>();
-    public ItemInstance GetInstance(int iteminstance_id){
-        ItemInstance aim_ins = itemInstanceList.Find(c => c.id == iteminstance_id);
+    public Dictionary<ItemInstanceType,List<ItemInstance> > itemInstanceLists = new Dictionary<ItemInstanceType,List<ItemInstance>>();
+    public ItemInstance GetInstance(int iteminstance_id, ItemInstanceType type = ItemInstanceType.Total){
+        ItemInstance aim_ins = null;
+        if(type != ItemInstanceType.Total){
+            aim_ins = itemInstanceLists[type].Find(c => c.id == iteminstance_id);
+        }
+        else{
+            for(ItemInstanceType i = 0; i < ItemInstanceType.Total; i++){
+                if(itemInstanceLists[i] is not null)
+                    aim_ins = itemInstanceLists[i].Find(c => c.id == iteminstance_id);
+                if(aim_ins is not null)
+                    break;
+            }
+        }
+
         if(aim_ins is null){
             UIManager.Instance.DebugTextAdd(
-                "[Log]Getting Item FAILED: the iteminstance_id "+ iteminstance_id +" is not found in ItemInstanceManager. "
+                "[Log]Getting Item FAILED: the iteminstance_id "+ iteminstance_id +" is not found in "+type.ToString()+" List. "
             );
         }
         return aim_ins;
     }
-
 
 }
