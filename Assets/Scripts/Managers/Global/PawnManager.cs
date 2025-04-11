@@ -4,14 +4,19 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class PawnManager : MonoBehaviour{
     public static PawnManager Instance { get; private set; } // 单例模式，确保全局唯一
-    public TaskManager TaskManager; // 引用唯一的 TaskManager 对象
-    public ItemManager ItemManager; // 引用唯一的 ItemManager 对象
+    public TaskManager TaskManager = TaskManager.Instance; // 引用唯一的 TaskManager 对象
+    public ItemManager ItemManager = ItemManager.Instance; // 引用唯一的 ItemManager 对象
     public GameObject pawnPrefab; // Pawn 预设体，用于实例化 Pawn
     public Pawn SelectingPawn; // 当前被选中的 Pawn
     public List<Pawn> pawns = new List<Pawn>(); // 存储所有 Pawn 对象的列表
+    public GameObject spawner; // 生成器对象，用于生成 Pawn
+
+    public Tilemap landTilemap; // 地图的 Tilemap 对象，用于获取格子中心位置
+    public GameObject content; // 地图的内容对象
 
     private void Awake(){
         if (Instance == null){
@@ -36,23 +41,41 @@ public class PawnManager : MonoBehaviour{
         public float workSpeed = 1.0f;
 
         public int capacity;//运载容量
-        public Vector2 position;
+
+        //public Vector2 position; 
+        //需要存储什么样的位置？和transform.position作何区别？是一个快捷访问，还是存储其地格坐标？如果是后者，应该改用Vector3Int --cjh
         public ItemManager.Tool handlingTool;
         public List<TaskManager.Task> PawntaskList = new List<TaskManager.Task>();
         public GameObject Instance;
 
-        public Pawn(int id, Vector2 startPos, GameObject pawnPrefab)
+        public Pawn(int id, Vector3Int startPos, GameObject pawnPrefab)
         {
             this.id = id;
-            this.position = startPos;
-            Instance = GameObject.Instantiate(pawnPrefab, startPos, Quaternion.identity);
+
+            Instance = GameObject.Instantiate(pawnPrefab,PawnManager.Instance.spawner.transform);
             Instance.name = $"Pawn_{id}";
+            
+            // 设置位置
+            Vector3 worldPosition = PawnManager.Instance.landTilemap.GetCellCenterWorld(startPos);
+            this.Instance.transform.position = worldPosition;
+            // 消除缩放影响
+            Vector3 contentLossyScale = PawnManager.Instance.content.transform.lossyScale;
+            Vector3 contentLocalScale = PawnManager.Instance.content.transform.localScale;
+            Vector3 totalScale = new Vector3(
+            contentLocalScale.x / contentLossyScale.x,
+            contentLocalScale.y / contentLossyScale.y,
+            contentLocalScale.z / contentLossyScale.z
+            );
+            Instance.transform.localScale = totalScale ;
+            //Instance.transform.localScale = new Vector3(0.5f, 0.5f, 1);
 
             // 获取已经挂在预制体上的 PawnInteractController 脚本
             PawnInteractController controller = Instance.GetComponent<PawnInteractController>();
             if (controller != null)
             {
                 controller.pawn = this; // 关键点
+                controller.landTilemap = PawnManager.Instance.landTilemap; 
+                controller.content = PawnManager.Instance.content; 
             }
             else
             {
@@ -74,14 +97,14 @@ public class PawnManager : MonoBehaviour{
 
     }
 
-    public void CreatePawn(Vector2 startPos)
+    public void CreatePawn(Vector3Int startPos)
     {
         int newId = pawns.Count + 1;
         Pawn newPawn = new Pawn(newId, startPos, pawnPrefab);
         pawns.Add(newPawn);
     }
     //根据位置创建小人，用于在部分任务中调用
-    public void CreatePawnAtPosition(Vector2 position){
+    public void CreatePawnAtPosition(Vector3Int position){
         CreatePawn(position);
     }
 

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Tilemaps;
 
 public class PawnInteractController : MonoBehaviour
 {
@@ -7,6 +8,9 @@ public class PawnInteractController : MonoBehaviour
     private Vector3 targetPosition;
     private bool isMoving = false;
     private Vector3Int targetCellPos;
+
+    public Tilemap landTilemap;
+    public GameObject content;
 
     void Update()
     {
@@ -27,11 +31,10 @@ public class PawnInteractController : MonoBehaviour
             if (Input.GetMouseButtonDown(1))
             {
                 Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                targetPosition = mouseWorldPos;
-                targetPosition.z = 0; // 确保Z轴为0，避免移动时穿过地面
+                targetCellPos = landTilemap.WorldToCell(mouseWorldPos);
 
-                targetCellPos = MapManager.Instance.GetCellPosFromWorld(targetPosition);
-                
+                targetPosition = landTilemap.GetCellCenterWorld(targetCellPos);
+                //targetPosition.z = 0; // 确保Z轴为0，避免移动时穿过地面
                 // 调试信息
                 if (pawn != null)
                 {
@@ -58,6 +61,7 @@ public class PawnInteractController : MonoBehaviour
                     }
                 }
             }
+
         }
 
         // 移动逻辑
@@ -66,7 +70,9 @@ public class PawnInteractController : MonoBehaviour
             //Debug.Log($"移动参数 | 速度: {pawn.moveSpeed} | 帧时间: {Time.deltaTime}");
             Debug.Log($"当前位置: {transform.position} | 目标位置: {targetPosition}");
 
-            float step = pawn.moveSpeed * Time.deltaTime;
+            float step = pawn.moveSpeed * Time.deltaTime * content.transform.localScale.x;
+            targetPosition = landTilemap.GetCellCenterWorld(targetCellPos);
+
             //float step = 1.0f;
             transform.position = Vector3.MoveTowards(transform.position, targetPosition, step);
 
@@ -138,9 +144,9 @@ public class PawnInteractController : MonoBehaviour
 
     void Start()
     {
-        // 初始化Pawn大小适配Tilemap格子
-        Vector3 cellSize = MapManager.Instance.landTilemap.cellSize;
-        Vector3 mapScale = MapManager.Instance.landTilemap.transform.lossyScale;
-        transform.localScale = new Vector3(cellSize.x * mapScale.x, cellSize.y * mapScale.y, transform.localScale.z);
+        // // 初始化Pawn大小适配Tilemap格子
+        // Vector3 cellSize = MapManager.Instance.landTilemap.cellSize;
+        // Vector3 mapScale = MapManager.Instance.landTilemap.transform.lossyScale;
+        // transform.localScale = new Vector3(cellSize.x * mapScale.x, cellSize.y * mapScale.y, transform.localScale.z);
     }
 }
