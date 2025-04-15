@@ -8,7 +8,7 @@ using UnityEngine.Tilemaps;
 
 public class PawnManager : MonoBehaviour{
     public static PawnManager Instance { get; private set; } // 单例模式，确保全局唯一
-    public TaskManager TaskManager = TaskManager.Instance; // 引用唯一的 TaskManager 对象
+    public TaskManager TaskManager => TaskManager.Instance; // 通过属性访问 TaskManager 实例
     public ItemManager ItemManager = ItemManager.Instance; // 引用唯一的 ItemManager 对象
     public GameObject pawnPrefab; // Pawn 预设体，用于实例化 Pawn
     public Pawn SelectingPawn; // 当前被选中的 Pawn
@@ -33,12 +33,19 @@ public class PawnManager : MonoBehaviour{
     //     CreatePawn(new Vector2(4, 0));
     // }
 
+
+
     public class Pawn{
         public int id;
         public bool isOnTask = false;
         public TaskManager.Task handlingTask = null;
         public float moveSpeed = 2.0f;
         public float workSpeed = 1.0f;
+
+        //工具类型EnhanceType枚举，与小人属性挂钩，itemmanager调用
+        public enum EnhanceType{
+            Speed, Power,capacity, Total
+        }
 
         public int capacity;//运载容量
 
@@ -87,15 +94,15 @@ public class PawnManager : MonoBehaviour{
     //根据工具增强属性修改移动速度和搬运容量
     //todo:增加放下工具的处理逻辑，重置基础属性
 
-    public void GetToolAttribute(Pawn pawn, ItemManager.Tool tool){
-        //暂定比例增强，可后续改动算法
-        float baseSpeed = pawn.moveSpeed; 
-        float speedModifier = 1 + (tool.enhancements[ItemManager.Tool.EnhanceType.Speed] / 100f);
-        float actualSpeed = baseSpeed * speedModifier;
-        pawn.moveSpeed = actualSpeed;
-        //todo:搬运容量itemManager.tool.capacity尚未实现，暂时不修改搬运容量
+    // public void GetToolAttribute(Pawn pawn, ItemManager.Tool tool){
+    //     //暂定比例增强，可后续改动算法
+    //     float baseSpeed = pawn.moveSpeed; 
+    //     float speedModifier = 1 + (tool.enhancements[PawnManager.Pawn.EnhanceType->Speed] / 100f);
+    //     float actualSpeed = baseSpeed * speedModifier;
+    //     pawn.moveSpeed = actualSpeed;
+    //     //todo:搬运容量itemManager.tool.capacity尚未实现，暂时不修改搬运容量
 
-    }
+    // }
 
     public void CreatePawn(Vector3Int startPos)
     {
