@@ -43,9 +43,6 @@ public class ItemManager : MonoBehaviour
     }
     public class Tool : Item{
         // TODO: EnhanceType应该归Tool所有吗？还是直接为小人建立属性列表，然后引用到Tool实现内？
-        public enum EnhanceType{
-            Speed, Power, Total
-        }
         /// <summary>
         /// 工具的强化属性列表，key为强化项id，value为强化值
         /// </summary>
