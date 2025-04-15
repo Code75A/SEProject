@@ -42,11 +42,10 @@ public class ItemManager : MonoBehaviour
         public Sprite texture;
     }
     public class Tool : Item{
-        // TODO: EnhanceType应该归Tool所有吗？还是直接为小人建立属性列表，然后引用到Tool实现内？
         /// <summary>
         /// 工具的强化属性列表，key为强化项id，value为强化值
         /// </summary>
-        public Dictionary<EnhanceType,int> enhancements;
+        public Dictionary<PawnManager.Pawn.EnhanceType,int> enhancements;
         public int max_durability;
     }
     public class Material : Item{}
@@ -69,13 +68,13 @@ public class ItemManager : MonoBehaviour
         // Tool
         itemLists[ItemType.Tool].Add(
             new Tool{id=0, name="采矿镐", type=ItemType.Tool, texture=tempItemSprites[0], max_durability=100,
-                    enhancements=new Dictionary<Tool.EnhanceType, int>{{Tool.EnhanceType.Speed,100},{Tool.EnhanceType.Power,0}}});
+                    enhancements=new Dictionary<PawnManager.Pawn.EnhanceType, int>{{PawnManager.Pawn.EnhanceType.Speed,100},{PawnManager.Pawn.EnhanceType.Power,0}}});
         itemLists[ItemType.Tool].Add(
             new Tool{id=1, name="镰刀", type=ItemType.Tool, texture=tempItemSprites[1], max_durability=100, 
-                    enhancements=new Dictionary<Tool.EnhanceType, int>{{Tool.EnhanceType.Speed,0},{Tool.EnhanceType.Power,200}}});
+                    enhancements=new Dictionary<PawnManager.Pawn.EnhanceType, int>{{PawnManager.Pawn.EnhanceType.Speed,0},{PawnManager.Pawn.EnhanceType.Power,200}}});
         itemLists[ItemType.Tool].Add(
             new Tool{id=2, name="斧头", type=ItemType.Tool, texture=tempItemSprites[2], max_durability=100, 
-                    enhancements=new Dictionary<Tool.EnhanceType, int>{{Tool.EnhanceType.Speed,10},{Tool.EnhanceType.Power,100}}});
+                    enhancements=new Dictionary<PawnManager.Pawn.EnhanceType, int>{{PawnManager.Pawn.EnhanceType.Speed,10},{PawnManager.Pawn.EnhanceType.Power,100}}});
         // Material
         itemLists[ItemType.Material].Add(
             new Material{id=3, name="蓝莓", type=ItemType.Material, texture=tempItemSprites[3]});
