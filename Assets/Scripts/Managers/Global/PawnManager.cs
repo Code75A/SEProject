@@ -7,6 +7,11 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 
 public class PawnManager : MonoBehaviour{
+    // 常量定义
+    public const float MOVESPEED = 2.0f; // 移动速度
+    public const float WORKSPEED = 1.0f; // 工作速度 
+    public const int CAPACITY = 50; // 运载容量
+    
     public static PawnManager Instance { get; private set; } // 单例模式，确保全局唯一
     public TaskManager TaskManager => TaskManager.Instance; // 通过属性访问 TaskManager 实例
     public ItemManager ItemManager = ItemManager.Instance; // 引用唯一的 ItemManager 对象
@@ -39,15 +44,14 @@ public class PawnManager : MonoBehaviour{
         public int id;
         public bool isOnTask = false;
         public TaskManager.Task handlingTask = null;
-        public float moveSpeed = 2.0f;
-        public float workSpeed = 1.0f;
+        public float moveSpeed = MOVESPEED;
+        public float workSpeed = WORKSPEED;
+        public int capacity = CAPACITY;//运载容量
 
         //工具类型EnhanceType枚举，与小人属性挂钩，itemmanager调用
         public enum EnhanceType{
             Speed, Power,capacity, Total
         }
-
-        public int capacity;//运载容量
 
         //public Vector2 position; 
         //需要存储什么样的位置？和transform.position作何区别？是一个快捷访问，还是存储其地格坐标？如果是后者，应该改用Vector3Int --cjh
@@ -93,7 +97,7 @@ public class PawnManager : MonoBehaviour{
 
     // 根据工具增强属性修改移动速度和搬运容量
     // todo:增加放下工具的处理逻辑，重置基础属性
-
+    //调用可能：UI组件直接调用？
     public void GetToolAttribute(Pawn pawn, ItemManager.Tool tool){
         //暂定比例增强，可后续改动算法
         float baseSpeed = pawn.moveSpeed; 
@@ -104,6 +108,20 @@ public class PawnManager : MonoBehaviour{
         //todo:工作速度待考虑，可能不同任务的加成不同
 
     }
+    //后续可能改用selectingPawn直接调用
+    public void HasTool(Pawn pawn, ItemManager.Tool tool){
+        pawn.handlingTool = tool;
+        GetToolAttribute(pawn, tool);
+    }
+    
+    //放下工具，重置属性
+    public void DropTool(Pawn pawn){
+        pawn.handlingTool = null;
+        pawn.moveSpeed = MOVESPEED; // 重置为基础速度
+        pawn.workSpeed = WORKSPEED; // 重置工作速度
+        pawn.capacity = CAPACITY; // 重置容量
+    }
+
 
     public void CreatePawn(Vector3Int startPos)
     {
