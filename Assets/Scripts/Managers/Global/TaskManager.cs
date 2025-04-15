@@ -41,42 +41,6 @@ public class TaskManager : MonoBehaviour
         
         return 0;
     }
-
-    // //查找函数，根据需要材料id进行查找位置
-    // public Vector3? FindNearestMaterialPosition(int materialId, Vector3 centerPos, float maxDistance = 10f)
-    // {
-    //     // 1. 安全获取材料列表
-    //     if (!ItemManager.Instance.itemLists.TryGetValue(ItemType.Material, out List<ItemManager.Item> materials))
-    //     {
-    //         Debug.LogWarning("材料类型未初始化");
-    //         return null;
-    //     }
-
-    //     // 2. 高效筛选与计算
-    //     var nearestMaterial = materials
-    //         .OfType<ItemManager.Material>() // 类型安全转换
-    //         .Where(m => m != null && m.id == materialId) // 非空校验+ID过滤
-    //         .Select(m => new {
-    //             Material = m,
-    //             Distance = Vector3.Distance(
-    //                 new Vector3(centerPos.x, centerPos.y, 0),
-    //                 new Vector3(m.transform.position.x, m.transform.position.y, 0)
-    //             )
-    //         })
-    //         .Where(x => x.Distance <= maxDistance) // 距离过滤
-    //         .OrderBy(x => x.Distance)
-    //         .FirstOrDefault();
-
-    //     // 3. 返回结果
-    //     if (nearestMaterial != null)
-    //     {
-    //         Debug.Log($"找到最近材料(ID:{materialId})，距离：{nearestMaterial.Distance:F2}米");
-    //         return nearestMaterial.Material.transform.position;
-    //     }
-
-    //     Debug.LogWarning($"在{maxDistance}米范围内未找到材料(ID:{materialId})");
-    //     return null;
-    // }
     public List<Task> availableTaskList = new List<Task>(); // 满足条件的任务列表
     public List<Task> inavailableTaskList = new List<Task>(); // 不满足条件的任务列表
 
@@ -146,9 +110,7 @@ public class TaskManager : MonoBehaviour
             materialId: materialId,
             materialAmount: materialAmount,
             materialType: -1 // 默认为-1，表示不需要材料或材料类型未知
-
         );
-        
         availableTaskList.Add(newTask);
     }
 }
