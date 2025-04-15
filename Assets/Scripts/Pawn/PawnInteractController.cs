@@ -100,6 +100,11 @@ public class PawnInteractController : MonoBehaviour
                 }
             }
         }
+        
+        // 检测Q键取消选中Pawn
+        if (Input.GetKeyDown(KeyCode.Q)){
+            PawnManager.Instance.SelectingPawn = null;
+        }
     }
 
     public void SetSelectingPawn()

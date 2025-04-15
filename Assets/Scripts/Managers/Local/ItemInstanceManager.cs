@@ -431,5 +431,36 @@ public class ItemInstanceManager : MonoBehaviour
         }
         return aim_ins;
     }
+    /// 查找给定地址附近最近的指定物品地址
+    /// <param name="item_id">目标物品的id</param>
+    /// <param name="currentPosition">当前地址</param>
+    /// <param name="searchRadius">搜索半径（可选，默认为无限大）</param>
+    /// <returns>最近物品的地址（Vector3Int），如果未找到则返回null</returns>
+    /// 此函数lyq负责，用于运输任务时查询
+    /// todo:目前仅实现最近距离查找，后续需要加入物品数量，地块是否可通行等方面的考虑
+    public Vector3Int? FindNearestItemPosition(int item_id, Vector3Int currentPosition, float searchRadius = float.MaxValue){
+        Vector3Int? NearestPosition = null;
+        float minDistance = float.MaxValue;
+        // 遍历所有ItemInstance列表查找，可以后续优化
+        foreach (var itemList in itemInstanceLists.Values){
+            foreach (var itemInstance in itemList){
+                if (itemInstance.item_id == item_id){
+                    float distance = Vector3Int.Distance(currentPosition, itemInstance.position);
+                    if (distance < minDistance && distance <= searchRadius){
+                        minDistance = distance;
+                        NearestPosition = itemInstance.position;
+                    }
+                }
+            }
+        }
+
+        if (NearestPosition == null){
+            UIManager.Instance.DebugTextAdd(
+                "[Log]Finding Nearest Item FAILED: No item with id " + item_id + " found near position " + currentPosition + "."
+            );
+        }
+
+        return NearestPosition;
+    }
 
 }
