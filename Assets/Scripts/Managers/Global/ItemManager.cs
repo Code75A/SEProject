@@ -68,20 +68,29 @@ public class ItemManager : MonoBehaviour
         // Tool
         itemLists[ItemType.Tool].Add(
             new Tool{id=0, name="采矿镐", type=ItemType.Tool, texture=tempItemSprites[0], max_durability=100,
-                    enhancements=new Dictionary<PawnManager.Pawn.EnhanceType, int>{{PawnManager.Pawn.EnhanceType.Speed,100},{PawnManager.Pawn.EnhanceType.Power,0}}});
+                    enhancements=new Dictionary<PawnManager.Pawn.EnhanceType, int>{
+                        {PawnManager.Pawn.EnhanceType.capacity,0}, 
+                        {PawnManager.Pawn.EnhanceType.Speed,100},
+                        {PawnManager.Pawn.EnhanceType.Power,0}}});
         itemLists[ItemType.Tool].Add(
             new Tool{id=1, name="镰刀", type=ItemType.Tool, texture=tempItemSprites[1], max_durability=100, 
-                    enhancements=new Dictionary<PawnManager.Pawn.EnhanceType, int>{{PawnManager.Pawn.EnhanceType.Speed,0},{PawnManager.Pawn.EnhanceType.Power,200}}});
+                    enhancements=new Dictionary<PawnManager.Pawn.EnhanceType, int>{
+                        {PawnManager.Pawn.EnhanceType.capacity,0}, 
+                        {PawnManager.Pawn.EnhanceType.Speed,0},
+                        {PawnManager.Pawn.EnhanceType.Power,200}}});
         itemLists[ItemType.Tool].Add(
             new Tool{id=2, name="斧头", type=ItemType.Tool, texture=tempItemSprites[2], max_durability=100, 
-                    enhancements=new Dictionary<PawnManager.Pawn.EnhanceType, int>{{PawnManager.Pawn.EnhanceType.Speed,10},{PawnManager.Pawn.EnhanceType.Power,100}}});
+                    enhancements=new Dictionary<PawnManager.Pawn.EnhanceType, int>{
+                        {PawnManager.Pawn.EnhanceType.capacity,0}, 
+                        {PawnManager.Pawn.EnhanceType.Speed,10},
+                        {PawnManager.Pawn.EnhanceType.Power,100}}});
         // Material
         itemLists[ItemType.Material].Add(
-            new Material{id=3, name="蓝莓", type=ItemType.Material, texture=tempItemSprites[3]});
+            new Material{id=4, name="蓝莓", type=ItemType.Material, texture=tempItemSprites[3]});
         itemLists[ItemType.Material].Add(
-            new Material{id=4, name="草莓", type=ItemType.Material, texture=tempItemSprites[4]});
+            new Material{id=5, name="草莓", type=ItemType.Material, texture=tempItemSprites[4]});
         itemLists[ItemType.Material].Add(
-            new Material{id=5, name="木材", type=ItemType.Material, texture=tempItemSprites[5]});
+            new Material{id=6, name="木材", type=ItemType.Material, texture=tempItemSprites[5]});
         #endregion 
     }
     void Start()
