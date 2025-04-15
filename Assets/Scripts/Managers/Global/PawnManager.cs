@@ -91,22 +91,23 @@ public class PawnManager : MonoBehaviour{
         }
     }
 
-    //根据工具增强属性修改移动速度和搬运容量
-    //todo:增加放下工具的处理逻辑，重置基础属性
+    // 根据工具增强属性修改移动速度和搬运容量
+    // todo:增加放下工具的处理逻辑，重置基础属性
 
-    // public void GetToolAttribute(Pawn pawn, ItemManager.Tool tool){
-    //     //暂定比例增强，可后续改动算法
-    //     float baseSpeed = pawn.moveSpeed; 
-    //     float speedModifier = 1 + (tool.enhancements[PawnManager.Pawn.EnhanceType->Speed] / 100f);
-    //     float actualSpeed = baseSpeed * speedModifier;
-    //     pawn.moveSpeed = actualSpeed;
-    //     //todo:搬运容量itemManager.tool.capacity尚未实现，暂时不修改搬运容量
+    public void GetToolAttribute(Pawn pawn, ItemManager.Tool tool){
+        //暂定比例增强，可后续改动算法
+        float baseSpeed = pawn.moveSpeed; 
+        float speedModifier = 1 + (tool.enhancements[PawnManager.Pawn.EnhanceType.Speed] / 100f);
+        float actualSpeed = baseSpeed * speedModifier;
+        pawn.moveSpeed = actualSpeed;
+        //todo:搬运容量itemManager.tool.capacity尚未实现，暂时不修改搬运容量
+        //todo:工作速度待考虑，可能不同任务的加成不同
 
-    // }
+    }
 
     public void CreatePawn(Vector3Int startPos)
     {
-        int newId = pawns.Count + 1;
+        int newId = pawns.Count + 1;//todo:id处理函数
         Pawn newPawn = new Pawn(newId, startPos, pawnPrefab);
         pawns.Add(newPawn);
     }
@@ -128,13 +129,6 @@ public class PawnManager : MonoBehaviour{
         SelectingPawn = pawns.Find(pawn => pawn.id == id);
     }
 
-    //由于暂定右键移动，暂时取消取消选择这部分，或者后续可以改成长按取消选择
-
-    // public void deleteselectPawn(){
-    //     if (Input.GetMouseButton(1)){
-    //         SelectingPawn = null;
-    //     }
-    // }
 
     public void SetSelectingPawn(Pawn pawn){
         if(pawn != null){
@@ -245,5 +239,5 @@ public class PawnManager : MonoBehaviour{
             Debug.Log("任务失败处理失败：Pawn 或 handlingTask 为 null");
         }
     }
-
+    
 }
