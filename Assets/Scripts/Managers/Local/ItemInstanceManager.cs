@@ -9,6 +9,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.VersionControl;
+using UnityEditorInternal.Profiling.Memory.Experimental;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -104,7 +105,7 @@ public class ItemInstanceManager : MonoBehaviour
     
     #region 2.创建各种ItemInstance个体的子函数
 
-    #region (0)
+    #region (0) 共用的InitInstance函数, 用来为ItemInstance.instance(这是一个GameObject)做初始化
     /// <summary>
     /// 为填充了基本后端信息的ItemInstance分配唯一ID；
     /// 为其instance成员变量装载预制体，设置transform组件（包括position和scale），加载材质；
@@ -351,6 +352,7 @@ public class ItemInstanceManager : MonoBehaviour
         UpdateAllCropInstance();
     }
     //======================================Public Function Part=======================================
+    //===================================ItemInstance Function Part====================================
     
     /// <summary>
     /// 在指定位置`position`生成一个指定`type`的ItemInstance
@@ -462,5 +464,15 @@ public class ItemInstanceManager : MonoBehaviour
 
         return NearestPosition;
     }
+    //===================================ToolInstance Function Part====================================
+    public Dictionary<PawnManager.Pawn.EnhanceType,int> GetEnhance(ToolInstance tool_ins){
+        Dictionary<PawnManager.Pawn.EnhanceType,int> res;
+        ItemManager.Tool sample = (ItemManager.Tool)ItemManager.Instance.GetItem(tool_ins.item_id, ItemManager.ItemType.Tool);
+        res = sample.enhancements;
+        return res;
+    }
+
+    //==================================MaterialInstance Function Part=================================
+    
 
 }
