@@ -178,7 +178,7 @@ public class MapManager : MonoBehaviour
         if(data.item != null){
             ItemInstanceManager.ItemInstance to_destroy = data.item;
             data.item = null;
-            ItemInstanceManager.Instance.DestroyItem(to_destroy, ItemInstanceManager.DestroyMode.Soft, 1);
+            ItemInstanceManager.Instance.DestroyItem(to_destroy, ItemInstanceManager.DestroyMode.RemainAll);
         }
 
         landTilemap.SetTile(data.position, data.texture);
