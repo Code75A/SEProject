@@ -237,7 +237,7 @@ public class ItemInstanceManager : MonoBehaviour
 
     #endregion
 
-    #region 3.销毁各种ItemInstance个体的子函数
+    #region 3.销毁各种ItemInstance个体的子函数, 以及用于销毁模式控制的控制量定义
     /// <summary>
     /// 用于确认DestroyItem函数的销毁模式。
     /// Hard表示不产生任何遗留物；Soft表示产生最大数量的遗留物；Middle表示产生部分遗留物，配合remain_rate使用。
@@ -245,26 +245,15 @@ public class ItemInstanceManager : MonoBehaviour
     public enum DestroyMode{
         Hard, Soft, Middle, Total
     }
-    public void DestroyInstance(ItemInstance aim_ins, DestroyMode mode, float remain_rate){
+    #region (0) 共用的DestroyInstance函数, 用来销毁ItemInstance.instance(这是一个GameObject)
+    public void DestroyInstance(ItemInstance aim_ins){
         GameObject.Destroy(aim_ins.instance);
         aim_ins.instance = null;
-        switch(aim_ins.type){
-            case ItemInstanceType.ToolInstance:
-            case ItemInstanceType.MaterialInstance:
-            case ItemInstanceType.CropInstance:     
-            case ItemInstanceType.BuildingInstance:
-                break;
-            case ItemInstanceType.PrintInstance:
-                ClearPrintInstance(aim_ins, mode, remain_rate);
-                break;
-            default:
-                UIManager.Instance.DebugTextAdd(
-                    "<<Error>>Destroying Item FAILED: the type is not found in ItemInstanceManager. "
-                );
-                break;
-        }
         return;
     }
+    #endregion
+
+    #region (1) 用于清除各种Instance的内容物
     public void ClearPrintInstance(ItemInstance aim_ins, DestroyMode mode, float remain_rate){
         if(aim_ins.type != ItemInstanceType.PrintInstance){
             UIManager.Instance.DebugTextAdd(
@@ -293,6 +282,8 @@ public class ItemInstanceManager : MonoBehaviour
             UIManager.Instance.DebugTextAdd("<<Error>>Clearing PrintInstance FAILED: UnDefined DestroyMode. ");
         }
     }
+    #endregion
+
     #endregion
 
     #region 4.按时间更新各种ItemInstance个体的子函数
@@ -405,7 +396,23 @@ public class ItemInstanceManager : MonoBehaviour
         //  从ItemInstanceList中删除
         itemInstanceLists[aim_ins.type].Remove(aim_ins);
         //  与InitInstance对应 销毁GameObject
-        DestroyInstance(aim_ins, destroy_mode, remain_rate);
+        DestroyInstance(aim_ins);
+        //  清除不同种类的ItemInstance的内含物
+        switch(aim_ins.type){
+            case ItemInstanceType.ToolInstance:
+            case ItemInstanceType.MaterialInstance:
+            case ItemInstanceType.CropInstance:     
+            case ItemInstanceType.BuildingInstance:
+                break;
+            case ItemInstanceType.PrintInstance:
+                ClearPrintInstance(aim_ins, destroy_mode, remain_rate);
+                break;
+            default:
+                UIManager.Instance.DebugTextAdd(
+                    "<<Error>>Destroying Item FAILED: the type is not found in ItemInstanceManager. "
+                );
+                break;
+        }
         //  回收ID
         RecycleId(aim_ins.id);
         return;
