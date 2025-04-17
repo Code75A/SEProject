@@ -240,10 +240,12 @@ public class ItemInstanceManager : MonoBehaviour
     #region 3.销毁各种ItemInstance个体的子函数, 以及用于销毁模式控制的控制量定义
     /// <summary>
     /// 用于确认DestroyItem函数的销毁模式。
-    /// Hard表示不产生任何遗留物；Soft表示产生最大数量的遗留物；Middle表示产生部分遗留物，配合remain_rate使用。
+    /// RemainNone表示不产生任何遗留物
+    /// RemainAll表示产生最大数量的遗留物
+    /// RemainWithRate表示产生部分遗留物，配合remain_rate使用。
     /// </summary>
     public enum DestroyMode{
-        Hard, Soft, Middle, Total
+        RemainAll, RemainNone, RemainWithRate, Total
     }
     #region (0) 共用的DestroyInstance函数, 用来销毁ItemInstance.instance(这是一个GameObject)
     public void DestroyInstance(ItemInstance aim_ins){
@@ -261,16 +263,16 @@ public class ItemInstanceManager : MonoBehaviour
             );
             return;
         }
-        if(mode == DestroyMode.Hard){
+        if(mode == DestroyMode.RemainNone){
             ;
         }
-        else if (mode == DestroyMode.Soft || mode == DestroyMode.Middle){
+        else if (mode == DestroyMode.RemainAll || mode == DestroyMode.RemainWithRate){
             List<KeyValuePair<int,int> > temp = new List<KeyValuePair<int,int> >();
             int item_id, amount;
             foreach (KeyValuePair<int,PrintInstance.Progress> it in ((PrintInstance)aim_ins).material_list){
                 item_id = it.Key;
                 amount = it.Value.current;
-                if(mode == DestroyMode.Middle) amount = (int)System.Math.Truncate((double)(amount*remain_rate));
+                if(mode == DestroyMode.RemainWithRate) amount = (int)System.Math.Truncate((double)(amount*remain_rate));
                 
                 if(amount > 0)
                     temp.Add(new KeyValuePair<int, int>(item_id, amount));
@@ -400,8 +402,8 @@ public class ItemInstanceManager : MonoBehaviour
     /// <summary>
     /// 销毁指定的ItemInstance
     /// </summary>
-    /// <param name="remain_rate">遗留物的生成率，只在destroy_mode==DestroyMode.Middle时有效</param>
-    public void DestroyItem(ItemInstance aim_ins, DestroyMode destroy_mode=DestroyMode.Hard, float remain_rate=0.5f){
+    /// <param name="remain_rate">遗留物的生成率，只在destroy_mode==DestroyMode.RemainWithRate时有效</param>
+    public void DestroyItem(ItemInstance aim_ins, DestroyMode destroy_mode=DestroyMode.RemainNone, float remain_rate=0.5f){
         // 检查该Instance是否存在
         if(GetInstance(aim_ins.id) == null){
             UIManager.Instance.DebugTextAdd(
