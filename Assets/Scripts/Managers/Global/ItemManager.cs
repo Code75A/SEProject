@@ -50,7 +50,7 @@ public class ItemManager : MonoBehaviour
     }
     public class Material : Item{}
 
-    const int tempItemSpritesCount = 6;
+    const int tempItemSpritesCount = 7;
     public Sprite[] tempItemSprites = new Sprite[tempItemSpritesCount];
 
     //=========================================Manager Function Part=======================================
@@ -84,13 +84,19 @@ public class ItemManager : MonoBehaviour
                         {PawnManager.Pawn.EnhanceType.capacity,0}, 
                         {PawnManager.Pawn.EnhanceType.Speed,10},
                         {PawnManager.Pawn.EnhanceType.Power,100}}});
+        itemLists[ItemType.Tool].Add(
+            new Tool{id=6, name="手推车", type=ItemType.Tool, texture=tempItemSprites[6], max_durability=100, 
+                    enhancements=new Dictionary<PawnManager.Pawn.EnhanceType, int>{
+                        {PawnManager.Pawn.EnhanceType.capacity,100}, 
+                        {PawnManager.Pawn.EnhanceType.Speed,0},
+                        {PawnManager.Pawn.EnhanceType.Power,0}}});
         // Material
         itemLists[ItemType.Material].Add(
-            new Material{id=4, name="蓝莓", type=ItemType.Material, texture=tempItemSprites[3]});
+            new Material{id=3, name="蓝莓", type=ItemType.Material, texture=tempItemSprites[3]});
         itemLists[ItemType.Material].Add(
-            new Material{id=5, name="草莓", type=ItemType.Material, texture=tempItemSprites[4]});
+            new Material{id=4, name="草莓", type=ItemType.Material, texture=tempItemSprites[4]});
         itemLists[ItemType.Material].Add(
-            new Material{id=6, name="木材", type=ItemType.Material, texture=tempItemSprites[5]});
+            new Material{id=5, name="木材", type=ItemType.Material, texture=tempItemSprites[5]});
         #endregion 
     }
     void Start()
