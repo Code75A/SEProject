@@ -598,7 +598,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad1354bd631cddb4a93d3d0dd5ff487a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TaskManager: {fileID: 398816329}
   ItemManager: {fileID: 398816336}
   pawnPrefab: {fileID: 1915718262984641785, guid: ff831dde6e108f643970f2e13662feb2, type: 3}
   spawner: {fileID: 909284030}
@@ -721,6 +720,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 3c8773c4eda76bf4996571aff7bb06fc, type: 3}
   - {fileID: 21300000, guid: beebfbd0253d8724aafd028054ba7c8a, type: 3}
   - {fileID: 21300000, guid: 3faefeb8d1f8e154ebb3e3e91de49a0e, type: 3}
+  - {fileID: 0}
 --- !u!1 &449365689
 GameObject:
   m_ObjectHideFlags: 0
