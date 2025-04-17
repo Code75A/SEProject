@@ -81,7 +81,8 @@ public class ItemInstanceManager : MonoBehaviour
     private static int ID_COUNTER = 0;
     /// <summary>
     /// 唯一ID生成器，用于为ItemInstance分配唯一ID。
-    /// 我们约定它只被‘InitInstance’调用，以确保ID的唯一性。
+    /// 我们约定它只被‘SpawnItem’调用，以确保ID的唯一性。
+    /// TODO：目前仍然是最简单的增量分配，需要根据后续决定的ID管理机制实现正式的ID分配方法
     /// </summary>
     private int GetNewId(){
         // TODO: Make sure the ID is unique and safe
@@ -93,6 +94,11 @@ public class ItemInstanceManager : MonoBehaviour
         );
         return new_id;
     }
+    /// <summary>
+    /// 唯一ID回收器，用于回收ItemInstance的ID。
+    /// 我们约定它只被‘DestroyItem’调用，以确保回收操作的唯一性。
+    /// TODO：目前仍然是象征性的回收，需要根据后续决定的ID管理机制实现正式的回收工作
+    /// </summary>
     private static void RecycleId(int id){
         // TODO: 在ItemInstance死亡时回收ID
         UIManager.Instance.DebugTextAdd(
@@ -105,11 +111,9 @@ public class ItemInstanceManager : MonoBehaviour
     
     #region 2.创建各种ItemInstance个体的子函数
 
-    #region (0) 共用的InitInstance函数, 用来为ItemInstance.instance(这是一个GameObject)做初始化
+    #region (0) 共用的InitInstance函数, 用来为ItemInstance.instance(GameObject)做初始化
     /// <summary>
-    /// 为填充了基本后端信息的ItemInstance分配唯一ID；
     /// 为其instance成员变量装载预制体，设置transform组件（包括position和scale），加载材质；
-    /// 是创建合法ItemInstance的唯一工具。
     /// </summary>
     /// <param name="new_ins">待初始化的ItemInstance，应当被填充基本后端信息</param>I
     public void InitInstance(ItemInstance new_ins, Sprite texture){
@@ -131,12 +135,8 @@ public class ItemInstanceManager : MonoBehaviour
 
         // 加载材质
         new_ins.instance.GetComponent<SpriteRenderer>().sprite = texture;
-        
-        // 分配唯一ID
-        new_ins.id = GetNewId();
     }
 
-    //
     #endregion
 
     #region (1)主要指定位置和模版
@@ -286,13 +286,23 @@ public class ItemInstanceManager : MonoBehaviour
 
     #endregion
 
-    #region 4.按时间更新各种ItemInstance个体的子函数
+    #region 4.更新各种ItemInstance个体的子函数
+    #region (0) 所有ItemInstance个体可用
     /// <summary>
-    /// 更新Instance贴图
+    /// 设置Instance贴图
     /// </summary>
-    public void renewSprite(ItemInstance ins, Sprite sprite){
+    public void SetSprite(ItemInstance ins, Sprite sprite){
         ins.instance.GetComponent<SpriteRenderer>().sprite = sprite;
     }
+    /// <summary>
+    /// 设置显示文本
+    /// </summary>
+    public void SetText(ItemInstance ins, string text){
+        // TODO：
+        return;
+    }
+    #endregion
+    #region (1) 分类按时间更新
     /// <summary>
     /// CropInstance的生长更新
     /// </summary>
@@ -313,12 +323,14 @@ public class ItemInstanceManager : MonoBehaviour
                     UIManager.Instance.DebugTextAdd("<<Error>> illegal growth stage: " + new_stage);
                 }
                 else{
-                    renewSprite(it, CropManager.Instance.GetSprite(it.item_id,new_stage));
+                    SetSprite(it, CropManager.Instance.GetSprite(it.item_id,new_stage));
                 }
             }
             
         }
     }
+    #endregion
+
     #endregion
     // Start is called before the first frame update
     void InitInstanceListsData(){
@@ -352,6 +364,7 @@ public class ItemInstanceManager : MonoBehaviour
     /// <param name="amount">default 1, used for type like `Material`</param>
     public ItemInstance SpawnItem(Vector3Int position, int sample_id, ItemInstanceType type, int amount=1){
         ItemInstance new_ins = null;
+        // 按type要求进行不同类型ItemInstance的生成：
         switch (type){
             case ItemInstanceType.ToolInstance:
                 new_ins = MakeToolInstance(sample_id, position);
@@ -374,7 +387,11 @@ public class ItemInstanceManager : MonoBehaviour
                 );
                 break;
         }
+        // 若创建成功：
         if(new_ins != null){
+            // 分配唯一ID
+            new_ins.id = GetNewId();
+            // 加入列表
             itemInstanceLists[type].Add(new_ins);
         }
         return new_ins;
