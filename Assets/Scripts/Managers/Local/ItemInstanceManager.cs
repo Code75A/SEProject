@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using TMPro;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.PlasticSCM.Editor.WebApi;
 using Unity.VisualScripting;
@@ -50,12 +51,42 @@ public class ItemInstanceManager : MonoBehaviour
         public int item_id;
         public Vector3Int position;
         public GameObject instance;
+
+        /// <summary>
+        /// 设置Instance贴图
+        /// </summary>
+        public void SetSprite(Sprite sprite){
+            instance.GetComponent<SpriteRenderer>().sprite = sprite;
+            return;
+        }
+        /// <summary>
+        /// 设置显示文本
+        /// </summary>
+        public void SetText(string text){
+            instance.GetComponentInChildren<TextMeshPro>().text = text;
+            return;
+        }
+        public string GetText(){
+            return instance.GetComponentInChildren<TextMeshPro>().text;
+        }
     }
     public class ToolInstance : ItemInstance{
         public int durability;
     }
     public class MaterialInstance : ItemInstance{
         public int amount;
+        
+        public int GetAmount(){
+            return amount;
+        }
+        public void SetAmount(int new_amount){
+            amount = new_amount;
+            string old_text = GetText();
+            string[] strArray = old_text.Split('|');
+            string new_text = strArray[0]+"|"+new_amount.ToString();
+            SetText(new_text);
+            return;
+        }
     }
     public class CropInstance : ItemInstance{
         public float growth;
@@ -134,7 +165,7 @@ public class ItemInstanceManager : MonoBehaviour
         new_ins.instance.transform.localScale = totalScale ;
 
         // 加载材质
-        new_ins.instance.GetComponent<SpriteRenderer>().sprite = texture;
+        new_ins.SetSprite(texture);
     }
 
     #endregion
@@ -154,6 +185,7 @@ public class ItemInstanceManager : MonoBehaviour
             durability=((ItemManager.Tool)sample).max_durability
         };
         InitInstance(new_ins, sample.texture);
+        new_ins.SetText(sample.name);
         return new_ins;
     }
     public ItemInstance MakeMaterialInstance(int item_id, Vector3Int position, int amount){
@@ -170,6 +202,7 @@ public class ItemInstanceManager : MonoBehaviour
             amount=amount
         };
         InitInstance(new_ins, sample.texture);
+        new_ins.SetText(sample.name + "|" + amount.ToString());
         return new_ins;
     }
     public ItemInstance MakeCropInstance(int crop_id, Vector3Int position){
@@ -188,6 +221,7 @@ public class ItemInstanceManager : MonoBehaviour
             growth=0, real_lifetime=CropManager.Instance.GetRealLifetime(sample, env_data)
         };
         InitInstance(new_ins, CropManager.Instance.GetSprite(crop_id, 0));
+        new_ins.SetText(sample.name);
         return new_ins;
     }
     public ItemInstance MakeBuildingInstance(int building_id, Vector3Int position){
@@ -204,6 +238,7 @@ public class ItemInstanceManager : MonoBehaviour
             durability=sample.durability
         };
         InitInstance(new_ins, sample.texture);
+        new_ins.SetText(sample.name);
         return new_ins;
     }
     public ItemInstance MakePrintInstance(int building_id, Vector3Int position){
@@ -219,7 +254,7 @@ public class ItemInstanceManager : MonoBehaviour
         foreach (KeyValuePair<int,int> it in sample.material_list){
             // <DEBUG>
             //temp.Add(new KeyValuePair<int, PrintInstance.Progress>(it.Key, new PrintInstance.Progress{current=10,need=20}));
-            temp.Add(new KeyValuePair<int, PrintInstance.Progress>(it.Key, new PrintInstance.Progress{current=0,need=it.Value}));
+            temp.Add(new KeyValuePair<int, PrintInstance.Progress>(it.Key, new PrintInstance.Progress{current=998,need=it.Value}));
             // </DEBUG>
         }
         new_ins = new PrintInstance{
@@ -227,6 +262,7 @@ public class ItemInstanceManager : MonoBehaviour
             material_list=temp
         };
         InitInstance(new_ins, BuildManager.Instance.printSprite);
+        new_ins.SetText(sample.name);
         return new_ins;
     }
     #endregion
@@ -290,20 +326,9 @@ public class ItemInstanceManager : MonoBehaviour
 
     #region 4.更新各种ItemInstance个体的子函数
     #region (0) 所有ItemInstance个体可用
-    /// <summary>
-    /// 设置Instance贴图
-    /// </summary>
-    public void SetSprite(ItemInstance ins, Sprite sprite){
-        ins.instance.GetComponent<SpriteRenderer>().sprite = sprite;
-    }
-    /// <summary>
-    /// 设置显示文本
-    /// </summary>
-    public void SetText(ItemInstance ins, string text){
-        // TODO：
-        return;
-    }
+
     #endregion
+
     #region (1) 分类按时间更新
     /// <summary>
     /// CropInstance的生长更新
@@ -325,7 +350,7 @@ public class ItemInstanceManager : MonoBehaviour
                     UIManager.Instance.DebugTextAdd("<<Error>> illegal growth stage: " + new_stage);
                 }
                 else{
-                    SetSprite(it, CropManager.Instance.GetSprite(it.item_id,new_stage));
+                    it.SetSprite(CropManager.Instance.GetSprite(it.item_id,new_stage));
                 }
             }
             
