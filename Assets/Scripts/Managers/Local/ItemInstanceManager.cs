@@ -254,7 +254,7 @@ public class ItemInstanceManager : MonoBehaviour
         foreach (KeyValuePair<int,int> it in sample.material_list){
             // <DEBUG>
             //temp.Add(new KeyValuePair<int, PrintInstance.Progress>(it.Key, new PrintInstance.Progress{current=10,need=20}));
-            temp.Add(new KeyValuePair<int, PrintInstance.Progress>(it.Key, new PrintInstance.Progress{current=998,need=it.Value}));
+            temp.Add(new KeyValuePair<int, PrintInstance.Progress>(it.Key, new PrintInstance.Progress{current=0,need=it.Value}));
             // </DEBUG>
         }
         new_ins = new PrintInstance{
