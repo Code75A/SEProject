@@ -259,17 +259,24 @@ public class MapManager : MonoBehaviour
                 {   
                     ItemInstanceManager.MaterialInstance the_material_instance = the_instance as ItemInstanceManager.MaterialInstance;
 
-                    if(material_list.Any(kpv => kpv.Key == the_material_instance.id)){
-                        KeyValuePair<int, int> result = material_list.Find(kvp => kvp.Key == the_material_instance.id);
+                    if(material_list.Any(kpv => kpv.Key == the_material_instance.item_id)){
+                        
+                        
+                        int index = material_list.FindIndex(kvp => kvp.Key == the_material_instance.item_id);
+                        KeyValuePair<int, int> result = material_list[index];
 
-                        int unload_material_num = Math.Min(result.Value, DEBUG_MAX_PILE_NUM - the_material_instance.amount);
-                        the_material_instance.amount += unload_material_num;
+                        int unload_material_num = Math.Min(result.Value, DEBUG_MAX_PILE_NUM - the_material_instance.GetAmount());
+                        
+                        int reformed_amount = the_material_instance.GetAmount() + unload_material_num;
+
+                        the_material_instance.SetAmount(reformed_amount);
+                        //the_material_instance.amount += unload_material_num;
 
                         int material_num = result.Value - unload_material_num;
                         if (material_num == 0)
-                            material_list.Remove(result);
+                            material_list.RemoveAt(index);
                         else
-                            result = new KeyValuePair<int, int>(result.Key, material_num);
+                            material_list[index] = new KeyValuePair<int, int>(result.Key, material_num);
                     }
                     else continue;
                 }
