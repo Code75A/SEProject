@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO; // 用于文件操作
 using Newtonsoft.Json; // 用于JSON序列化和反序列化
+using System.Linq; // 用于列表操作
 //注意事项一：需要添加包管理器，安装Newtonsoft.Json包
 //点击菜单栏 Window > Package Manager
 //在Package Manager窗口左上角，点击"+"按钮
@@ -612,6 +613,393 @@ public class SLManager : MonoBehaviour
     }
     #endregion
 
+    #region "TaskManagerData"
+    [System.Serializable]
+    public class TaskManagerData
+    {
+        public List<TaskData> availableTasks;
+        public List<TaskData> inavailableTasks;
+
+        [System.Serializable]
+        public class TaskData
+        {
+            public Vector3Int position;
+            public TaskManager.TaskTypes type;
+            public int id;
+            public int MaterialId;
+            public int MaterialAmount;
+        }
+    }
+
+    private string taskSavePath => Path.Combine(Application.persistentDataPath, "TaskManagerData.json");
+
+    public void SaveTaskManager()
+    {
+        if (TaskManager.Instance == null)
+        {
+            Debug.LogError("TaskManager.Instance is null. Cannot save data.");
+            return;
+        }
+
+        TaskManagerData data = new TaskManagerData
+        {
+            availableTasks = TaskManager.Instance.availableTaskList.Select(task => new TaskManagerData.TaskData
+            {
+                position = task.position,
+                type = task.type,
+                id = task.id,
+                MaterialId = task.MaterialId,
+                MaterialAmount = task.MaterialAmount
+            }).ToList(),
+            inavailableTasks = TaskManager.Instance.inavailableTaskList.Select(task => new TaskManagerData.TaskData
+            {
+                position = task.position,
+                type = task.type,
+                id = task.id,
+                MaterialId = task.MaterialId,
+                MaterialAmount = task.MaterialAmount
+            }).ToList()
+        };
+
+        string json = JsonConvert.SerializeObject(data, Formatting.Indented);
+        File.WriteAllText(taskSavePath, json);
+        Debug.Log($"TaskManager data saved to {taskSavePath}");
+    }
+
+    public void LoadTaskManager()
+    {
+        if (!File.Exists(taskSavePath))
+        {
+            Debug.LogWarning("TaskManager save file not found!");
+            return;
+        }
+
+        if (TaskManager.Instance == null)
+        {
+            Debug.LogError("TaskManager.Instance is null. Cannot load data.");
+            return;
+        }
+
+        string json = File.ReadAllText(taskSavePath);
+        TaskManagerData data = JsonConvert.DeserializeObject<TaskManagerData>(json);
+
+        TaskManager.Instance.availableTaskList.Clear();
+        TaskManager.Instance.inavailableTaskList.Clear();
+
+        foreach (var taskData in data.availableTasks)
+        {
+            TaskManager.Instance.availableTaskList.Add(new TaskManager.Task(
+                position: taskData.position,
+                type: taskData.type,
+                id: taskData.id,
+                materialId: taskData.MaterialId,
+                materialAmount: taskData.MaterialAmount,
+                materialType: -1 // 默认值，TaskManager.Task 构造函数需要
+            ));
+        }
+
+        foreach (var taskData in data.inavailableTasks)
+        {
+            TaskManager.Instance.inavailableTaskList.Add(new TaskManager.Task(
+                position: taskData.position,
+                type: taskData.type,
+                id: taskData.id,
+                materialId: taskData.MaterialId,
+                materialAmount: taskData.MaterialAmount,
+                materialType: -1 // 默认值，TaskManager.Task 构造函数需要
+            ));
+        }
+
+        Debug.Log("TaskManager data loaded successfully.");
+    }
+
+    public void TestSaveAndLoadTaskManagerData()
+    {
+        Debug.Log("TestSaveAndLoadTaskManagerData called.");
+
+        if (TaskManager.Instance == null)
+        {
+            Debug.LogError("TaskManager.Instance is null. Cannot test save and load.");
+            return;
+        }
+
+        // 创建测试数据
+        TaskManager.Instance.availableTaskList = new List<TaskManager.Task>
+        {
+            new TaskManager.Task(new Vector3Int(0, 0, 0), TaskManager.TaskTypes.Build, 1, 101, 5, -1),
+            new TaskManager.Task(new Vector3Int(1, 1, 1), TaskManager.TaskTypes.Plant, 2, 102, 10, -1)
+        };
+
+        TaskManager.Instance.inavailableTaskList = new List<TaskManager.Task>
+        {
+            new TaskManager.Task(new Vector3Int(2, 2, 2), TaskManager.TaskTypes.Harvest, 3, 103, 15, -1)
+        };
+
+        // 保存数据
+        SaveTaskManager();
+
+        // 清空现有数据
+        TaskManager.Instance.availableTaskList.Clear();
+        TaskManager.Instance.inavailableTaskList.Clear();
+
+        // 加载数据
+        LoadTaskManager();
+
+        // 验证加载的数据
+        foreach (var task in TaskManager.Instance.availableTaskList)
+        {
+            Debug.Log($"Available Task - ID: {task.id}, Type: {task.type}, Position: {task.position}, MaterialId: {task.MaterialId}, MaterialAmount: {task.MaterialAmount}");
+        }
+
+        foreach (var task in TaskManager.Instance.inavailableTaskList)
+        {
+            Debug.Log($"Inavailable Task - ID: {task.id}, Type: {task.type}, Position: {task.position}, MaterialId: {task.MaterialId}, MaterialAmount: {task.MaterialAmount}");
+        }
+    }
+    #endregion
+
+    #region "PawnManagerData"
+    [System.Serializable]
+    public class PawnManagerData
+    {
+        public List<PawnData> pawns;
+
+        [System.Serializable]
+        public class PawnData
+        {
+            public int id;
+            public bool isOnTask;
+            public TaskData handlingTask;
+            public float moveSpeed;
+            public float workSpeed;
+            public int capacity;
+            public ToolData handlingTool;
+            public List<TaskData> pawnTaskList;
+            public SerializableVector3 position; // 使用可序列化的 Vector3
+        }
+
+        [System.Serializable]
+        public class SerializableVector3
+        {
+            public float x;
+            public float y;
+            public float z;
+
+            public SerializableVector3() { }
+
+            public SerializableVector3(Vector3 vector)
+            {
+                x = vector.x;
+                y = vector.y;
+                z = vector.z;
+            }
+
+            public Vector3 ToVector3()
+            {
+                return new Vector3(x, y, z);
+            }
+        }
+
+        [System.Serializable]
+        public class TaskData
+        {
+            public Vector3Int position;
+            public TaskManager.TaskTypes type;
+            public int id;
+            public int materialId;
+            public int materialAmount;
+        }
+
+        [System.Serializable]
+        public class ToolData
+        {
+            public int id;
+            public string name;
+            public string texturePath;
+            public int maxDurability;
+            public Dictionary<string, int> enhancements;
+        }
+    }
+
+    private string pawnSavePath => Path.Combine(Application.persistentDataPath, "PawnManagerData.json");
+
+    public void SavePawnManager()
+    {
+        if (PawnManager.Instance == null)
+        {
+            Debug.LogError("PawnManager.Instance is null. Cannot save data.");
+            return;
+        }
+
+        PawnManagerData data = new PawnManagerData
+        {
+            pawns = new List<PawnManagerData.PawnData>()
+        };
+
+        foreach (var pawn in PawnManager.Instance.pawns)
+        {
+            var pawnData = new PawnManagerData.PawnData
+            {
+                id = pawn.id,
+                isOnTask = pawn.isOnTask,
+                handlingTask = pawn.handlingTask != null ? new PawnManagerData.TaskData
+                {
+                    position = pawn.handlingTask.position,
+                    type = pawn.handlingTask.type,
+                    id = pawn.handlingTask.id,
+                    materialId = pawn.handlingTask.MaterialId,
+                    materialAmount = pawn.handlingTask.MaterialAmount
+                } : null,
+                moveSpeed = pawn.moveSpeed,
+                workSpeed = pawn.workSpeed,
+                capacity = pawn.capacity,
+                handlingTool = pawn.handlingTool != null ? new PawnManagerData.ToolData
+                {
+                    id = pawn.handlingTool.id,
+                    name = pawn.handlingTool.name,
+                    texturePath = pawn.handlingTool.texture != null ? pawn.handlingTool.texture.name : null,
+                    maxDurability = pawn.handlingTool.max_durability,
+                    enhancements = pawn.handlingTool.enhancements.ToDictionary(e => e.Key.ToString(), e => e.Value)
+                } : null,
+                pawnTaskList = pawn.PawntaskList.Select(task => new PawnManagerData.TaskData
+                {
+                    position = task.position,
+                    type = task.type,
+                    id = task.id,
+                    materialId = task.MaterialId,
+                    materialAmount = task.MaterialAmount
+                }).ToList(),
+                position = new PawnManagerData.SerializableVector3(pawn.Instance.transform.position)
+            };
+
+            data.pawns.Add(pawnData);
+        }
+
+        string json = JsonConvert.SerializeObject(data, Formatting.Indented);
+        File.WriteAllText(pawnSavePath, json);
+        Debug.Log($"PawnManager data saved to {pawnSavePath}");
+    }
+
+    public void LoadPawnManager()
+    {
+        if (!File.Exists(pawnSavePath))
+        {
+            Debug.LogWarning("PawnManager save file not found!");
+            return;
+        }
+
+        if (PawnManager.Instance == null)
+        {
+            Debug.LogError("PawnManager.Instance is null. Cannot load data.");
+            return;
+        }
+
+        string json = File.ReadAllText(pawnSavePath);
+        PawnManagerData data = JsonConvert.DeserializeObject<PawnManagerData>(json);
+
+        PawnManager.Instance.pawns.Clear();
+
+        foreach (var pawnData in data.pawns)
+        {
+            var pawn = new PawnManager.Pawn(pawnData.id, Vector3Int.zero, PawnManager.Instance.pawnPrefab)
+            {
+                isOnTask = pawnData.isOnTask,
+                handlingTask = pawnData.handlingTask != null ? new TaskManager.Task(
+                    position: pawnData.handlingTask.position,
+                    type: pawnData.handlingTask.type,
+                    id: pawnData.handlingTask.id,
+                    materialId: pawnData.handlingTask.materialId,
+                    materialAmount: pawnData.handlingTask.materialAmount,
+                    materialType: -1 // 默认值
+                ) : null,
+                moveSpeed = pawnData.moveSpeed,
+                workSpeed = pawnData.workSpeed,
+                capacity = pawnData.capacity,
+                handlingTool = pawnData.handlingTool != null ? new ItemManager.Tool
+                {
+                    id = pawnData.handlingTool.id,
+                    name = pawnData.handlingTool.name,
+                    texture = Resources.Load<Sprite>(pawnData.handlingTool.texturePath),
+                    max_durability = pawnData.handlingTool.maxDurability,
+                    enhancements = pawnData.handlingTool.enhancements.ToDictionary(
+                        e => (PawnManager.Pawn.EnhanceType)System.Enum.Parse(typeof(PawnManager.Pawn.EnhanceType), e.Key),
+                        e => e.Value)
+                } : null,
+                PawntaskList = pawnData.pawnTaskList.Select(task => new TaskManager.Task(
+                    position: task.position,
+                    type: task.type,
+                    id: task.id,
+                    materialId: task.materialId,
+                    materialAmount: task.materialAmount,
+                    materialType: -1 // 默认值
+                )).ToList()
+            };
+
+            // 设置位置
+            pawn.Instance.transform.position = pawnData.position.ToVector3();
+
+            PawnManager.Instance.pawns.Add(pawn);
+        }
+
+        Debug.Log("PawnManager data loaded successfully.");
+    }
+
+    public void TestSaveAndLoadPawnManagerData()
+    {
+        Debug.Log("TestSaveAndLoadPawnManagerData called.");
+
+        if (PawnManager.Instance == null)
+        {
+            Debug.LogError("PawnManager.Instance is null. Cannot test save and load.");
+            return;
+        }
+
+        // 创建测试数据
+        PawnManager.Instance.pawns = new List<PawnManager.Pawn>
+        {
+            new PawnManager.Pawn(1, new Vector3Int(0, 0, 0), PawnManager.Instance.pawnPrefab)
+            {
+                isOnTask = true,
+                handlingTask = new TaskManager.Task(new Vector3Int(1, 1, 1), TaskManager.TaskTypes.Build, 1, 101, 5, -1),
+                moveSpeed = 3.0f,
+                workSpeed = 2.0f,
+                capacity = 100,
+                handlingTool = new ItemManager.Tool
+                {
+                    id = 1,
+                    name = "测试工具",
+                    texture = null,
+                    max_durability = 50,
+                    enhancements = new Dictionary<PawnManager.Pawn.EnhanceType, int>
+                    {
+                        { PawnManager.Pawn.EnhanceType.Speed, 10 },
+                        { PawnManager.Pawn.EnhanceType.Power, 20 }
+                    }
+                },
+                PawntaskList = new List<TaskManager.Task>
+                {
+                    new TaskManager.Task(new Vector3Int(2, 2, 2), TaskManager.TaskTypes.Plant, 2, 102, 10, -1)
+                }
+            }
+        };
+
+        // 保存数据
+        SavePawnManager();
+
+        // 清空现有数据
+        PawnManager.Instance.pawns.Clear();
+
+        // 加载数据
+        LoadPawnManager();
+
+        // 验证加载的数据
+        foreach (var pawn in PawnManager.Instance.pawns)
+        {
+            Debug.Log($"Pawn ID: {pawn.id}, Position: {pawn.Instance.transform.position}, Task Count: {pawn.PawntaskList.Count}");
+        }
+    }
+    #endregion
+
     void Awake()
     {
         
@@ -634,6 +1022,8 @@ public class SLManager : MonoBehaviour
         //TestSaveAndLoadCropManagerData(); // 调用测试方法
         //TestSaveAndLoadItemManagerData(); // 调用测试方法
         //TestSaveAndLoadMapManagerData(); // 调用测试方法
+        //TestSaveAndLoadTaskManagerData(); // 调用测试方法
+        //TestSaveAndLoadPawnManagerData(); // 调用测试方法
     }
     void OnDestroy()
     {
@@ -642,6 +1032,9 @@ public class SLManager : MonoBehaviour
         //SaveCropManager();
         //SaveItemManager();
         //SaveMapManager();
+        //SaveTaskManager();
+        //SavePawnManager();
+        //Debug.Log("Data saved on destroy.");
     }
 
     // 保存 CropManager 的静态数据
