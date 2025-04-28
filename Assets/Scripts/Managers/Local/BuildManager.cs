@@ -91,7 +91,7 @@ public class BuildManager : MonoBehaviour
         buildingLists[BuildingType.Wall].Add(new Building{
             id = 4, name="墙", texture = tempBuildingSprites[4], type = BuildingType.Wall, width = 1, height = 1, durability = 100,
             can_build = false, can_walk = false, can_plant = false, material_list = new List<KeyValuePair<int, int>>{
-                new KeyValuePair<int, int>(5, 10)
+                new KeyValuePair<int, int>(ItemManager.Instance.GetItem("木材").id, 10)
             }});
 
         buildingLists[BuildingType.Farm].Add(new Building{
