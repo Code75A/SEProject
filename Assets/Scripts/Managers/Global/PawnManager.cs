@@ -46,7 +46,14 @@ public class PawnManager : MonoBehaviour{
         public TaskManager.Task handlingTask = null;
         public float moveSpeed = MOVESPEED;
         public float workSpeed = WORKSPEED;
+
+        //运输使用的属性
         public int capacity = CAPACITY;//运载容量
+
+        public int instantCapacity = CAPACITY; //当前运载容量
+        public int materialId;
+        public int materialAmount; //物品数量
+        public ItemInstanceManager.ItemInstanceType materialType; //物品类型
 
         //工具类型EnhanceType枚举，与小人属性挂钩，itemmanager调用
         public enum EnhanceType{
@@ -257,5 +264,214 @@ public class PawnManager : MonoBehaviour{
             Debug.Log("任务失败处理失败：Pawn 或 handlingTask 为 null");
         }
     }
+    //todo:task中三种任务的处理逻辑
+
+    //todo:工作时间计算函数：与当前power，任务难度、进度有关
+
+    //todo:装载、卸载函数：
+    //1.添加作为pawn的附加属性，删除原instance，卸载时去除附属属性，在新位置添加物品实例
+
+    //todo:运输任务实现：
+    //1.移动到物品位置
+    //2.装载物品
+    //3.移动到目标位置
+    //4.卸载物品
+
+    //todo:建造任务实现：
+    //1。根据task查找建筑材料，根据iteminstancemanager.FindNearestItemPosition查找材料对应位置
+    //2. 移动pawn到对应位置
+    //3. 和运输任务相同逻辑运输到工作地点
+    //4。调用工作时间计算函数，计算工作时间，进入“建造动画”
+    //5. 工作时间耗尽建造完成后，消耗掉材料，创建建筑，结束任务
+
+    //todo:种植任务，实现：建造任务的一种
+
+    //todo:收割任务实现：
+    //1.移动到任务地点
+    //2.调用工作时间计算函数，计算工作时间，进入“收割动画”
+    //3.工作完成，创建物品，结束任务
+
+    //工作时间计算
+    private float GetWorkTime(Pawn pawn ,TaskManager.Task task){
+        int TotalProcess = task.tasklevel * 100; 
+        float time = TotalProcess / pawn.workSpeed;
+        return time; //仅为简易实现，后续数值及算法有待调整
+    }
+
+    //装载、卸载函数
+    public bool PawnLoad(Pawn pawn,ItemInstanceManager.MaterialInstance itemInstance,TaskManager.Task task){
+        if(pawn.instantCapacity > itemInstance.amount){
+            //销毁instance
+            pawn.materialId = itemInstance.item_id;
+            pawn.materialAmount = itemInstance.amount;
+            pawn.instantCapacity -= itemInstance.amount; //运载容量减少
+            //pawn.materialType = itemInstance.type;(默认为material)
+            ItemInstanceManager.Instance.DestroyItem(itemInstance);
+        }
+        else{
+            //不必销毁instance，改动数值
+            pawn.materialId = itemInstance.item_id;
+            itemInstance.amount -= pawn.instantCapacity;
+            pawn.materialAmount = pawn.instantCapacity;
+            pawn.instantCapacity = 0; //运载容量清空
+        }
+        return true;
+    }
+    public bool PawnUnload(Pawn pawn){
+        // 创建 instance 以及对应的 count
+        // 假定目的地卸载位置上无其他 instance
+        // todo: 卸载地点有相同的物品时，数量叠加；卸载地点有不同的物品时，显示卸载失败或者放在旁边的空位上
+        Vector3 pawnWorldPosition = pawn.Instance.transform.position;
+        Vector3Int pawnCellPosition = Vector3Int.FloorToInt(pawnWorldPosition); // 转换为 Vector3Int
+
+        // 创建物品列表
+        List<KeyValuePair<int, int>> materialList = new List<KeyValuePair<int, int>>();
+        materialList.Add(new KeyValuePair<int, int>(pawn.materialId, pawn.materialAmount));
+
+        // 调用 SetMaterial 方法
+        int result = MapManager.Instance.SetMaterial(pawnCellPosition, materialList);
+
+        // 重置 Pawn 的物品信息
+        pawn.materialId = 0;
+        pawn.materialAmount = 0;
+        pawn.instantCapacity = pawn.capacity; // 重置容量
+
+        // 更改 task 中的物品需求数目
+        // 这里假设 task 中有一个方法来更新物品需求
+        // task.UpdateRequiredItems(materialList);
+
+        return result > 0; // 根据 SetMaterial 的返回值判断是否成功
+    }
+
+    //运输任务实现：
+
+    public void Pawntransport(Pawn pawn, TaskManager.TaskTransport task){
+        if (pawn == null || pawn.Instance == null){
+            Debug.LogWarning("Pawn 或其实例为空，无法执行运输任务！");
+            return;
+        }
+
+        // 获取 PawnInteractController 实例
+        PawnInteractController controller = pawn.Instance.GetComponent<PawnInteractController>();
+        if (controller == null){
+            Debug.LogWarning("PawnInteractController 未挂载在 Pawn 实例上！");
+            return;
+        }
+
+        // 移动到物品位置
+        controller.MovePawnToPosition(task.beginPosition, pawn);
+
+        // 获取目标地块的格子坐标
+        Vector3Int targetCellPos = MapManager.Instance.GetCellPosFromWorld(task.beginPosition);
+
+        // 检查目标地块是否有物品
+        if (MapManager.Instance.HasPawnAt(targetCellPos)){
+            Debug.LogWarning("目标地块上已有其他 Pawn，无法装载物品！");
+            return;
+        }
+
+        if (MapManager.Instance.GetMapData(targetCellPos).has_item){
+            // 获取地块上的物品实例
+            var itemInstance = MapManager.Instance.GetMapData(targetCellPos).item as ItemInstanceManager.MaterialInstance;
+
+            if (itemInstance != null){
+                // 调用 PawnLoad 方法进行装载
+                bool loadSuccess = PawnLoad(pawn, itemInstance, task);
+
+                if (loadSuccess){
+                    Debug.Log($"Pawn ID: {pawn.id} 成功装载物品 ID: {itemInstance.item_id} 数量: {itemInstance.amount}");
+                }
+                else{
+                    Debug.LogWarning($"Pawn ID: {pawn.id} 装载物品失败！");
+                }
+            }
+            else{
+                Debug.LogWarning("目标地块上的物品不是 MaterialInstance,无法装载！");
+            }
+        }
+        else{
+            Debug.LogWarning("目标地块没有物品可供装载！");
+        }
+    }
+
+    //建造任务
+    public void HandleBuildTask(Pawn pawn, TaskManager.Task task){
+        if (pawn == null || task == null){
+            Debug.LogWarning("Pawn 或 Task 为空，无法执行建造任务！");
+            return;
+        }
+
+        // 1. 根据任务查找建筑材料
+        Vector3Int? materialPosition = ItemInstanceManager.Instance.FindNearestItemPosition(
+            task.MaterialId, 
+            MapManager.Instance.GetCellPosFromWorld(pawn.Instance.transform.position)
+        );
+
+        if (materialPosition == null){
+            Debug.LogWarning($"未找到任务所需的材料 ID: {task.MaterialId}");
+            return;
+        }
+
+        // 2. 移动 Pawn 到材料位置
+        PawnInteractController controller = pawn.Instance.GetComponent<PawnInteractController>();
+        if (controller == null){
+            Debug.LogWarning("PawnInteractController 未挂载在 Pawn 实例上！");
+            return;
+        }
+
+        controller.MovePawnToPosition(materialPosition.Value, pawn);
+
+        // 等待 Pawn 到达材料位置
+        if (Vector3.Distance(pawn.Instance.transform.position, MapManager.Instance.GetCellPosFromWorld(materialPosition.Value)) > 0.05f){
+            Debug.Log("Pawn 正在移动到材料位置...");
+            return;
+        }
+
+        // 3. 装载材料
+        MapManager.MapData materialData = MapManager.Instance.GetMapData(materialPosition.Value);
+        if (materialData.has_item && materialData.item is ItemInstanceManager.MaterialInstance materialInstance){
+            bool loadSuccess = PawnLoad(pawn, materialInstance, task);
+            if (!loadSuccess){
+                Debug.LogWarning("装载材料失败！");
+                return;
+            }
+        }
+        else{
+            Debug.LogWarning("目标位置没有可用的材料！");
+            return;
+        }
+
+        // 4. 移动到建造地点
+        controller.MovePawnToPosition(task.targetposition, pawn);
+
+        // 等待 Pawn 到达建造地点
+        if (Vector3.Distance(pawn.Instance.transform.position, MapManager.Instance.GetCellPosFromWorld(task.targetposition)) > 0.05f){
+            Debug.Log("Pawn 正在移动到建造地点...");
+            return;
+        }
+
+        // 5. 等待建造完成
+        float workTime = GetWorkTime(pawn, task);
+        Debug.Log($"开始建造任务，预计耗时: {workTime} 秒");
+        System.Threading.Thread.Sleep((int)(workTime * 1000)); // 模拟等待建造完成
+
+        // 6. 建造完成后，消耗材料，创建建筑
+        MapManager.MapData buildData = MapManager.Instance.GetMapData(task.targetposition);
+        if (buildData != null){
+            buildData.has_building = true;
+            buildData.item = ItemInstanceManager.Instance.SpawnItem(
+                task.targetposition, 
+                task.MaterialId, 
+                ItemInstanceManager.ItemInstanceType.BuildingInstance
+            );
+
+            Debug.Log($"建造任务完成，建筑已创建在位置: {task.targetposition}");
+        }
+
+        // 清空 Pawn 的任务状态
+        pawn.isOnTask = false;
+        pawn.handlingTask = null;
+    }
+
     
 }

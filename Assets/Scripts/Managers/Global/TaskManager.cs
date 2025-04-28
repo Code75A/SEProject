@@ -14,11 +14,22 @@ public class TaskManager : MonoBehaviour
         Build, // 建造
         Plant, // 种植
         Harvest, // 收割
+        Transport, // 运输
         Total // 用于获取任务种类总数
     }
 
+    //任务类
+    //对于建造类型任务，根据材料、数量及位置能确定好任务的信息以完整指挥pawn运动
+
+    //对于种植类型任务，materialid中存储种子id，materialamount存储种子数量，其中materialamount默认为一个
+    //既单地块任务接口。
+    //实际过程中考虑合并多个任务，todo: 任务合并（如指定一片区域进行种植任务，统一拿种子但分别播种）
+
+    //对于收割类型任务，materialid 用来表示待收割物品类型，materialamount暂定没有作用，通过待收割物品类型与掉落物的映射确定掉落物
+    //注意收割物品和掉落物映射的维护
     public class Task{
-        public Vector3Int position; // 完成此任务的地点
+        public Vector3Int targetposition; // 完成此任务的地点
+
         public TaskTypes type; // 任务类型
 
         public int id;//任务id，每一个任务的唯一标识
@@ -26,8 +37,13 @@ public class TaskManager : MonoBehaviour
         public int MaterialId;//需要材料的id
 
         public int MaterialAmount; //需要材料的数量
+
+        public int materialType;
+
+        public int tasklevel; //任务等级，表示任务的难度和复杂程度
+
         public Task(Vector3Int position,TaskTypes type,int id,int materialId,int materialAmount,int materialType){
-            this.position = position;
+            this.targetposition = position;
             this.type = type;
             this.id = id;
             this.MaterialId = materialId;
@@ -35,6 +51,16 @@ public class TaskManager : MonoBehaviour
         }
 
     }
+    //运输任务类，继承自任务类
+    public class TaskTransport : Task{
+        public Vector3Int beginPosition; // 运输任务的起始位置
+
+        public TaskTransport(Vector3Int position, TaskTypes type, int id, int materialId, int materialAmount, Vector3Int beginPosition) : base(position, type, id, materialId, materialAmount, -1){
+            this.beginPosition = beginPosition;
+        }
+    }
+
+
     //todo:添加任务时自动为任务分配id的taskid生成器
     private int TaskIdUpdate(){
         //todo:此处应有逻辑生成id，此处仅为示意
