@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using TMPro;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.PlasticSCM.Editor.WebApi;
 using Unity.VisualScripting;
@@ -50,12 +51,42 @@ public class ItemInstanceManager : MonoBehaviour
         public int item_id;
         public Vector3Int position;
         public GameObject instance;
+
+        /// <summary>
+        /// 设置Instance贴图
+        /// </summary>
+        public void SetSprite(Sprite sprite){
+            instance.GetComponent<SpriteRenderer>().sprite = sprite;
+            return;
+        }
+        /// <summary>
+        /// 设置显示文本
+        /// </summary>
+        public void SetText(string text){
+            instance.GetComponentInChildren<TextMeshPro>().text = text;
+            return;
+        }
+        public string GetText(){
+            return instance.GetComponentInChildren<TextMeshPro>().text;
+        }
     }
     public class ToolInstance : ItemInstance{
         public int durability;
     }
     public class MaterialInstance : ItemInstance{
         public int amount;
+        
+        public int GetAmount(){
+            return amount;
+        }
+        public void SetAmount(int new_amount){
+            amount = new_amount;
+            string old_text = GetText();
+            string[] strArray = old_text.Split('|');
+            string new_text = strArray[0]+"|"+new_amount.ToString();
+            SetText(new_text);
+            return;
+        }
     }
     public class CropInstance : ItemInstance{
         public float growth;
@@ -134,7 +165,7 @@ public class ItemInstanceManager : MonoBehaviour
         new_ins.instance.transform.localScale = totalScale ;
 
         // 加载材质
-        new_ins.instance.GetComponent<SpriteRenderer>().sprite = texture;
+        new_ins.SetSprite(texture);
     }
 
     #endregion
@@ -154,6 +185,7 @@ public class ItemInstanceManager : MonoBehaviour
             durability=((ItemManager.Tool)sample).max_durability
         };
         InitInstance(new_ins, sample.texture);
+        new_ins.SetText(sample.name);
         return new_ins;
     }
     public ItemInstance MakeMaterialInstance(int item_id, Vector3Int position, int amount){
@@ -170,6 +202,7 @@ public class ItemInstanceManager : MonoBehaviour
             amount=amount
         };
         InitInstance(new_ins, sample.texture);
+        new_ins.SetText(sample.name + "|" + amount.ToString());
         return new_ins;
     }
     public ItemInstance MakeCropInstance(int crop_id, Vector3Int position){
@@ -188,6 +221,7 @@ public class ItemInstanceManager : MonoBehaviour
             growth=0, real_lifetime=CropManager.Instance.GetRealLifetime(sample, env_data)
         };
         InitInstance(new_ins, CropManager.Instance.GetSprite(crop_id, 0));
+        new_ins.SetText(sample.name);
         return new_ins;
     }
     public ItemInstance MakeBuildingInstance(int building_id, Vector3Int position){
@@ -204,6 +238,7 @@ public class ItemInstanceManager : MonoBehaviour
             durability=sample.durability
         };
         InitInstance(new_ins, sample.texture);
+        new_ins.SetText(sample.name);
         return new_ins;
     }
     public ItemInstance MakePrintInstance(int building_id, Vector3Int position){
@@ -227,6 +262,7 @@ public class ItemInstanceManager : MonoBehaviour
             material_list=temp
         };
         InitInstance(new_ins, BuildManager.Instance.printSprite);
+        new_ins.SetText(sample.name);
         return new_ins;
     }
     #endregion
@@ -240,10 +276,12 @@ public class ItemInstanceManager : MonoBehaviour
     #region 3.销毁各种ItemInstance个体的子函数, 以及用于销毁模式控制的控制量定义
     /// <summary>
     /// 用于确认DestroyItem函数的销毁模式。
-    /// Hard表示不产生任何遗留物；Soft表示产生最大数量的遗留物；Middle表示产生部分遗留物，配合remain_rate使用。
+    /// RemainNone表示不产生任何遗留物
+    /// RemainAll表示产生最大数量的遗留物
+    /// RemainWithRate表示产生部分遗留物，配合remain_rate使用。
     /// </summary>
     public enum DestroyMode{
-        Hard, Soft, Middle, Total
+        RemainAll, RemainNone, RemainWithRate, Total
     }
     #region (0) 共用的DestroyInstance函数, 用来销毁ItemInstance.instance(这是一个GameObject)
     public void DestroyInstance(ItemInstance aim_ins){
@@ -261,16 +299,16 @@ public class ItemInstanceManager : MonoBehaviour
             );
             return;
         }
-        if(mode == DestroyMode.Hard){
+        if(mode == DestroyMode.RemainNone){
             ;
         }
-        else if (mode == DestroyMode.Soft || mode == DestroyMode.Middle){
+        else if (mode == DestroyMode.RemainAll || mode == DestroyMode.RemainWithRate){
             List<KeyValuePair<int,int> > temp = new List<KeyValuePair<int,int> >();
             int item_id, amount;
             foreach (KeyValuePair<int,PrintInstance.Progress> it in ((PrintInstance)aim_ins).material_list){
                 item_id = it.Key;
                 amount = it.Value.current;
-                if(mode == DestroyMode.Middle) amount = (int)System.Math.Truncate((double)(amount*remain_rate));
+                if(mode == DestroyMode.RemainWithRate) amount = (int)System.Math.Truncate((double)(amount*remain_rate));
                 
                 if(amount > 0)
                     temp.Add(new KeyValuePair<int, int>(item_id, amount));
@@ -288,20 +326,9 @@ public class ItemInstanceManager : MonoBehaviour
 
     #region 4.更新各种ItemInstance个体的子函数
     #region (0) 所有ItemInstance个体可用
-    /// <summary>
-    /// 设置Instance贴图
-    /// </summary>
-    public void SetSprite(ItemInstance ins, Sprite sprite){
-        ins.instance.GetComponent<SpriteRenderer>().sprite = sprite;
-    }
-    /// <summary>
-    /// 设置显示文本
-    /// </summary>
-    public void SetText(ItemInstance ins, string text){
-        // TODO：
-        return;
-    }
+
     #endregion
+
     #region (1) 分类按时间更新
     /// <summary>
     /// CropInstance的生长更新
@@ -323,7 +350,7 @@ public class ItemInstanceManager : MonoBehaviour
                     UIManager.Instance.DebugTextAdd("<<Error>> illegal growth stage: " + new_stage);
                 }
                 else{
-                    SetSprite(it, CropManager.Instance.GetSprite(it.item_id,new_stage));
+                    it.SetSprite(CropManager.Instance.GetSprite(it.item_id,new_stage));
                 }
             }
             
@@ -400,8 +427,8 @@ public class ItemInstanceManager : MonoBehaviour
     /// <summary>
     /// 销毁指定的ItemInstance
     /// </summary>
-    /// <param name="remain_rate">遗留物的生成率，只在destroy_mode==DestroyMode.Middle时有效</param>
-    public void DestroyItem(ItemInstance aim_ins, DestroyMode destroy_mode=DestroyMode.Hard, float remain_rate=0.5f){
+    /// <param name="remain_rate">遗留物的生成率，只在destroy_mode==DestroyMode.RemainWithRate时有效</param>
+    public void DestroyItem(ItemInstance aim_ins, DestroyMode destroy_mode=DestroyMode.RemainNone, float remain_rate=0.5f){
         // 检查该Instance是否存在
         if(GetInstance(aim_ins.id) == null){
             UIManager.Instance.DebugTextAdd(
