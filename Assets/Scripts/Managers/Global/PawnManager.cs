@@ -441,14 +441,14 @@ public class PawnManager : MonoBehaviour{
             return;
         }
 
-        // 4. 移动到建造地点
-        controller.MovePawnToPosition(task.targetposition, pawn);
+        // // 4. 移动到建造地点
+        // controller.MovePawnToPosition(task.targetposition, pawn);
 
-        // 等待 Pawn 到达建造地点
-        if (Vector3.Distance(pawn.Instance.transform.position, MapManager.Instance.GetCellPosFromWorld(task.targetposition)) > 0.05f){
-            Debug.Log("Pawn 正在移动到建造地点...");
-            return;
-        }
+        // // 等待 Pawn 到达建造地点
+        // if (Vector3.Distance(pawn.Instance.transform.position, MapManager.Instance.GetCellPosFromWorld(task.targetposition)) > 0.05f){
+        //     Debug.Log("Pawn 正在移动到建造地点...");
+        //     return;
+        // }
 
         // 5. 等待建造完成
         float workTime = GetWorkTime(pawn, task);
@@ -456,17 +456,17 @@ public class PawnManager : MonoBehaviour{
         System.Threading.Thread.Sleep((int)(workTime * 1000)); // 模拟等待建造完成
 
         // 6. 建造完成后，消耗材料，创建建筑
-        MapManager.MapData buildData = MapManager.Instance.GetMapData(task.targetposition);
-        if (buildData != null){
-            buildData.has_building = true;
-            buildData.item = ItemInstanceManager.Instance.SpawnItem(
-                task.targetposition, 
-                task.MaterialId, 
-                ItemInstanceManager.ItemInstanceType.BuildingInstance
-            );
+        // MapManager.MapData buildData = MapManager.Instance.GetMapData(task.targetposition);
+        // if (buildData != null){
+        //     buildData.has_building = true;
+        //     buildData.item = ItemInstanceManager.Instance.SpawnItem(
+        //         task.targetposition, 
+        //         task.MaterialId, 
+        //         ItemInstanceManager.ItemInstanceType.BuildingInstance
+        //     );
 
-            Debug.Log($"建造任务完成，建筑已创建在位置: {task.targetposition}");
-        }
+        //     Debug.Log($"建造任务完成，建筑已创建在位置: {task.targetposition}");
+        // }
 
         // 清空 Pawn 的任务状态
         pawn.isOnTask = false;
