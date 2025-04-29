@@ -52,30 +52,49 @@ public class ItemInstanceManager : MonoBehaviour
         public Vector3Int position;
         public GameObject instance;
 
+        //--------------------------------private------------------------------------
+
         /// <summary>
-        /// 设置Instance贴图
+        /// private:设置Instance贴图
         /// </summary>
         public void SetSprite(Sprite sprite){
             instance.GetComponent<SpriteRenderer>().sprite = sprite;
             return;
         }
         /// <summary>
-        /// 设置显示文本
+        /// private:设置显示文本
         /// </summary>
         public void SetText(string text){
             instance.GetComponentInChildren<TextMeshPro>().text = text;
             return;
         }
+        /// <summary>
+        /// private:获取显示文本
+        /// </summary>
         public string GetText(){
             return instance.GetComponentInChildren<TextMeshPro>().text;
         }
+
+        //--------------------------------public------------------------------------
+
+        /// <summary>
+        /// 获取自身作为ItemInstance的id
+        /// </summary>
+        public int GetId(){ return id; }
+        /// <summary>
+        /// 获取自身所属的Item模板的id
+        /// </summary>
+        public int GetModelId(){ return item_id; }
+        public Vector3Int GetPosition(){ return position; }
     }
     public class ToolInstance : ItemInstance{
         public int durability;
+        //--------------------------------public------------------------------------
+        public int GetDurability(){ return durability; }
     }
     public class MaterialInstance : ItemInstance{
         public int amount;
-        
+        //--------------------------------public------------------------------------
         public int GetAmount(){
             return amount;
         }
@@ -91,6 +110,8 @@ public class ItemInstanceManager : MonoBehaviour
     public class CropInstance : ItemInstance{
         public float growth;
         public float real_lifetime;
+        //--------------------------------public------------------------------------
+        public bool IsMature(){ return growth >= real_lifetime ;}
     }
     public class BuildingInstance : ItemInstance{
         public int durability;
@@ -104,6 +125,16 @@ public class ItemInstanceManager : MonoBehaviour
         /// 蓝图所需材料列表，key为材料的item_id，value为所需数量
         /// </summary>
         public List<KeyValuePair<int,Progress> > material_list;
+        
+        //--------------------------------public------------------------------------
+        public bool IsFinished(){
+            for(int i = 0; i < material_list.Count; i++){
+                if(material_list[i].Value.current < material_list[i].Value.need){
+                    return false;
+                }
+            }
+            return true;
+        }
     }
     
     //======================================Manager Function Part=====================================
@@ -111,7 +142,7 @@ public class ItemInstanceManager : MonoBehaviour
     #region 1.唯一ID生成管理
     private static int ID_COUNTER = 0;
     /// <summary>
-    /// 唯一ID生成器，用于为ItemInstance分配唯一ID。
+    /// private：唯一ID生成器，用于为ItemInstance分配唯一ID。
     /// 我们约定它只被‘SpawnItem’调用，以确保ID的唯一性。
     /// TODO：目前仍然是最简单的增量分配，需要根据后续决定的ID管理机制实现正式的ID分配方法
     /// </summary>
@@ -126,7 +157,7 @@ public class ItemInstanceManager : MonoBehaviour
         return new_id;
     }
     /// <summary>
-    /// 唯一ID回收器，用于回收ItemInstance的ID。
+    /// private：唯一ID回收器，用于回收ItemInstance的ID。
     /// 我们约定它只被‘DestroyItem’调用，以确保回收操作的唯一性。
     /// TODO：目前仍然是象征性的回收，需要根据后续决定的ID管理机制实现正式的回收工作
     /// </summary>
@@ -144,7 +175,7 @@ public class ItemInstanceManager : MonoBehaviour
 
     #region (0) 共用的InitInstance函数, 用来为ItemInstance.instance(GameObject)做初始化
     /// <summary>
-    /// 为其instance成员变量装载预制体，设置transform组件（包括position和scale），加载材质；
+    /// private：为其instance成员变量装载预制体，设置transform组件（包括position和scale），加载材质；
     /// </summary>
     /// <param name="new_ins">待初始化的ItemInstance，应当被填充基本后端信息</param>I
     public void InitInstance(ItemInstance new_ins, Sprite texture){
@@ -171,6 +202,9 @@ public class ItemInstanceManager : MonoBehaviour
     #endregion
 
     #region (1)主要指定位置和模版
+    /// <summary>
+    /// private
+    /// </summary>
     public ItemInstance MakeToolInstance(int item_id, Vector3Int position){
         ItemManager.Item sample = ItemManager.Instance.GetItem(item_id, ItemManager.ItemType.Tool);
         if(sample == null){
@@ -188,6 +222,9 @@ public class ItemInstanceManager : MonoBehaviour
         new_ins.SetText(sample.name);
         return new_ins;
     }
+    /// <summary>
+    /// private
+    /// </summary>
     public ItemInstance MakeMaterialInstance(int item_id, Vector3Int position, int amount){
         ItemManager.Item sample = ItemManager.Instance.GetItem(item_id, ItemManager.ItemType.Material);
         if(sample == null){
@@ -205,6 +242,9 @@ public class ItemInstanceManager : MonoBehaviour
         new_ins.SetText(sample.name + "|" + amount.ToString());
         return new_ins;
     }
+    /// <summary>
+    /// private
+    /// </summary>
     public ItemInstance MakeCropInstance(int crop_id, Vector3Int position){
         CropManager.Crop sample = CropManager.Instance.GetCrop(crop_id);
         MapManager.MapData env_data = MapManager.Instance.GetMapData(position);
@@ -224,6 +264,9 @@ public class ItemInstanceManager : MonoBehaviour
         new_ins.SetText(sample.name);
         return new_ins;
     }
+    /// <summary>
+    /// private
+    /// </summary>
     public ItemInstance MakeBuildingInstance(int building_id, Vector3Int position){
         BuildManager.Building sample = BuildManager.Instance.GetBuilding(building_id);
         if(sample == null){
@@ -241,6 +284,9 @@ public class ItemInstanceManager : MonoBehaviour
         new_ins.SetText(sample.name);
         return new_ins;
     }
+    /// <summary>
+    /// private
+    /// </summary>
     public ItemInstance MakePrintInstance(int building_id, Vector3Int position){
         BuildManager.Building sample = BuildManager.Instance.GetBuilding(building_id);
         if(sample == null){
@@ -284,6 +330,9 @@ public class ItemInstanceManager : MonoBehaviour
         RemainAll, RemainNone, RemainWithRate, Total
     }
     #region (0) 共用的DestroyInstance函数, 用来销毁ItemInstance.instance(这是一个GameObject)
+    /// <summary>
+    /// private
+    /// </summary>
     public void DestroyInstance(ItemInstance aim_ins){
         GameObject.Destroy(aim_ins.instance);
         aim_ins.instance = null;
@@ -292,6 +341,9 @@ public class ItemInstanceManager : MonoBehaviour
     #endregion
 
     #region (1) 用于清除各种Instance的内容物
+    /// <summary>
+    /// private
+    /// </summary>
     public void ClearPrintInstance(ItemInstance aim_ins, DestroyMode mode, float remain_rate){
         if(aim_ins.type != ItemInstanceType.PrintInstance){
             UIManager.Instance.DebugTextAdd(
@@ -331,7 +383,7 @@ public class ItemInstanceManager : MonoBehaviour
 
     #region (1) 分类按时间更新
     /// <summary>
-    /// CropInstance的生长更新
+    /// private:CropInstance的生长更新
     /// </summary>
     public void UpdateAllCropInstance(){
         float grow, life;
@@ -360,6 +412,9 @@ public class ItemInstanceManager : MonoBehaviour
 
     #endregion
     // Start is called before the first frame update
+    /// <summary>
+    /// private
+    /// </summary>
     void InitInstanceListsData(){
         #region itemInstanceLists初始化
         itemInstanceLists.Add(ItemInstanceType.ToolInstance, new List<ItemInstance>());
