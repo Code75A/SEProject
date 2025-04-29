@@ -38,6 +38,7 @@ public class CropManager : MonoBehaviour
         // public EnvFactor fertility_factor;
         // public EnvFactor humidity_factor;
         // public EnvFactor light_factor;
+        public List<KeyValuePair<int, int> > harvest_list;
     }
     public List<Crop> cropList = new List<Crop>();
     const int CropSpritesCount = 6;
@@ -60,13 +61,34 @@ public class CropManager : MonoBehaviour
         InitCropListData();
     }
     //=========================================Private Function Part=======================================
+    /// <summary>
+    /// private
+    /// </summary>
     void InitCropListData(){
-        cropList.Add(new Crop{id = 0, name="水稻", lifetime=10.0f});
-        cropList.Add(new Crop{id = 1, name="土豆", lifetime=5.0f});
-        cropList.Add(new Crop{id = 2, name="小麦", lifetime=10.0f});
-        cropList.Add(new Crop{id = 3, name="棉花", lifetime=10.0f});
-        cropList.Add(new Crop{id = 4, name="葡萄", lifetime=15.0f});
-        cropList.Add(new Crop{id = 5, name="树", lifetime=20.0f});
+        cropList.Add(new Crop{id = 0, name="水稻", lifetime=10.0f, 
+            harvest_list = new List<KeyValuePair<int,int> >{
+                new KeyValuePair<int, int>(ItemManager.Instance.GetItem("蓝莓",ItemManager.ItemType.Material).id ,10)
+            }});
+        cropList.Add(new Crop{id = 1, name="土豆", lifetime=5.0f, 
+            harvest_list = new List<KeyValuePair<int,int> >{
+                new KeyValuePair<int, int>(ItemManager.Instance.GetItem("草莓",ItemManager.ItemType.Material).id ,10)
+            }});
+        cropList.Add(new Crop{id = 2, name="小麦", lifetime=10.0f, 
+            harvest_list = new List<KeyValuePair<int,int> >{
+                new KeyValuePair<int, int>(ItemManager.Instance.GetItem("蓝莓",ItemManager.ItemType.Material).id ,10)
+            }});
+        cropList.Add(new Crop{id = 3, name="棉花", lifetime=10.0f, 
+            harvest_list = new List<KeyValuePair<int,int> >{
+                new KeyValuePair<int, int>(ItemManager.Instance.GetItem("蓝莓",ItemManager.ItemType.Material).id ,10)
+            }});
+        cropList.Add(new Crop{id = 4, name="葡萄", lifetime=15.0f, 
+            harvest_list = new List<KeyValuePair<int,int> >{
+                new KeyValuePair<int, int>(ItemManager.Instance.GetItem("蓝莓",ItemManager.ItemType.Material).id ,10)
+            }});
+        cropList.Add(new Crop{id = 5, name="树", lifetime=20.0f, 
+            harvest_list = new List<KeyValuePair<int,int> >{
+                new KeyValuePair<int, int>(ItemManager.Instance.GetItem("蓝莓",ItemManager.ItemType.Material).id ,10)
+            }});
     }
     //=========================================Public Function Part=======================================
     public Crop GetCrop(int id){

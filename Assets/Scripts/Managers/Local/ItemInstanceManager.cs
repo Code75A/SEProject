@@ -360,6 +360,7 @@ public class ItemInstanceManager : MonoBehaviour
             foreach (KeyValuePair<int,PrintInstance.Progress> it in ((PrintInstance)aim_ins).material_list){
                 item_id = it.Key;
                 amount = it.Value.current;
+
                 if(mode == DestroyMode.RemainWithRate) amount = (int)System.Math.Truncate((double)(amount*remain_rate));
                 
                 if(amount > 0)
@@ -370,6 +371,38 @@ public class ItemInstanceManager : MonoBehaviour
         }
         else{
             UIManager.Instance.DebugTextAdd("<<Error>>Clearing PrintInstance FAILED: UnDefined DestroyMode. ");
+        }
+    }
+    public void ClearCropInstance(ItemInstance aim_ins, DestroyMode mode, float remain_rate){
+        if(aim_ins.type != ItemInstanceType.CropInstance){
+            UIManager.Instance.DebugTextAdd(
+                "<<Error>>Clearing CropInstance FAILED: the iteminstance_id "+ aim_ins.id +" is not a CropInstance. "
+            );
+            return;
+        }
+
+        if(mode == DestroyMode.RemainNone){
+            ;
+        }
+        else if (mode == DestroyMode.RemainAll || mode == DestroyMode.RemainWithRate){
+            List<KeyValuePair<int,int> > sample = CropManager.Instance.GetCrop(aim_ins.GetModelId()).harvest_list;
+            List<KeyValuePair<int,int> > temp = new List<KeyValuePair<int,int> >();
+            int crop_id, amount;
+            for(int i = 0; i < sample.Count;i++){
+                crop_id = sample[i].Key;
+                amount = sample[i].Value;
+                Debug.Log(crop_id.ToString()+ "|" + amount.ToString());
+
+                if(mode == DestroyMode.RemainWithRate) amount = (int)System.Math.Truncate((double)(amount*remain_rate));
+                
+                if(amount > 0)
+                    temp.Add(new KeyValuePair<int, int>(crop_id, amount));
+            }
+            int set_res = MapManager.Instance.SetMaterial(aim_ins.position, temp);
+            UIManager.Instance.DebugTextAdd("[Log]From mapManager get set-material-result: "+ set_res + ". ");
+        }
+        else{
+            UIManager.Instance.DebugTextAdd("<<Error>>Clearing CropInstance FAILED: UnDefined DestroyMode. ");
         }
     }
     #endregion
@@ -422,6 +455,17 @@ public class ItemInstanceManager : MonoBehaviour
         itemInstanceLists.Add(ItemInstanceType.BuildingInstance, new List<ItemInstance>());
         itemInstanceLists.Add(ItemInstanceType.CropInstance, new List<ItemInstance>());
         itemInstanceLists.Add(ItemInstanceType.PrintInstance, new List<ItemInstance>());
+        //Debug.Log("init itemInstanceLists finished");
+        #endregion
+
+        #region 动态载入部分ItemInstance供测试
+        //Debug.Log("spawning some crop instance.");
+        CropInstance tmp1 = (CropInstance)SpawnItem(new Vector3Int(10,10,0),0,ItemInstanceType.CropInstance);
+        CropInstance tmp2 = (CropInstance)SpawnItem(new Vector3Int(10,11,0),1,ItemInstanceType.CropInstance);
+        CropInstance tmp3 = (CropInstance)SpawnItem(new Vector3Int(10,12,0),2,ItemInstanceType.CropInstance);
+        HarvestCrop(tmp1);
+        HarvestCrop(tmp2);
+        HarvestCrop(tmp3);
         #endregion
     }
     void Start()
@@ -481,6 +525,7 @@ public class ItemInstanceManager : MonoBehaviour
     
     /// <summary>
     /// 销毁指定的ItemInstance
+    /// note: PawnManager不应使用此函数进行Crop的收获或毁坏,请注意HarvestCrop和RuinCrop函数
     /// </summary>
     /// <param name="remain_rate">遗留物的生成率，只在destroy_mode==DestroyMode.RemainWithRate时有效</param>
     public void DestroyItem(ItemInstance aim_ins, DestroyMode destroy_mode=DestroyMode.RemainNone, float remain_rate=0.5f){
@@ -499,8 +544,12 @@ public class ItemInstanceManager : MonoBehaviour
         //  清除不同种类的ItemInstance的内含物
         switch(aim_ins.type){
             case ItemInstanceType.ToolInstance:
+                break;
             case ItemInstanceType.MaterialInstance:
-            case ItemInstanceType.CropInstance:     
+                break;
+            case ItemInstanceType.CropInstance:
+                ClearCropInstance(aim_ins, destroy_mode, remain_rate);
+                break;     
             case ItemInstanceType.BuildingInstance:
                 break;
             case ItemInstanceType.PrintInstance:
@@ -578,7 +627,14 @@ public class ItemInstanceManager : MonoBehaviour
         return res;
     }
 
-    //==================================MaterialInstance Function Part=================================
-    
+    //==================================CropInstance Function Part=================================
+    public bool HarvestCrop(CropInstance crop_ins){
+        DestroyItem(crop_ins, DestroyMode.RemainAll);
+        return true;
+    }
+    public bool RuinCrop(CropInstance crop_ins){
+        DestroyItem(crop_ins, DestroyMode.RemainNone);
+        return true;
+    }
 
 }
