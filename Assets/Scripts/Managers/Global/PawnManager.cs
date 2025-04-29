@@ -302,16 +302,16 @@ public class PawnManager : MonoBehaviour{
     public bool PawnLoad(Pawn pawn,ItemInstanceManager.MaterialInstance itemInstance,TaskManager.Task task){
         if(pawn.instantCapacity > itemInstance.amount){
             //销毁instance
-            pawn.materialId = itemInstance.item_id;
-            pawn.materialAmount = itemInstance.amount;
-            pawn.instantCapacity -= itemInstance.amount; //运载容量减少
+            pawn.materialId = itemInstance.GetModelId();
+            pawn.materialAmount = itemInstance.GetAmount();
+            pawn.instantCapacity -= itemInstance.GetAmount(); //运载容量减少
             //pawn.materialType = itemInstance.type;(默认为material)
             ItemInstanceManager.Instance.DestroyItem(itemInstance);
         }
         else{
             //不必销毁instance，改动数值
-            pawn.materialId = itemInstance.item_id;
-            itemInstance.amount -= pawn.instantCapacity;
+            pawn.materialId = itemInstance.GetModelId();
+            itemInstance.SetAmount(itemInstance.GetAmount() - pawn.instantCapacity);
             pawn.materialAmount = pawn.instantCapacity;
             pawn.instantCapacity = 0; //运载容量清空
         }
@@ -473,5 +473,98 @@ public class PawnManager : MonoBehaviour{
         pawn.handlingTask = null;
     }
 
-    
+    //收割任务，注意调用此函数时需要确保作物在可收割状态
+    public void HandleHarvestTask(Pawn pawn, TaskManager.Task task){
+        if (pawn == null || task == null){
+            Debug.LogWarning("Pawn 或 Task 为空，无法执行收割任务！");
+            return;
+        }
+        // 1. 根据任务查找农作物位置
+        Vector3Int? cropPosition = task.targetposition;
+
+        // 2. 移动 Pawn 到农作物位置
+        PawnInteractController controller = pawn.Instance.GetComponent<PawnInteractController>();
+        if (controller == null){
+            Debug.LogWarning("PawnInteractController 未挂载在 Pawn 实例上！");
+            return;
+        }
+
+        controller.MovePawnToPosition(cropPosition.Value, pawn);
+
+        // 等待 Pawn 到达农作物位置
+        if (Vector3.Distance(pawn.Instance.transform.position, MapManager.Instance.GetCellPosFromWorld(cropPosition.Value)) > 0.05f){
+            Debug.Log("Pawn 正在移动到农作物位置...");
+            return;
+        }
+        Debug.Log("Pawn 到达农作物位置,开始HarvestTask...");
+
+        // 3. 等待收割完成
+        float workTime = GetWorkTime(pawn, task);
+        Debug.Log($"开始收割任务，预计耗时: {workTime} 秒"); 
+        System.Threading.Thread.Sleep((int)(workTime * 1000)); // 模拟等待收割完成
+        Debug.Log("HarvestTask 完成!");
+
+        // 4. 收割完成后，创建物品实例
+        Mapmanager.MapData cropData = MapManager.Instance.GetMapData(cropPosition.Value);
+        if (cropData != null && !cropData.has_item){
+            cropData.has_item = true;
+            //暂时由任务来指定生成出来的物品，用于测试，后续需要根据作物收获物表格获取物品
+            ItemInstanceManager.MaterialInstance newCrop = ItemInstanceManager.Instance.SpawnItem(
+                task.targetposition, 
+                task.MaterialId, 
+                ItemInstanceManager.ItemInstanceType.MaterialInstance
+            );
+            Debug.Log($"收割任务完成，物品已创建在位置: {task.targetposition}");
+        }
+    }
+
+    //开垦土地任务，到达目标地点，经过固定时间后添加农田
+    //注意判断土地是否可开垦
+    public void HandleFarmTask(Pawn pawn, TaskManager.Task task){
+        if (pawn == null || task == null){
+            Debug.LogWarning("Pawn 或 Task 为空，无法执行开垦任务！");
+            return;
+        }
+        // 1. 根据任务查找农作物位置
+        Vector3Int? FarmPosition = task.targetposition;
+
+        // 2. 移动 Pawn 到农作物位置
+        PawnInteractController controller = pawn.Instance.GetComponent<PawnInteractController>();
+        if (controller == null){
+            Debug.LogWarning("PawnInteractController 未挂载在 Pawn 实例上！");
+            return;
+        }
+        controller.MovePawnToPosition(FarmPosition.Value, pawn);
+
+
+        if (Vector3.Distance(pawn.Instance.transform.position, MapManager.Instance.GetCellPosFromWorld(FarmPosition.Value)) > 0.05f){
+            Debug.Log("Pawn 正在移动到农作物位置...");
+            return;
+        }
+        Debug.Log("Pawn 到达农作物位置,开始FarmTask...");
+
+
+        float workTime = GetWorkTime(pawn, task);
+        Debug.Log($"开始开垦任务，预计耗时: {workTime} 秒"); 
+        System.Threading.Thread.Sleep((int)(workTime * 1000));
+        Debug.Log("FarmTask 完成!");
+
+        // 4. 调用 MapManager 的 SetTileFarm 方法创建农田
+        MapManager.MapData mapData = MapManager.Instance.GetMapData(FarmPosition);
+        if (mapData != null){
+            BuildManager.Building farmBuilding = new BuildManager.Building{
+                id = (int)MapManager.tileTypes.farm, // 假设农田的类型为 `farm`
+                name = "Farm",
+                can_build = false,
+                can_walk = true,
+                can_plant = true
+            };
+
+            MapManager.Instance.SetTileFarm(mapData, farmBuilding);
+            Debug.Log($"农田已成功创建在位置: {FarmPosition}");
+        }
+        else{
+            Debug.LogWarning("目标位置的 MapData 不存在，无法创建农田！");
+        }
+    }
 }

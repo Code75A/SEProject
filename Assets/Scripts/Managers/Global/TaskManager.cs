@@ -14,7 +14,7 @@ public class TaskManager : MonoBehaviour
         Build, // 建造
         Plant, // 种植
         Harvest, // 收割
-        Translate, // 运输
+        Transport, // 运输
         Total // 用于获取任务种类总数
     }
 
@@ -28,7 +28,7 @@ public class TaskManager : MonoBehaviour
     //对于收割类型任务，materialid 用来表示待收割物品类型，materialamount暂定没有作用，通过待收割物品类型与掉落物的映射确定掉落物
     //注意收割物品和掉落物映射的维护
     public class Task{
-        public Vector3Int position; // 完成此任务的地点
+        public Vector3Int targetposition; // 完成此任务的地点
 
         public TaskTypes type; // 任务类型
 
