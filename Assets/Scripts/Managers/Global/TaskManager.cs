@@ -14,7 +14,7 @@ public class TaskManager : MonoBehaviour
         Build, // 建造
         Plant, // 种植
         Harvest, // 收割
-        Transport, // 运输
+        Translate, // 运输
         Total // 用于获取任务种类总数
     }
 
@@ -28,7 +28,7 @@ public class TaskManager : MonoBehaviour
     //对于收割类型任务，materialid 用来表示待收割物品类型，materialamount暂定没有作用，通过待收割物品类型与掉落物的映射确定掉落物
     //注意收割物品和掉落物映射的维护
     public class Task{
-        public Vector3Int targetposition; // 完成此任务的地点
+        public Vector3Int position; // 完成此任务的地点
 
         public TaskTypes type; // 任务类型
 
@@ -43,11 +43,12 @@ public class TaskManager : MonoBehaviour
         public int tasklevel; //任务等级，表示任务的难度和复杂程度
 
         public Task(Vector3Int position,TaskTypes type,int id,int materialId,int materialAmount,int materialType){
-            this.targetposition = position;
+            this.position = position;
             this.type = type;
             this.id = id;
             this.MaterialId = materialId;
             this.MaterialAmount = materialAmount;
+            //this.materialType = materialType;
         }
 
     }
