@@ -8,6 +8,7 @@ public class TaskManager : MonoBehaviour
     public static TaskManager Instance { get; private set; }
     public PawnManager pawnManager; // 引用唯一的 PawnManager 对象
 
+    private int dev_current_id = 0; // 当前任务id-临时
 
 
     public enum TaskTypes{
@@ -28,26 +29,27 @@ public class TaskManager : MonoBehaviour
     //对于收割类型任务，materialid 用来表示待收割物品类型，materialamount暂定没有作用，通过待收割物品类型与掉落物的映射确定掉落物
     //注意收割物品和掉落物映射的维护
     public class Task{
-        public Vector3Int targetposition; // 完成此任务的地点
+        public Vector3Int target_position; // 完成此任务的地点
 
         public TaskTypes type; // 任务类型
 
-        public int id;//任务id，每一个任务的唯一标识
+        public int task_id;//任务id，每一个任务的唯一标识
 
-        public int MaterialId;//需要材料的id
+        //不只有材料，可能改名 --cjh
+        public int id;//需要材料的id
 
-        public int MaterialAmount; //需要材料的数量
+        public int amount; //需要材料的数量
 
         public int materialType;
 
         public int tasklevel; //任务等级，表示任务的难度和复杂程度
 
-        public Task(Vector3Int position,TaskTypes type,int id,int materialId,int materialAmount,int materialType){
-            this.position = position;
+        public Task(Vector3Int position,TaskTypes type,int task_id,int id,int amount,int materialType){
+            this.target_position = position;
             this.type = type;
+            this.task_id = task_id;
             this.id = id;
-            this.MaterialId = materialId;
-            this.MaterialAmount = materialAmount;
+            this.amount = amount;
             //this.materialType = materialType;
         }
 
@@ -56,7 +58,7 @@ public class TaskManager : MonoBehaviour
     public class TaskTransport : Task{
         public Vector3Int beginPosition; // 运输任务的起始位置
 
-        public TaskTransport(Vector3Int position, TaskTypes type, int id, int materialId, int materialAmount, Vector3Int beginPosition) : base(position, type, id, materialId, materialAmount, -1){
+        public TaskTransport(Vector3Int position, TaskTypes type, int task_id, int id, int materialAmount, Vector3Int beginPosition) : base(position, type, task_id, id, materialAmount, -1){
             this.beginPosition = beginPosition;
         }
     }
@@ -65,8 +67,8 @@ public class TaskManager : MonoBehaviour
     //todo:添加任务时自动为任务分配id的taskid生成器
     private int TaskIdUpdate(){
         //todo:此处应有逻辑生成id，此处仅为示意
-        
-        return 0;
+        dev_current_id++;
+        return dev_current_id;
     }
     public List<Task> availableTaskList = new List<Task>(); // 满足条件的任务列表
     public List<Task> inavailableTaskList = new List<Task>(); // 不满足条件的任务列表
@@ -98,6 +100,8 @@ public class TaskManager : MonoBehaviour
                 availablePawn.isOnTask = true;
                 availablePawn.handlingTask = task;
                 availableTaskList.RemoveAt(0);
+
+                PawnManager.Instance.HandleTask(availablePawn);
             } else {
                 inavailableTaskList.Add(task);
                 availableTaskList.RemoveAt(0);
@@ -120,24 +124,21 @@ public class TaskManager : MonoBehaviour
         }
     }
 
-    // public void AddTask(Vector3Int pos, TaskTypes type) {
-    //     Task newTask = new Task {
-    //         position = pos,
-    //         type = type
-    //     };
-    //     availableTaskList.Add(newTask);
-    // }
-    public void AddTask(Vector3Int pos, TaskTypes type, int materialId = 0, int materialAmount = 0) {
+    // 添加任务到任务列表中
+    // 将materialId改为id，materialAmount改为amount，方便后续扩展 --cjh
+    public void AddTask(Vector3Int pos, TaskTypes type, int id = 0, int amount = 0) {
         int newTaskId = TaskIdUpdate(); // 需要实现ID生成器
         
         Task newTask = new Task(
             position: pos,
             type: type,
-            id: newTaskId,
-            materialId: materialId,
-            materialAmount: materialAmount,
+            task_id: newTaskId,
+            id: id,
+            amount: amount,
             materialType: -1 // 默认为-1，表示不需要材料或材料类型未知
         );
+        Debug.Log($"添加任务: {newTask.type}，ID: {newTask.task_id}，位置: {newTask.target_position}，材料ID: {newTask.id}，数量: {newTask.amount}");
+        
         availableTaskList.Add(newTask);
     }
 }

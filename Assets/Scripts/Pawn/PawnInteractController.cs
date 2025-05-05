@@ -139,19 +139,27 @@ public class PawnInteractController : MonoBehaviour
     //     Debug.Log($"开始移动Pawn到位置: {targetPosition}");
     // }
 
-    public void MovePawnToPosition(Vector3 targetWorldPos, PawnManager.Pawn targetPawn){
+    public void MovePawnToPosition(Vector3Int targetWorldPos, PawnManager.Pawn targetPawn){
         if (targetPawn == null){
             Debug.LogWarning("目标Pawn为空，无法移动！");
             return;
         }
 
         // 转换世界坐标到格子坐标
-        Vector3Int targetCellPos = MapManager.Instance.GetCellPosFromWorld(targetWorldPos);
+        //Vector3Int targetCellPos = MapManager.Instance.GetCellPosFromWorld(targetWorldPos);
 
         // 检查目标位置是否可通行
         if (!MapManager.Instance.IsWalkable(targetCellPos) || 
             MapManager.Instance.HasPawnAt(targetCellPos)){
             Debug.LogWarning($"目标位置不可通行: {targetWorldPos}");
+
+            Debug.LogWarning(MapManager.Instance.GetMapData(targetCellPos));
+
+            if(!MapManager.Instance.IsWalkable(targetCellPos))
+                Debug.LogWarning($"由于地格不可达");
+            if(MapManager.Instance.HasPawnAt(targetCellPos))
+                Debug.LogWarning($"由于已有Pawn在此位置");
+
             return;
         }
 
@@ -179,13 +187,6 @@ public class PawnInteractController : MonoBehaviour
         }
     }
 
-    void Start()
-    {
-        // // 初始化Pawn大小适配Tilemap格子
-        // Vector3 cellSize = MapManager.Instance.landTilemap.cellSize;
-        // Vector3 mapScale = MapManager.Instance.landTilemap.transform.lossyScale;
-        // transform.localScale = new Vector3(cellSize.x * mapScale.x, cellSize.y * mapScale.y, transform.localScale.z);
-    }
 
 
 }
