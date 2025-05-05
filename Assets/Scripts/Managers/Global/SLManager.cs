@@ -613,6 +613,7 @@ public class SLManager : MonoBehaviour
     }
     #endregion
 
+/*
     #region "TaskManagerData"
     [System.Serializable]
     public class TaskManagerData
@@ -757,7 +758,8 @@ public class SLManager : MonoBehaviour
         }
     }
     #endregion
-
+*/
+/*
     #region "PawnManagerData"
     [System.Serializable]
     public class PawnManagerData
@@ -999,7 +1001,7 @@ public class SLManager : MonoBehaviour
         }
     }
     #endregion
-
+*/
     void Awake()
     {
         

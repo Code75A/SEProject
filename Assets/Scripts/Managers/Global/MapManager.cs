@@ -53,6 +53,8 @@ public class MapManager : MonoBehaviour
     
     public Tilemap landTilemap;
 
+    public GameObject content;
+
         #region 数据矩阵
     public bool[,] walkVectors = new bool[MAP_SIZE,MAP_SIZE];
 
@@ -83,11 +85,30 @@ public class MapManager : MonoBehaviour
         mapDatas[pos.x, pos.y].has_pawn = hasPawn;
     }
 
-    Dictionary<BuildManager.BuildingType, Action<MapData, BuildManager.Building>> buildActions =new Dictionary<BuildManager.BuildingType, Action<MapData, BuildManager.Building>>{
+    Dictionary<BuildManager.BuildingType, Action<MapData, BuildManager.Building>> buildSetActions = new Dictionary<BuildManager.BuildingType, Action<MapData, BuildManager.Building>>{
         {BuildManager.BuildingType.Dev, (data, building) => Instance.SetTileDev(data, building)},
         {BuildManager.BuildingType.Wall, (data, building) => Instance.SetTilePrint(data, building)},
         {BuildManager.BuildingType.Farm, (data, building) => Instance.SetTileFarm(data, building)}
     };
+
+    Dictionary<BuildManager.BuildingType, Action<MapData, BuildManager.Building>> buildTaskActions = new Dictionary<BuildManager.BuildingType, Action<MapData, BuildManager.Building>>{
+        {BuildManager.BuildingType.Dev, (data, building) => Instance.SetTileDev(data, building)},
+        {BuildManager.BuildingType.Wall, (data, building) => Instance.AddBuildTask(data, building)},
+        {BuildManager.BuildingType.Farm, (data, building) => Instance.AddBuildTask(data, building)},
+    };
+
+    //或许有必要分开？
+    // void AddWallBuildTask(MapData data, BuildManager.Building building){
+    //     TaskManager.Instance.AddTask(data.position, TaskManager.TaskTypes.Build, building.id, 1);
+    // }
+
+    void AddBuildTask(MapData data, BuildManager.Building building){
+        data.has_print = true;
+        SetTilePrint(data, building);
+
+        TaskManager.Instance.AddTask(data.position, TaskManager.TaskTypes.Build, building.id, 1);
+    }
+
     void SetTileDev(MapData data,BuildManager.Building building){
         int id=building.id;
 
@@ -111,30 +132,28 @@ public class MapManager : MonoBehaviour
         }
 
         landTilemap.SetTile(data.position, data.texture);
-        
-        // 强制更新碰撞体
-        if(landTilemap.GetComponent<CompositeCollider2D>() != null){
-            landTilemap.GetComponent<CompositeCollider2D>().GenerateGeometry();
-        }
     }
     void SetTilePrint(MapData data, BuildManager.Building building){
-
-        TaskManager.Instance.AddTask(data.position, TaskManager.TaskTypes.Build);
 
         data.has_print = true;
         data.has_item = true;
 
-        SetWalkableState(data, false);
+        SetWalkableState(data, true);//临时
 
         data.can_build = false;
         data.can_plant = false;
 
         data.item = ItemInstanceManager.Instance.SpawnItem(data.position, building.id, ItemInstanceManager.ItemInstanceType.PrintInstance);
     }
-    void SetTileFarm(MapData data, BuildManager.Building building){
+    public void SetTileFarm(MapData data, BuildManager.Building building){
     
+        if(building.type != BuildManager.BuildingType.Farm){
+            Debug.Log("Error: SetTileFarm传入的建筑类型错误！");
+            return;
+        }
+        
         if(!data.can_plant){
-            Debug.Log("此处无法种植");
+            Debug.Log("此处无法种植!");
             return;
         }
 
@@ -145,14 +164,12 @@ public class MapManager : MonoBehaviour
         data.has_building = true;
         data.has_item = true;
 
-        SetWalkableState(data, true);
-
-        data.can_build = false;
-        data.can_plant = true;
+        SetWalkableState(data, building.can_walk);
+        data.can_build = building.can_build;
+        data.can_plant = building.can_plant;
 
         data.item = ItemInstanceManager.Instance.SpawnItem(data.position, building.id, ItemInstanceManager.ItemInstanceType.BuildingInstance);
     }
-
 
     #region 初始化
     public void GenerateMapData(){
@@ -162,6 +179,10 @@ public class MapManager : MonoBehaviour
                 mapDatas[x, y].type = tileTypes.grass;
                 mapDatas[x, y].texture = tiles[(int)tileTypes.grass];
                 mapDatas[x, y].position = new Vector3Int(x, y, 0);
+
+                mapDatas[x, y].has_pawn = false;
+
+                SetTileDev(mapDatas[x, y], BuildManager.Instance.GetBuilding(0));//草地
             }
         }
     }
@@ -239,7 +260,7 @@ public class MapManager : MonoBehaviour
                         }
 
                         //根据buildingType更新数据
-                        if(buildActions.TryGetValue(building.type, out Action<MapData, BuildManager.Building> action))
+                        if(buildTaskActions.TryGetValue(building.type, out Action<MapData, BuildManager.Building> action))
                             action(clickedData, building);
                         else
                             Debug.Log("未定义的建筑类型: " + building.type);
@@ -249,18 +270,18 @@ public class MapManager : MonoBehaviour
                             landTilemap.SetTile(cellPos, clickedData.texture);
                         }
                     }
-                    else{
-                        Debug.Log("测试寻路：(32, 32, 0) -> " + cellPos);
+                    // else{
+                    //     Debug.Log("测试寻路：(32, 32, 0) -> " + cellPos);
                         
-                        List<Vector3Int> Recieved_path = FindPath(new Vector3Int(32, 32, 0), cellPos);
-                        if(Recieved_path.Count == 0){
-                            Debug.Log("不连通！");
-                            return;
-                        }
-                        else foreach(Vector3Int path_point in Recieved_path){
-                            Debug.Log("路径点: " + path_point);
-                        }
-                    }
+                    //     List<Vector3Int> Recieved_path = FindPath(new Vector3Int(32, 32, 0), cellPos);
+                    //     if(Recieved_path.Count == 0){
+                    //         Debug.Log("不连通！");
+                    //         return;
+                    //     }
+                    //     else foreach(Vector3Int path_point in Recieved_path){
+                    //         Debug.Log("路径点: " + path_point);
+                    //     }
+                    // }
                 }
             }
             else{
@@ -476,7 +497,10 @@ public class MapManager : MonoBehaviour
     
     //获取某个地格的所有MapData信息
     public MapData GetMapData(Vector3Int pos){
-        if(!IsInBoard(pos)) return null;
+        if(!IsInBoard(pos)) {
+            Debug.Log("Error: GetMapData越界");
+            return null;
+        }
         return mapDatas[pos.x, pos.y];
     }
 

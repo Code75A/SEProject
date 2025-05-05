@@ -601,9 +601,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ItemManager: {fileID: 398816336}
   pawnPrefab: {fileID: 1915718262984641785, guid: ff831dde6e108f643970f2e13662feb2, type: 3}
-  spawner: {fileID: 909284030}
-  landTilemap: {fileID: 338176610}
-  content: {fileID: 1818987301}
+  pawnSpawner: {fileID: 909284030}
 --- !u!114 &398816331
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -647,7 +645,13 @@ MonoBehaviour:
   - {x: 1, y: 0, z: 0}
   - {x: 0, y: -1, z: 0}
   - {x: -1, y: 0, z: 0}
+  DIAGONAL_DIRECTIONS:
+  - {x: 1, y: 1, z: 0}
+  - {x: 1, y: -1, z: 0}
+  - {x: -1, y: 1, z: 0}
+  - {x: -1, y: -1, z: 0}
   landTilemap: {fileID: 338176610}
+  content: {fileID: 1818987301}
   tiles:
   - {fileID: 11400000, guid: 71ab64d189f5f6b4eb53951a06cb4df8, type: 2}
   - {fileID: 11400000, guid: be1ff62663cfad1499dfae2cb810519c, type: 2}
@@ -1755,7 +1759,7 @@ GameObject:
   - component: {fileID: 909284032}
   - component: {fileID: 909284031}
   m_Layer: 0
-  m_Name: Spawner
+  m_Name: PawnSpawner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -96,7 +96,7 @@ public class BuildManager : MonoBehaviour
 
         buildingLists[BuildingType.Farm].Add(new Building{
             id = 5, name="农田", texture = tempBuildingSprites[5], type = BuildingType.Farm, width = 1, height = 1, durability = -1,
-            can_build = false, can_walk = false, can_plant = true, material_list = new List<KeyValuePair<int, int>>()});
+            can_build = false, can_walk = true, can_plant = true, material_list = new List<KeyValuePair<int, int>>()});
     }
 
     public Building GetBuilding(int id){
@@ -111,6 +111,15 @@ public class BuildManager : MonoBehaviour
         return null;
     }
 
+    public BuildingType GetBuildingType(int id){
+        foreach(var list in buildingLists.Values){
+            foreach(var building in list){
+                if(building.id == id)
+                    return building.type;
+            }
+        }
+        return BuildingType.Total;
+    }
     /// <summary>
     /// 将type类型的建筑列表加载到currentBuildingList，返回值该List传递回uiManager
     /// </summary>
@@ -131,5 +140,5 @@ public class BuildManager : MonoBehaviour
         currentBuilding = building;
     }
 
-
+    
 }
