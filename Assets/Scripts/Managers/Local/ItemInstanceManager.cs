@@ -35,7 +35,7 @@ public class ItemInstanceManager : MonoBehaviour
     public Tilemap landTilemap;
     public GameObject content;
     public GameObject itemInstance;
-    public const float growthPerFrame = 0.001f; 
+    public const float growthPerFrame = 0.005f; 
 
     //====================================ItemInstance Class Part====================================
     public enum ItemInstanceType{
@@ -474,8 +474,8 @@ public class ItemInstanceManager : MonoBehaviour
         CropInstance tmp1 = (CropInstance)SpawnItem(new Vector3Int(30,30,0),0,ItemInstanceType.CropInstance);
         CropInstance tmp2 = (CropInstance)SpawnItem(new Vector3Int(30,31,0),1,ItemInstanceType.CropInstance);
         CropInstance tmp3 = (CropInstance)SpawnItem(new Vector3Int(30,32,0),2,ItemInstanceType.CropInstance);
-        HarvestCrop(tmp1);
-        HarvestCrop(tmp2);
+        //HarvestCrop(tmp1);
+        //HarvestCrop(tmp2);
         HarvestCrop(tmp3);
         #endregion
     }
@@ -486,8 +486,7 @@ public class ItemInstanceManager : MonoBehaviour
         InitInstanceListsData();
     }
 
-    // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         UpdateAllCropInstance();
     }
