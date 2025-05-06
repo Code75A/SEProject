@@ -105,7 +105,7 @@ public class PawnInteractController : MonoBehaviour
                 isMoving = false;
                 PawnManager.Instance.ResolveTask(pawn);
 
-                Debug.Log($"到达目标位置: {targetPosition}");
+                //Debug.Log($"到达目标位置: {targetPosition}");
                 
             }
         }
@@ -116,7 +116,8 @@ public class PawnInteractController : MonoBehaviour
         if (PawnManager.Instance != null)
         {
             PawnManager.Instance.SelectingPawn = pawn;
-            Debug.Log($"选中Pawn ID: {pawn?.id}");
+            //Debug.Log($"选中Pawn ID: {pawn?.id}");
+            //Debug.Log($"选中Pawn 是否空闲: {pawn.isOnTask}");
         }
     }
 
@@ -173,6 +174,7 @@ public class PawnInteractController : MonoBehaviour
 
         // 设置移动参数
         //targetWorldPos.z = 0; // 确保Z坐标为0
+        isMoving = true;
         this.targetCellPos  = targetCellPos;
         targetPosition = landTilemap.GetCellCenterWorld(targetCellPos);
 
