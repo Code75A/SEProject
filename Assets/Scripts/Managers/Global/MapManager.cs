@@ -109,7 +109,7 @@ public class MapManager : MonoBehaviour
         TaskManager.Instance.AddTask(data.position, TaskManager.TaskTypes.Build, building.id, 1);
     }
 
-    void SetTileDev(MapData data,BuildManager.Building building){
+    public void SetTileDev(MapData data,BuildManager.Building building){
         int id=building.id;
 
         data.type = (tileTypes)id;
@@ -133,7 +133,7 @@ public class MapManager : MonoBehaviour
 
         landTilemap.SetTile(data.position, data.texture);
     }
-    void SetTilePrint(MapData data, BuildManager.Building building){
+    public void SetTilePrint(MapData data, BuildManager.Building building){
 
         data.has_print = true;
         data.has_item = true;

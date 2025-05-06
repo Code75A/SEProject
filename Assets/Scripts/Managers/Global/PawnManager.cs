@@ -1,8 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEditor;
+
 using UnityEngine;
 
 
@@ -48,10 +47,16 @@ public class PawnManager : MonoBehaviour{
             Destroy(gameObject);
         }
     }
-    
+
+    private void Update(){
+        // 检测Q键取消选中Pawn
+        if (Input.GetKeyDown(KeyCode.Q)){
+            SelectingPawn = null;//Instance.?
+        }
+    }
 
     #endregion
-    
+
     public class Pawn{
         public int id;
         public bool isOnTask = false;
@@ -78,9 +83,6 @@ public class PawnManager : MonoBehaviour{
         public List<TaskManager.Task> PawntaskList = new List<TaskManager.Task>();
         public GameObject Instance;
 
-        public void HandleCurrentTask(){
-            
-        }
         public Pawn(int id)
         {
             this.id = id;
@@ -117,7 +119,7 @@ public class PawnManager : MonoBehaviour{
     public void InstantiatePawn(Pawn pawn, Vector3Int startPos){
 
         if (pawn == null || pawn.Instance != null){
-            Debug.LogWarning("Pawn 或其已经实例化，无法实例化！");
+            UnityEngine.Debug.LogWarning("Pawn 或其已经实例化，无法实例化！");
             return;
         }
 
@@ -366,8 +368,7 @@ public class PawnManager : MonoBehaviour{
     }
 
     //运输任务实现：
-
-    public void Pawntransport(Pawn pawn, TaskManager.TaskTransport task){
+    public void Pawntransport(Pawn pawn, TaskManager.TransportTask task){
         if (pawn == null || pawn.Instance == null){
             Debug.LogWarning("Pawn 或其实例为空，无法执行运输任务！");
             return;
@@ -416,8 +417,10 @@ public class PawnManager : MonoBehaviour{
         }
     }
 
-
+    #region 任务处理函数
+    //任务开始时进行的更新
     Dictionary<TaskManager.TaskTypes, Action<Pawn>> taskHandler = new Dictionary<TaskManager.TaskTypes, Action<Pawn>>{
+        { TaskManager.TaskTypes.Move, (pawn) => Instance.HandleMoveTask(pawn)},
         { TaskManager.TaskTypes.Harvest, (pawn) => Instance.HandleHarvestTask(pawn) },
         { TaskManager.TaskTypes.Plant, (pawn) => Instance.HandleBuildFarmTask(pawn) }
     };
@@ -429,10 +432,10 @@ public class PawnManager : MonoBehaviour{
 
     public void HandleTask(Pawn pawn){
         if (pawn == null || pawn.handlingTask == null){
+            //TODO: 多任务队列
             Debug.LogWarning("Pawn 或其任务为空，无法执行任务！");
             return;
         }
-
         TaskManager.Task task = pawn.handlingTask;
 
         if(task.type == TaskManager.TaskTypes.Build){
@@ -453,11 +456,23 @@ public class PawnManager : MonoBehaviour{
                 Debug.LogWarning($"未处理的任务类型: {task.type}");
             }
         }
-        
-        
     }
 
-    //建造任务
+    public void HandleMoveTask(Pawn pawn){
+        if (pawn == null || pawn.handlingTask == null){
+            Debug.LogWarning("Pawn 或其任务为空，无法执行任务！");
+            return;
+        }
+        TaskManager.Task task = pawn.handlingTask;
+
+        Vector3Int currentCellPos = MapManager.Instance.GetCellPosFromWorld(pawn.Instance.transform.position);
+        
+        //TODO：
+        //MapManager.Instance.SetPawnState(false);
+
+        //提前预定了目标位置被占用但是在任务取消时在PawnInteractController注意需要取消占用（类似锁）
+        MapManager.Instance.SetPawnState(task.target_position, true);
+    }
     public void HandleBuildTask(Pawn pawn){
         if (pawn == null || pawn.handlingTask == null){
             Debug.LogWarning("Pawn 或其任务为空，无法执行任务！");
@@ -536,9 +551,6 @@ public class PawnManager : MonoBehaviour{
         pawn.isOnTask = false;
         pawn.handlingTask = null;
     }
-    
-    //开垦土地任务，到达目标地点，经过固定时间后添加农田
-    //注意判断土地是否可开垦
     public void HandleBuildFarmTask(Pawn pawn){
         if (pawn == null || pawn.handlingTask == null){
             Debug.LogWarning("Pawn 或其任务为空，无法执行任务！");
@@ -582,8 +594,6 @@ public class PawnManager : MonoBehaviour{
         }
         MapManager.Instance.SetTileFarm(mapData, BuildManager.Instance.GetBuilding(task.id)); // 假设农田的类型为 `farm`
     }
-    
-    //收割任务，注意调用此函数时需要确保作物在可收割状态
     public void HandleHarvestTask(Pawn pawn){
         if (pawn == null || pawn.handlingTask == null){
             Debug.LogWarning("Pawn 或其任务为空，无法执行任务！");
@@ -629,5 +639,65 @@ public class PawnManager : MonoBehaviour{
         }
     }
     
-    
+    //任务结束时进行的更新
+    Dictionary<TaskManager.TaskTypes, Action<Pawn>> taskResolver = new Dictionary<TaskManager.TaskTypes, Action<Pawn>>{
+        { TaskManager.TaskTypes.Move, (pawn) => Instance.ResolveMoveTask(pawn)}
+        //{ TaskManager.TaskTypes.Harvest, (pawn) => Instance.HandleHarvestTask(pawn) },
+        //{ TaskManager.TaskTypes.Plant, (pawn) => Instance.HandleBuildFarmTask(pawn) }
+    };
+
+    public void ResolveTask(Pawn pawn){
+        if (pawn == null || pawn.handlingTask == null){
+            Debug.LogWarning("Pawn 或其任务为空，无法执行任务！");
+            return;
+        }
+        TaskManager.Task task = pawn.handlingTask;
+
+        if(taskResolver.ContainsKey(task.type)){
+            taskResolver[task.type].Invoke(pawn);
+        }
+        else{
+            Debug.LogWarning($"未处理的任务类型: {task.type}");
+        }
+
+        if(pawn.PawntaskList.Count > 0){
+            pawn.handlingTask = pawn.PawntaskList[0]; 
+            pawn.PawntaskList.RemoveAt(0); 
+
+            //谨防循环调度爆栈
+            HandleTask(pawn); 
+        }
+        else{
+            pawn.isOnTask = false; 
+        }
+    }
+
+    public void ResolveMoveTask(Pawn pawn){
+        if (pawn == null || pawn.handlingTask == null){
+            Debug.LogWarning("Pawn 或其任务为空，无法执行任务！");
+            return;
+        }
+        TaskManager.Task task = pawn.handlingTask;
+
+        // 1. 获取目标地块的格子坐标
+        Vector3Int targetCellPos = task.target_position;
+
+        // 2. 检查目标地块是否可通行
+        if (MapManager.Instance.IsWalkable(targetCellPos)){
+            // 3. 移动 Pawn 到目标位置
+            PawnInteractController controller = pawn.Instance.GetComponent<PawnInteractController>();
+            if (controller != null){
+
+                Debug.Log($"Pawn ID: {pawn.id} 到达目标位置: {targetCellPos}");
+                MapManager.Instance.SetPawnState(targetCellPos, true);
+            }
+            else{
+                Debug.LogWarning("PawnInteractController 未挂载在 Pawn 实例上！");
+            }
+        }
+        else{
+            //TODO: 在即将抵达的时候目标地格变得不可移动，需要重新计算路径
+        }
+    }
+    #endregion 
 }
