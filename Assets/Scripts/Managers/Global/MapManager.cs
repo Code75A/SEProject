@@ -152,10 +152,10 @@ public class MapManager : MonoBehaviour
             return;
         }
         
-        if(!data.can_plant){
-            Debug.Log("此处无法种植!");
-            return;
-        }
+        // if(!data.can_plant){
+        //     Debug.Log("此处无法种植!");
+        //     return;
+        // }
 
         data.type = tileTypes.farm;
         data.texture = tiles[(int)tileTypes.farm];
@@ -168,6 +168,8 @@ public class MapManager : MonoBehaviour
         data.can_build = building.can_build;
         data.can_plant = building.can_plant;
 
+        //临时：在这里就删掉
+        Destroy(data.item.instance);
         data.item = ItemInstanceManager.Instance.SpawnItem(data.position, building.id, ItemInstanceManager.ItemInstanceType.BuildingInstance);
     }
 
@@ -235,7 +237,7 @@ public class MapManager : MonoBehaviour
             //TODO： 加入更多Tag区分交互对象
             //&& hitSprite.collider.gameObject.CompareTag("Interactable"))
                 
-                Debug.Log("点击到了 Sprite: " + hitSprite.collider.gameObject.name);
+                //Debug.Log("点击到了 Sprite: " + hitSprite.collider.gameObject.name);
                 return; 
             }
             
@@ -247,7 +249,7 @@ public class MapManager : MonoBehaviour
 
                 if (clickedTile != null){
 
-                    UIManager.Instance.DebugTextAdd("点击到了 Tile: " + cellPos);
+                    //UIManager.Instance.DebugTextAdd("点击到了 Tile: " + cellPos);
                     
                     BuildManager.Building building = BuildManager.Instance.currentBuilding;
                     if(building != null){
@@ -472,7 +474,12 @@ public class MapManager : MonoBehaviour
     #region 判定接口
 
     bool IsInBoard(Vector3Int pos){
-        return pos.x >= 0 && pos.x < MAP_SIZE && pos.y >= 0 && pos.y < MAP_SIZE;
+        if(pos.x >= 0 && pos.x < MAP_SIZE && pos.y >= 0 && pos.y < MAP_SIZE)
+            return pos.x >= 0 && pos.x < MAP_SIZE && pos.y >= 0 && pos.y < MAP_SIZE;
+        else{ 
+            Debug.Log("Error: IsInBoard越界, 别再用Vector3了！");
+            return false;
+        }
     }
     bool DiagonalCrossable(Vector3Int st, Vector3Int dir){
         Vector3Int one = st + new Vector3Int(dir.x, 0, 0);
@@ -486,7 +493,7 @@ public class MapManager : MonoBehaviour
     //当玩家指定移动至某地块时，获取该地块的可通行情况
     public bool IsWalkable(Vector3Int pos){
         if(!IsInBoard(pos)) return false;
-        return mapDatas[pos.x, pos.y].can_walk && !mapDatas[pos.x, pos.y].has_pawn;
+        return mapDatas[pos.x, pos.y].can_walk;
     }
     
     //检测某个格子上是否有pawn

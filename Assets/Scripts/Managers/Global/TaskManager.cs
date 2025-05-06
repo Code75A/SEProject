@@ -8,7 +8,7 @@ public class TaskManager : MonoBehaviour
     public static TaskManager Instance { get; private set; }
     public PawnManager pawnManager; // 引用唯一的 PawnManager 对象
 
-    private int dev_current_id = 0; // 当前任务id-临时
+    //private int dev_current_id = 0; // 当前任务id-临时
 
 
     public enum TaskTypes{
@@ -43,7 +43,7 @@ public class TaskManager : MonoBehaviour
 
         public int materialType;
 
-        public int tasklevel; //任务等级，表示任务的难度和复杂程度
+        public int tasklevel = 0; //任务等级，表示任务的难度和复杂程度
 
         public Task(Vector3Int position,TaskTypes type,int task_id,int id = 0,int amount = 0 ,int materialType = -1){
             this.target_position = position;
@@ -125,6 +125,7 @@ public class TaskManager : MonoBehaviour
     // Update is called once per frame
     void Update() {
         // 检测并分配 availableTaskList 中的任务
+
         for (int i = 0; i < MAX_TASKS_PER_FRAME; i++) {
             if(availableTaskList.Count == 0) break; // 防止 availableTaskList 为空时的异常
             Task task = availableTaskList[0];
@@ -150,6 +151,8 @@ public class TaskManager : MonoBehaviour
                 availablePawn.isOnTask = true;
                 availablePawn.handlingTask = task;
                 inavailableTaskList.RemoveAt(0);
+                
+                PawnManager.Instance.HandleTask(availablePawn);
             } else {
                 inavailableTaskList.Add(task); // 将任务移到列表尾部
                 inavailableTaskList.RemoveAt(0); // 移除列表首部的任务                
