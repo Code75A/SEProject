@@ -65,9 +65,9 @@ public class TaskManager : MonoBehaviour
     }
 
     public class MoveTask : Task{
-        public Vector3Int beginPosition; // 目标位置
-        public MoveTask(Vector3Int position, TaskTypes type, int task_id, int id, int amount, Vector3Int beginPosition) : base(position, type, task_id, id ,amount, -1){
-            this.beginPosition = beginPosition;
+        //public Vector3Int beginPosition; // 目标位置
+        public MoveTask(Vector3Int position, TaskTypes type, int task_id, int id, int amount) : base(position, type, task_id, id ,amount, -1){
+            
         }
     }
 
