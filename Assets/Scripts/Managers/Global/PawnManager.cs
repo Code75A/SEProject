@@ -146,6 +146,7 @@ public class PawnManager : MonoBehaviour{
             controller.pawn =pawn; // 关键点
             controller.landTilemap = MapManager.Instance.landTilemap; 
             controller.content = MapManager.Instance.content; 
+            controller.fromCellPos = startPos; // 设置起始位置
         }
         else{
             Debug.LogWarning("PawnInteractController 没有挂载在 Pawn 预制体上！");
@@ -471,6 +472,14 @@ public class PawnManager : MonoBehaviour{
         //MapManager.Instance.SetPawnState(false);
 
         //提前预定了目标位置被占用但是在任务取消时在PawnInteractController注意需要取消占用（类似锁）
+        PawnInteractController controller = pawn.Instance.GetComponent<PawnInteractController>();
+
+        controller.MovePawnToPosition(task.target_position, pawn);
+
+        if(controller.fromCellPos == currentCellPos){
+            MapManager.Instance.SetPawnState(controller.fromCellPos, false);
+        }
+        
         MapManager.Instance.SetPawnState(task.target_position, true);
     }
     public void HandleBuildTask(Pawn pawn){
@@ -690,13 +699,15 @@ public class PawnManager : MonoBehaviour{
 
                 Debug.Log($"Pawn ID: {pawn.id} 到达目标位置: {targetCellPos}");
                 MapManager.Instance.SetPawnState(targetCellPos, true);
+
+                controller.fromCellPos = targetCellPos;
             }
             else{
                 Debug.LogWarning("PawnInteractController 未挂载在 Pawn 实例上！");
             }
         }
         else{
-            //TODO: 在即将抵达的时候目标地格变得不可移动，需要重新计算路径
+            //TODO: 在即将抵达的时候目标地格变得不可移动，需要重新就近移动
         }
     }
     #endregion 
