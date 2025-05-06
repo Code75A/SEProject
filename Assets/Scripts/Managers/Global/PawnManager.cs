@@ -1,7 +1,7 @@
 
 using System;
 using System.Collections.Generic;
-
+using System.Threading.Tasks;
 using UnityEngine;
 
 
@@ -186,6 +186,7 @@ public class PawnManager : MonoBehaviour{
         }
     }
 
+    #region 开发中任务接口
     public void SetSelectingPawnTask(TaskManager.Task task){
         if(task != null){
             if(SelectingPawn != null)
@@ -232,21 +233,6 @@ public class PawnManager : MonoBehaviour{
             Debug.LogWarning("任务已不在列表中，可能已被其他逻辑移除！");
         }
     }
-
-    public void AddPawnTask(int pawnID, TaskManager.Task task){
-        if(task != null){
-            SelectPawn(pawnID);
-            if(SelectingPawn != null){
-                SelectingPawn.PawntaskList.Add(task);
-            }
-            else{
-                Debug.Log("未找到对应的小人");  
-            }
-        }
-        else{
-            Debug.Log("未选中 Pawn 或未选择任务");
-        }
-    }
     // 添加多个任务到指定小人的任务列表中
     public void AddPawnTasks(int pawnID, List<TaskManager.Task> tasks){
         SelectPawn(pawnID); // 确保 SelectingPawn 被设置
@@ -260,18 +246,6 @@ public class PawnManager : MonoBehaviour{
         }
     }
     // 清空指定小人的任务列表并取消当前处理的任务
-    public void ClearPawnTaskList(int pawnID){
-        SelectPawn(pawnID); // 选择目标小人
-
-        if (SelectingPawn != null){
-            SelectingPawn.PawntaskList.Clear();
-            SelectingPawn.handlingTask = null;
-            Debug.Log($"清空了 Pawn ID: {SelectingPawn.id} 的任务列表");
-        }
-        else{
-            Debug.Log("清空失败：未找到 Pawn");
-        }
-    }
     // 处理任务失败，移除当前处理的任务并尝试获取下一个任务
     public void HandleTaskFailure(Pawn pawn){
         if (pawn != null && pawn.handlingTask != null){
@@ -287,6 +261,31 @@ public class PawnManager : MonoBehaviour{
         }
         else{
             Debug.Log("任务失败处理失败：Pawn 或 handlingTask 为 null");
+        }
+    }
+    #endregion
+
+    public void AddPawnTask(Pawn pawn, TaskManager.Task task){
+        if(task != null){
+            if(pawn != null){
+                pawn.PawntaskList.Add(task);
+            }
+            else{
+                Debug.Log("Error: AddPawnTask时选中Pawn为空");  
+            }
+        }
+        else{
+            Debug.Log("Error: AddPawnTask时任务为空");
+        }
+    }
+    public void ClearPawnTaskList(Pawn pawn){
+        if (pawn != null){
+            pawn.PawntaskList.Clear();
+            pawn.handlingTask = null;
+            Debug.Log($"清空了 Pawn ID: {pawn.id} 的任务列表");
+        }
+        else{
+            Debug.Log("Error：ClearPawnTaskList时 Pawn 为空");
         }
     }
     //todo:task中三种任务的处理逻辑
@@ -439,6 +438,7 @@ public class PawnManager : MonoBehaviour{
         }
         TaskManager.Task task = pawn.handlingTask;
 
+        pawn.isOnTask = true;
         if(task.type == TaskManager.TaskTypes.Build){
             BuildManager.BuildingType buildingType = BuildManager.Instance.GetBuildingType(task.id);
 
@@ -460,6 +460,7 @@ public class PawnManager : MonoBehaviour{
     }
 
     public void HandleMoveTask(Pawn pawn){
+        Debug.Log("HandleMoveTask开始");
         if (pawn == null || pawn.handlingTask == null){
             Debug.LogWarning("Pawn 或其任务为空，无法执行任务！");
             return;
@@ -475,6 +476,9 @@ public class PawnManager : MonoBehaviour{
         PawnInteractController controller = pawn.Instance.GetComponent<PawnInteractController>();
 
         controller.MovePawnToPosition(task.target_position, pawn);
+
+        Debug.Log(controller.fromCellPos);
+        Debug.Log(currentCellPos);
 
         if(controller.fromCellPos == currentCellPos){
             MapManager.Instance.SetPawnState(controller.fromCellPos, false);
@@ -561,6 +565,7 @@ public class PawnManager : MonoBehaviour{
         pawn.handlingTask = null;
     }
     public void HandleBuildFarmTask(Pawn pawn){
+        Debug.Log("HandleBuildFarmTask开始");
         if (pawn == null || pawn.handlingTask == null){
             Debug.LogWarning("Pawn 或其任务为空，无法执行任务！");
             return;
@@ -576,32 +581,44 @@ public class PawnManager : MonoBehaviour{
             Debug.LogWarning("PawnInteractController 未挂载在 Pawn 实例上！");
             return;
         }
-        controller.MovePawnToPosition(FarmPosition.Value, pawn);
 
+        //TODO: 可以进行任务的条件：位于蓝图周围的可站位置（因为蓝图本身是不可通行的）
+        if (Vector3Int.Distance(MapManager.Instance.GetCellPosFromWorld(pawn.Instance.transform.position), FarmPosition.Value) != 1){
+            
+            TaskManager.Task build_farm_task = pawn.handlingTask;
 
-        // if (Vector3.Distance(pawn.Instance.transform.position, MapManager.Instance.GetCellPosFromWorld(FarmPosition.Value)) > 0.05f){
-        //     Debug.Log("Pawn 正在移动到农作物位置...");
-        //     return;
-        // }
-        // Debug.Log("Pawn 到达农作物位置,开始FarmTask...");
+            ClearPawnTaskList(pawn);
 
+            //TODO: 寻找任务点周围的可站位置
+            pawn.handlingTask = new TaskManager.Task(
+                position: FarmPosition.Value + new Vector3Int(0, -1, 0), // 假设位于下侧
+                type: TaskManager.TaskTypes.Move,
+                task_id: -1
+            );
+            AddPawnTask(pawn, build_farm_task);
 
-        float workTime = GetWorkTime(pawn, task);
-        Debug.Log($"开始开垦任务，预计耗时: {workTime} 秒"); 
-        System.Threading.Thread.Sleep((int)(workTime * 1000));
-        Debug.Log("FarmTask 完成!");
+            HandleTask(pawn);
 
-        pawn.handlingTask = null;
-        pawn.isOnTask=false;
+            Debug.Log("Pawn拆分BuildFarm任务完成");
 
-        // 4. 调用 MapManager 的 SetTileFarm 方法创建农田
-        MapManager.MapData mapData = MapManager.Instance.GetMapData(FarmPosition.Value);
-
-        if (mapData == null){
-            Debug.LogWarning("目标位置的 MapData 不存在，无法创建农田！");
-            return ;
+            return;
         }
-        MapManager.Instance.SetTileFarm(mapData, BuildManager.Instance.GetBuilding(task.id)); // 假设农田的类型为 `farm`
+        else{
+            float workTime = GetWorkTime(pawn, task);
+            Debug.Log($"开始开垦任务，预计耗时: {workTime} 秒"); 
+            System.Threading.Thread.Sleep((int)(workTime * 1000));
+            Debug.Log("FarmTask 完成!");
+
+            MapManager.MapData mapData = MapManager.Instance.GetMapData(FarmPosition.Value);
+
+            if (mapData == null){
+                Debug.LogWarning("目标位置的 MapData 不存在，无法创建农田！");
+                return ;
+            }
+            MapManager.Instance.SetTileFarm(mapData, BuildManager.Instance.GetBuilding(task.id)); // 假设农田的类型为 `farm`
+
+            ResolveTask(pawn);
+        }
     }
     public void HandleHarvestTask(Pawn pawn){
         if (pawn == null || pawn.handlingTask == null){
@@ -650,9 +667,8 @@ public class PawnManager : MonoBehaviour{
     
     //任务结束时进行的更新
     Dictionary<TaskManager.TaskTypes, Action<Pawn>> taskResolver = new Dictionary<TaskManager.TaskTypes, Action<Pawn>>{
-        { TaskManager.TaskTypes.Move, (pawn) => Instance.ResolveMoveTask(pawn)}
-        //{ TaskManager.TaskTypes.Harvest, (pawn) => Instance.HandleHarvestTask(pawn) },
-        //{ TaskManager.TaskTypes.Plant, (pawn) => Instance.HandleBuildFarmTask(pawn) }
+        { TaskManager.TaskTypes.Move, (pawn) => Instance.ResolveMoveTask(pawn)},
+        { TaskManager.TaskTypes.Build, (pawn) => Instance.ResolveBuildTask(pawn) }
     };
 
     public void ResolveTask(Pawn pawn){
@@ -682,6 +698,7 @@ public class PawnManager : MonoBehaviour{
     }
 
     public void ResolveMoveTask(Pawn pawn){
+        Debug.Log("ResolveMoveTask开始");
         if (pawn == null || pawn.handlingTask == null){
             Debug.LogWarning("Pawn 或其任务为空，无法执行任务！");
             return;
@@ -690,13 +707,11 @@ public class PawnManager : MonoBehaviour{
 
         // 1. 获取目标地块的格子坐标
         Vector3Int targetCellPos = task.target_position;
+        Debug.Log("Position:"+task.target_position);
 
-        // 2. 检查目标地块是否可通行
         if (MapManager.Instance.IsWalkable(targetCellPos)){
-            // 3. 移动 Pawn 到目标位置
             PawnInteractController controller = pawn.Instance.GetComponent<PawnInteractController>();
             if (controller != null){
-
                 Debug.Log($"Pawn ID: {pawn.id} 到达目标位置: {targetCellPos}");
                 MapManager.Instance.SetPawnState(targetCellPos, true);
 
@@ -707,8 +722,24 @@ public class PawnManager : MonoBehaviour{
             }
         }
         else{
+            Debug.Log("这个触发了？");
             //TODO: 在即将抵达的时候目标地格变得不可移动，需要重新就近移动
         }
     }
+    
+    public void ResolveBuildTask(Pawn pawn){
+        Debug.Log("ResolveBuildTask开始");
+        if (pawn == null || pawn.handlingTask == null){
+            Debug.LogWarning("Pawn 或其任务为空，无法执行任务！");
+            return;
+        }
+        TaskManager.Task task = pawn.handlingTask;
+
+        Vector3Int targetCellPos = task.target_position;
+
+        //TODO: 把该地块上的蓝图类型实例转化为
+    }
+    
+    
     #endregion 
 }
