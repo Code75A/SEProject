@@ -65,10 +65,35 @@ public class TaskManager : MonoBehaviour
 
 
     //todo:添加任务时自动为任务分配id的taskid生成器
-    private int TaskIdUpdate(){
-        //todo:此处应有逻辑生成id，此处仅为示意
-        dev_current_id++;
-        return dev_current_id;
+    private int TaskIdUpdate() {
+        // 创建一个 HashSet 来存储所有已使用的任务 ID
+        HashSet<int> usedIds = new HashSet<int>();
+
+        // 遍历 TaskManager 中的任务列表，收集所有任务的 ID
+        foreach (var task in availableTaskList) {
+            usedIds.Add(task.id);
+        }
+        foreach (var task in inavailableTaskList) {
+            usedIds.Add(task.id);
+        }
+
+        // 遍历 PawnManager 中的任务列表，收集所有任务的 ID
+        foreach (var pawn in PawnManager.Instance.pawns) {
+            if (pawn.handlingTask != null) {
+                usedIds.Add(pawn.handlingTask.id);
+            }
+            foreach (var task in pawn.PawntaskList) {
+                usedIds.Add(task.id);
+            }
+        }
+
+        // 找到未被使用的最小正整数 ID
+        int newId = 1;
+        while (usedIds.Contains(newId)) {
+            newId++;
+        }
+
+        return newId;
     }
     public List<Task> availableTaskList = new List<Task>(); // 满足条件的任务列表
     public List<Task> inavailableTaskList = new List<Task>(); // 不满足条件的任务列表
