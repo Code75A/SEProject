@@ -12,10 +12,11 @@ public class TaskManager : MonoBehaviour
 
 
     public enum TaskTypes{
-        Build, // 建造
-        Plant, // 种植
-        Harvest, // 收割
-        Transport, // 运输
+        Move,
+        Build, 
+        Plant, 
+        Harvest,
+        Transport,
         Total // 用于获取任务种类总数
     }
 
@@ -44,7 +45,7 @@ public class TaskManager : MonoBehaviour
 
         public int tasklevel; //任务等级，表示任务的难度和复杂程度
 
-        public Task(Vector3Int position,TaskTypes type,int task_id,int id,int amount,int materialType){
+        public Task(Vector3Int position,TaskTypes type,int task_id,int id = 0,int amount = 0 ,int materialType = -1){
             this.target_position = position;
             this.type = type;
             this.task_id = task_id;
@@ -55,17 +56,24 @@ public class TaskManager : MonoBehaviour
 
     }
     //运输任务类，继承自任务类
-    public class TaskTransport : Task{
+    public class TransportTask : Task{
         public Vector3Int beginPosition; // 运输任务的起始位置
 
-        public TaskTransport(Vector3Int position, TaskTypes type, int task_id, int id, int materialAmount, Vector3Int beginPosition) : base(position, type, task_id, id, materialAmount, -1){
+        public TransportTask(Vector3Int position, TaskTypes type, int task_id, int id, int amount, Vector3Int beginPosition) : base(position, type, task_id, id, amount, -1){
+            this.beginPosition = beginPosition;
+        }
+    }
+
+    public class MoveTask : Task{
+        public Vector3Int beginPosition; // 目标位置
+        public MoveTask(Vector3Int position, TaskTypes type, int task_id, int id, int amount, Vector3Int beginPosition) : base(position, type, task_id, id ,amount, -1){
             this.beginPosition = beginPosition;
         }
     }
 
 
     //todo:添加任务时自动为任务分配id的taskid生成器
-    private int TaskIdUpdate() {
+    public int TaskIdUpdate() {
         // 创建一个 HashSet 来存储所有已使用的任务 ID
         HashSet<int> usedIds = new HashSet<int>();
 

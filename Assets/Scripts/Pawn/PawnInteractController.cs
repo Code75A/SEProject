@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Tilemaps;
@@ -6,6 +7,9 @@ public class PawnInteractController : MonoBehaviour
 {
     public PawnManager.Pawn pawn;
     private Vector3 targetPosition;
+    
+    public Vector3Int fromCellPos;
+    
     private bool isMoving = false;
     private Vector3Int targetCellPos;
 
@@ -13,6 +17,12 @@ public class PawnInteractController : MonoBehaviour
     public GameObject content;
 
     void Update(){
+        //自检极端情况
+        if(pawn == null){
+            Debug.LogError("Error: 存在无主PawnInteractController");
+            return;
+        }
+
         // 只控制当前选中的Pawn移动
         if (PawnManager.Instance.SelectingPawn == pawn){
             // 调试日志（仅pawn.id == 1时显示）
@@ -43,24 +53,40 @@ public class PawnInteractController : MonoBehaviour
                 // 判断目标格子是否可以通行并且没有Pawn
                 if (MapManager.Instance.IsWalkable(targetCellPos) && !MapManager.Instance.HasPawnAt(targetCellPos)){
                     isMoving = true;
-                    if (pawn != null && pawn.id == 1){
+                    
+                    if (pawn != null){
+
+                        if(pawn.handlingTask != null){
+                            if(pawn.handlingTask.type != TaskManager.TaskTypes.Move){
+                                //TODO 处理其它目前正在处理的任务（返还给taskManger）
+                            }
+                            else{
+                                MapManager.Instance.SetPawnState(pawn.handlingTask.target_position, false);
+                            }
+                        }
+                        
+                        pawn.handlingTask = new TaskManager.Task(targetCellPos, TaskManager.TaskTypes.Move, 0, -1, -1);
+
                         Debug.Log($"开始移动到: {targetPosition}");
+
+                        PawnManager.Instance.HandleTask(pawn);
                     }
                 }
                 else{
-                    if (pawn != null && pawn.id == 1){
-                        Debug.Log("目标位置不可通行或已有其他角色！");
-                    }
+                    Debug.Log("目标位置不可通行或已有其他角色！");
                 }
             }
-
         }
 
+
+    }
+
+    void FixedUpdate(){
         // 移动逻辑
         if (isMoving)
         {
             //Debug.Log($"移动参数 | 速度: {pawn.moveSpeed} | 帧时间: {Time.deltaTime}");
-            Debug.Log($"当前位置: {transform.position} | 目标位置: {targetPosition}");
+            //Debug.Log($"当前位置: {transform.position} | 目标位置: {targetPosition}");
 
             float step = pawn.moveSpeed * Time.deltaTime * content.transform.localScale.x;
             targetPosition = landTilemap.GetCellCenterWorld(targetCellPos);
@@ -68,37 +94,26 @@ public class PawnInteractController : MonoBehaviour
             //float step = 1.0f;
             transform.position = Vector3.MoveTowards(transform.position, targetPosition, step);
 
-
-            // Vector3 newPos = Vector3.MoveTowards(transform.position, 
-            //         new Vector3(targetPosition.x, targetPosition.y, transform.position.z),
-            //       step);
-            // Debug.Log($"新位置: {newPos} | 实际移动距离: {Vector3.Distance(transform.position, newPos)}");
-            // transform.position = newPos;
-
             // 更新地图格子状态
             Vector3Int currentCellPos = MapManager.Instance.GetCellPosFromWorld(transform.position);
-            if (currentCellPos != targetCellPos)
-            {
-                MapManager.Instance.SetPawnState(currentCellPos, false);
-            }
+
+            // if (currentCellPos != targetCellPos)
+            // {
+            //     MapManager.Instance.SetPawnState(currentCellPos, false);
+            // }
 
             // 到达目标
             if (Vector3.Distance(transform.position, targetPosition) < 0.05f)
             {
                 isMoving = false;
-                MapManager.Instance.SetPawnState(targetCellPos, true);             
-                if (pawn != null){
-                    Debug.Log($"到达目标位置: {targetPosition}");
-                }
+                PawnManager.Instance.ResolveTask(pawn);
+
+                Debug.Log($"到达目标位置: {targetPosition}");
+                
             }
         }
         
-        // 检测Q键取消选中Pawn
-        if (Input.GetKeyDown(KeyCode.Q)){
-            PawnManager.Instance.SelectingPawn = null;
-        }
     }
-
     public void SetSelectingPawn()
     {
         if (PawnManager.Instance != null)
@@ -155,10 +170,10 @@ public class PawnInteractController : MonoBehaviour
 
             Debug.LogWarning(MapManager.Instance.GetMapData(targetCellPos));
 
-            if(!MapManager.Instance.IsWalkable(targetCellPos))
-                Debug.LogWarning($"由于地格不可达");
-            if(MapManager.Instance.HasPawnAt(targetCellPos))
-                Debug.LogWarning($"由于已有Pawn在此位置");
+            // if(!MapManager.Instance.IsWalkable(targetCellPos))
+            //     Debug.LogWarning($"由于地格不可达");
+            // if(MapManager.Instance.HasPawnAt(targetCellPos))
+            //     Debug.LogWarning($"由于已有Pawn在此位置");
 
             return;
         }

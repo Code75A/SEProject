@@ -314,7 +314,18 @@ public class ItemInstanceManager : MonoBehaviour
     #endregion
     
     #region (2)PrintInstance转BuildInstance
-    // TODO
+
+    public void PrintToBuild(ItemInstance aim_ins){
+        if(aim_ins.type != ItemInstanceType.PrintInstance){
+            UIManager.Instance.DebugTextAdd(
+                "<<Error>>PrintToBuild FAILED: the iteminstance_id "+ aim_ins.id +" is not a PrintInstance. "
+            );
+            return;
+        }
+
+        //
+    }
+
     #endregion
 
     #endregion
