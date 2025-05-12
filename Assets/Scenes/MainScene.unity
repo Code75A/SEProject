@@ -1973,6 +1973,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d2a641501872564fa26d14f186971a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CropSprites:
+  - {fileID: -313223371, guid: 560abfdbdf7c8424fbfaa7153286a74a, type: 3}
+  - {fileID: -489098988, guid: 560abfdbdf7c8424fbfaa7153286a74a, type: 3}
+  - {fileID: -1207405276, guid: 560abfdbdf7c8424fbfaa7153286a74a, type: 3}
+  - {fileID: -992425410, guid: 560abfdbdf7c8424fbfaa7153286a74a, type: 3}
+  - {fileID: -1780129973, guid: 011c84b71b2354a4e98585e7cc54591c, type: 3}
+  - {fileID: -570825751, guid: 011c84b71b2354a4e98585e7cc54591c, type: 3}
+  - {fileID: -1193608533, guid: 011c84b71b2354a4e98585e7cc54591c, type: 3}
+  - {fileID: 1592606384, guid: 011c84b71b2354a4e98585e7cc54591c, type: 3}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!114 &988757800
 MonoBehaviour:
   m_ObjectHideFlags: 0
