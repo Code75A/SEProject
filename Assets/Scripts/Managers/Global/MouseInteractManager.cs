@@ -63,16 +63,20 @@ public class MouseInteractManager : MonoBehaviour
         }
         public override void OnClickSprite(RaycastHit2D hitSprite)
         {
-            //TODO: Switch State
+            GameObject gameObject = hitSprite.collider.gameObject;
+            if(hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("UI")){
+                Instance.CancelCurrentBuilding();
+                Instance.currentState = new StateUI(gameObject);
+            }
+            else{
+                ;
+            }
         }
         public override void OnClickNull(){
             Instance.CancelCurrentBuilding();
             Instance.ResetSelectingObject();
         }
 
-        public void BuildOnMap(){
-            //TODO: build
-        }
     }
 
     public interface PileClickNext {
@@ -208,12 +212,11 @@ public class MouseInteractManager : MonoBehaviour
             }
             else{
                 if(currentState is StateBuilding){
-                    // if(BuildStateValid){
-
-                    // }
-                    Vector3Int cellPos = mapManager.landTilemap.WorldToCell(mouseWorldPos);
-                    if(mapManager.IsInBoard(cellPos)){
-                        mapManager.BuildByPlayer(cellPos, currentBuilding);
+                    if(BuildingStateAvailable()){
+                        Vector3Int cellPos = mapManager.landTilemap.WorldToCell(mouseWorldPos);
+                        if(mapManager.IsInBoard(cellPos)){
+                            mapManager.BuildByPlayer(cellPos, currentBuilding);
+                        }
                     }
                 }
                 else
@@ -227,7 +230,7 @@ public class MouseInteractManager : MonoBehaviour
                 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition); 
                 Vector3Int onMouseCellPos = mapManager.landTilemap.WorldToCell(mouseWorldPos);
 
-                if(Instance.PawnStateAvalid()){
+                if(Instance.PawnStateAvailable()){
                     if(MapManager.Instance.IsWalkable(onMouseCellPos) && !MapManager.Instance.HasPawnAt(onMouseCellPos)){
                         (currentState as StatePawn).MoveByPlayer();
                     }
@@ -264,7 +267,7 @@ public class MouseInteractManager : MonoBehaviour
     }
 
     #region 自检
-    private bool PawnStateAvalid(){
+    private bool PawnStateAvailable(){
         if(selectingPawn == null){
             Debug.LogError("Error: 存在无主selectingPawn为null");
             return false;
@@ -273,6 +276,15 @@ public class MouseInteractManager : MonoBehaviour
             Debug.LogError("Error: 选中对象不含PawnInteractController，可能不是Pawn对象");
             return false;
         }
+        return true;
+    }
+
+    private bool BuildingStateAvailable(){
+        if(currentBuilding == null){
+            Debug.LogError("Error: 当前建筑为null");
+            return false;
+        }
+        
         return true;
     }
     #endregion
