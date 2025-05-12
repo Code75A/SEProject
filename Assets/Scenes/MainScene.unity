@@ -751,9 +751,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ab6348a9da25fe747ab06d679f2de25e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mapManager: {fileID: 0}
-  pawnManager: {fileID: 0}
-  itemInstanceManager: {fileID: 0}
+  mapManager: {fileID: 398816333}
+  pawnManager: {fileID: 398816330}
+  itemInstanceManager: {fileID: 1740071165}
+  selectingObject: {fileID: 0}
+  currentBuilding_preview: {fileID: 1444871361}
+  currentBuilding_preview_spriteRenderer: {fileID: 1444871363}
 --- !u!1 &449365689
 GameObject:
   m_ObjectHideFlags: 0
