@@ -20,7 +20,7 @@ public class PawnManager : MonoBehaviour{
 
     public GameObject pawnPrefab; // Pawn 预设体，用于实例化 Pawn
 
-    public Pawn SelectingPawn; // 当前被选中的 Pawn
+    //public Pawn SelectingPawn; // 当前被选中的 Pawn
     public List<Pawn> pawns = new List<Pawn>(); // 存储所有 Pawn 对象的列表
 
     public GameObject pawnSpawner; // 生成器对象，用于生成 Pawn
@@ -45,13 +45,6 @@ public class PawnManager : MonoBehaviour{
         }
         else{
             Destroy(gameObject);
-        }
-    }
-
-    private void Update(){
-        // 检测Q键取消选中Pawn
-        if (Input.GetKeyDown(KeyCode.Q)){
-            SelectingPawn = null;//Instance.?
         }
     }
 
@@ -176,31 +169,31 @@ public class PawnManager : MonoBehaviour{
         return null;
     }
 
-    public void SelectPawn(int id){
-        SelectingPawn = pawns.Find(pawn => pawn.id == id);
-    }
-    //直接改成重载就行 --cjh
-    public void SelectPawn(Pawn pawn){
-        if(pawn != null){
-            SelectingPawn = pawn;
-        }
-    }
+    // public void SelectPawn(int id){
+    //     SelectingPawn = pawns.Find(pawn => pawn.id == id);
+    // }
+    // //直接改成重载就行 --cjh
+    // public void SelectPawn(Pawn pawn){
+    //     if(pawn != null){
+    //         SelectingPawn = pawn;
+    //     }
+    // }
 
     #region 开发中任务接口
-    public void SetSelectingPawnTask(TaskManager.Task task){
-        if(task != null){
-            if(SelectingPawn != null)
-            {
-                SelectingPawn.handlingTask = task;
-            }
-            else{
-                Debug.Log("未选中 Pawn selectingPawn is null");  
-            }
-        }
-        else{
-            Debug.Log("未选中任务 task is null");
-        }
-    }
+    // public void SetSelectingPawnTask(TaskManager.Task task){
+    //     if(task != null){
+    //         if(SelectingPawn != null)
+    //         {
+    //             SelectingPawn.handlingTask = task;
+    //         }
+    //         else{
+    //             Debug.Log("未选中 Pawn selectingPawn is null");  
+    //         }
+    //     }
+    //     else{
+    //         Debug.Log("未选中任务 task is null");
+    //     }
+    // }
 
     public void GetNextTask(Pawn pawn){
         if(pawn != null){
@@ -234,17 +227,17 @@ public class PawnManager : MonoBehaviour{
         }
     }
     // 添加多个任务到指定小人的任务列表中
-    public void AddPawnTasks(int pawnID, List<TaskManager.Task> tasks){
-        SelectPawn(pawnID); // 确保 SelectingPawn 被设置
+    // public void AddPawnTasks(int pawnID, List<TaskManager.Task> tasks){
+    //     SelectPawn(pawnID); // 确保 SelectingPawn 被设置
 
-        if (SelectingPawn != null && tasks != null && tasks.Count > 0){
-            SelectingPawn.PawntaskList.AddRange(tasks);
-            Debug.Log($"批量添加了 {tasks.Count} 个任务给 Pawn ID: {SelectingPawn.id}");
-        }
-        else{
-            Debug.Log("添加失败：未找到 Pawn 或任务列表为空");
-        }
-    }
+    //     if (SelectingPawn != null && tasks != null && tasks.Count > 0){
+    //         SelectingPawn.PawntaskList.AddRange(tasks);
+    //         Debug.Log($"批量添加了 {tasks.Count} 个任务给 Pawn ID: {SelectingPawn.id}");
+    //     }
+    //     else{
+    //         Debug.Log("添加失败：未找到 Pawn 或任务列表为空");
+    //     }
+    // }
     // 清空指定小人的任务列表并取消当前处理的任务
     // 处理任务失败，移除当前处理的任务并尝试获取下一个任务
     public void HandleTaskFailure(Pawn pawn){

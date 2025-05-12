@@ -32,9 +32,11 @@ public class BuildManager : MonoBehaviour
     public Dictionary<BuildingType, List<Building>> buildingLists = new Dictionary<BuildingType, List<Building>>();
     public List<Building> currentBuildingList ;
 
+    //TODO: REMOVE
     public Building currentBuilding = null;
     public GameObject currentBuilding_preview;
     public SpriteRenderer currentBuilding_preview_spriteRenderer;
+    //REMOVE/
     
 
     const int tempBuildingSpritesCount = 6;
@@ -62,12 +64,12 @@ public class BuildManager : MonoBehaviour
             Debug.LogError("Error：请把Managers下的currentBuilding_preview拖到Stage-BuildManager脚本上！");
     }
 
-    void Update()
-    {
-        if(Input.GetMouseButtonDown(1)){
-            CancelCurrentBuilding();
-        }
-    }
+    // void Update()
+    // {
+    //     if(Input.GetMouseButtonDown(1)){
+    //         CancelCurrentBuilding();
+    //     }
+    // }
 
     void InitBuildingListsData(){
         for(int i = 0; i < (int)BuildingType.Total; i++)
@@ -127,17 +129,6 @@ public class BuildManager : MonoBehaviour
     public List<Building> LoadBuildingList(BuildingType type){
         currentBuildingList = buildingLists[type];
         return currentBuildingList;
-    }
-
-    public void CancelCurrentBuilding(){
-        currentBuilding_preview_spriteRenderer.sprite = null;
-        currentBuilding_preview.SetActive(false);
-        currentBuilding = null;
-    }
-    public void SetCurrentBuilding(Building building){ 
-        currentBuilding_preview_spriteRenderer.sprite = building.texture;
-        currentBuilding_preview.SetActive(true);
-        currentBuilding = building;
     }
 
     
