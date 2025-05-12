@@ -221,78 +221,38 @@ public class MapManager : MonoBehaviour
 
     #endregion
 
-    void Update()
-    {
-        if(Input.GetMouseButtonDown(0)){
-            // 排除点击 UI 的情况？
-            // TODO: 需要更妥善地处理UI
-            //if (EventSystem.current.IsPointerOverGameObject()) return;
 
-            Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition); 
-            Vector2 mousePos2D = new Vector2(mouseWorldPos.x, mouseWorldPos.y);
+    #region 对外方法
 
-            // 排除带有 Collider2D 的 Sprite 的情况
-            RaycastHit2D hitSprite = Physics2D.Raycast(mousePos2D, Vector2.zero, 0f);
-            if (hitSprite.collider != null){
-            //TODO： 加入更多Tag区分交互对象
-            //&& hitSprite.collider.gameObject.CompareTag("Interactable"))
-                
-                //Debug.Log("点击到了 Sprite: " + hitSprite.collider.gameObject.name);
-                return; 
-            }
-            
-            Vector3Int cellPos = landTilemap.WorldToCell(mouseWorldPos);
-            if(IsInBoard(cellPos)){
+    public void BuildByPlayer(Vector3Int cellPos, BuildManager.Building building){
+        TileBase clickedTile = landTilemap.GetTile(cellPos);
+        MapData clickedData = mapDatas[cellPos.x, cellPos.y];
 
-                TileBase clickedTile = landTilemap.GetTile(cellPos);
-                MapData clickedData = mapDatas[cellPos.x, cellPos.y];
+        if (clickedTile != null){
 
-                if (clickedTile != null){
+            //UIManager.Instance.DebugTextAdd("点击到了 Tile: " + cellPos);
+            if(building != null){
+                UIManager.Instance.DebugTextAdd("放置建筑: " + building.name);
 
-                    //UIManager.Instance.DebugTextAdd("点击到了 Tile: " + cellPos);
-                    
-                    BuildManager.Building building = BuildManager.Instance.currentBuilding;
-                    if(building != null){
-                        UIManager.Instance.DebugTextAdd("放置建筑: " + building.name);
-
-                        //非Dev建筑占地特判
-                        if(building.type != BuildManager.BuildingType.Dev && ( !clickedData.can_build )){
-                            Debug.Log("此处已有建筑/蓝图，无法放置");
-                            return;
-                        }
-
-                        //根据buildingType更新数据
-                        if(buildTaskActions.TryGetValue(building.type, out Action<MapData, BuildManager.Building> action))
-                            action(clickedData, building);
-                        else
-                            Debug.Log("未定义的建筑类型: " + building.type);
-
-                        //Dev：landtilemap更新贴图
-                        if(building.type == BuildManager.BuildingType.Dev || building.type == BuildManager.BuildingType.Farm){
-                            landTilemap.SetTile(cellPos, clickedData.texture);
-                        }
-                    }
-                    // else{
-                    //     Debug.Log("测试寻路：(32, 32, 0) -> " + cellPos);
-                        
-                    //     List<Vector3Int> Recieved_path = FindPath(new Vector3Int(32, 32, 0), cellPos);
-                    //     if(Recieved_path.Count == 0){
-                    //         Debug.Log("不连通！");
-                    //         return;
-                    //     }
-                    //     else foreach(Vector3Int path_point in Recieved_path){
-                    //         Debug.Log("路径点: " + path_point);
-                    //     }
-                    // }
+                //非Dev建筑占地特判
+                if(building.type != BuildManager.BuildingType.Dev && ( !clickedData.can_build )){
+                    Debug.Log("此处已有建筑/蓝图，无法放置");
+                    return;
                 }
-            }
-            else{
-                BuildManager.Instance.CancelCurrentBuilding();
+
+                //根据buildingType更新数据
+                if(buildTaskActions.TryGetValue(building.type, out Action<MapData, BuildManager.Building> action))
+                    action(clickedData, building);
+                else
+                    Debug.Log("未定义的建筑类型: " + building.type);
+
+                //Dev：landtilemap更新贴图
+                if(building.type == BuildManager.BuildingType.Dev || building.type == BuildManager.BuildingType.Farm){
+                    landTilemap.SetTile(cellPos, clickedData.texture);
+                }
             }
         }
     }
-
-    #region 对外方法
 
     /// <summary>
     /// 将material_list中的物品以pos为中心放置到地图上。直到地图上无空格或material_list中的物品放置完毕。
@@ -473,7 +433,7 @@ public class MapManager : MonoBehaviour
 
     #region 判定接口
 
-    bool IsInBoard(Vector3Int pos){
+    public bool IsInBoard(Vector3Int pos){
         if(pos.x >= 0 && pos.x < MAP_SIZE && pos.y >= 0 && pos.y < MAP_SIZE)
             return pos.x >= 0 && pos.x < MAP_SIZE && pos.y >= 0 && pos.y < MAP_SIZE;
         else{ 
@@ -481,7 +441,9 @@ public class MapManager : MonoBehaviour
             return false;
         }
     }
-    bool DiagonalCrossable(Vector3Int st, Vector3Int dir){
+
+    //判定对角线是否可通行
+    private bool DiagonalCrossable(Vector3Int st, Vector3Int dir){
         Vector3Int one = st + new Vector3Int(dir.x, 0, 0);
         Vector3Int the_other = st + new Vector3Int(0, dir.y, 0);
         if(!IsInBoard(one) || !IsInBoard(the_other)) return false;
@@ -502,6 +464,12 @@ public class MapManager : MonoBehaviour
         return mapDatas[pos.x, pos.y].has_pawn;
     }
     
+    //检测某个格子上是否有item
+    public bool HasItemAt(Vector3Int pos){
+        if(!IsInBoard(pos)) return false;
+        return mapDatas[pos.x, pos.y].has_item;
+    }
+    
     //获取某个地格的所有MapData信息
     public MapData GetMapData(Vector3Int pos){
         if(!IsInBoard(pos)) {
@@ -517,10 +485,15 @@ public class MapManager : MonoBehaviour
     }
     
     //获取某个地块的移速
-    public float GetWalkSpeedAt(Vector3Int pos){
+    public float GetWalkSpeed(Vector3Int pos){
         if(!IsInBoard(pos)) return 1.0f;
         return mapDatas[pos.x, pos.y].walk_speed;
     }
 
+    public GameObject GetItem(Vector3Int pos){
+        if(!IsInBoard(pos)) return null;
+        if(!mapDatas[pos.x, pos.y].has_item) return null;
+        return mapDatas[pos.x, pos.y].item.instance;
+    }
     #endregion
 }

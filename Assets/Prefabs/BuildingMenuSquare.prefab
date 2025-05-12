@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 7832309649690402714}
   - component: {fileID: 3731699619712187196}
   - component: {fileID: 911626877398168527}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: BuildingMenuSquare
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -190,7 +190,7 @@ GameObject:
   - component: {fileID: 4091855350091532027}
   - component: {fileID: 233814528084139404}
   - component: {fileID: 6951781386998184380}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: BuildingName
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -323,7 +323,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7012904717183233408}
   - component: {fileID: 2883339346431200016}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
