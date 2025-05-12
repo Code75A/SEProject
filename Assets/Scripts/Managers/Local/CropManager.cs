@@ -42,7 +42,7 @@ public class CropManager : MonoBehaviour
     }
     public List<Crop> cropList = new List<Crop>();
     const int CropSpritesCount = 6;
-    public Sprite[,] CropSprites = new Sprite[CropSpritesCount,GROWTH_STAGE_COUNT];
+    public Sprite[] CropSprites = new Sprite[CropSpritesCount*GROWTH_STAGE_COUNT];
 
     //单例模式
     void Awake(){
@@ -121,7 +121,7 @@ public class CropManager : MonoBehaviour
         }
         #endregion
 
-        Sprite tmp = CropSprites[crop_id,growth_stage];
+        Sprite tmp = CropSprites[crop_id*GROWTH_STAGE_COUNT+growth_stage];
         return tmp;
     }
 }

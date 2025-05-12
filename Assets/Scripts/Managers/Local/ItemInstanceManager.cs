@@ -35,7 +35,7 @@ public class ItemInstanceManager : MonoBehaviour
     public Tilemap landTilemap;
     public GameObject content;
     public GameObject itemInstance;
-    public const float growthPerFrame = 0.1f; 
+    public const float growthPerFrame = 0.005f; 
 
     //====================================ItemInstance Class Part====================================
     public enum ItemInstanceType{
@@ -439,8 +439,8 @@ public class ItemInstanceManager : MonoBehaviour
 
             ((CropInstance)it).growth += growthPerFrame;
             
-            stage = 3*(int)(grow/life);
-            new_stage = 3*(int)((grow+growthPerFrame)/life);
+            stage = (int)(3*(grow/life));
+            new_stage = (int)(3*((grow+growthPerFrame)/life));
             if(new_stage > stage){
                 if(new_stage < 0 || new_stage > 3){
                     UIManager.Instance.DebugTextAdd("<<Error>> illegal growth stage: " + new_stage);
@@ -471,11 +471,11 @@ public class ItemInstanceManager : MonoBehaviour
 
         #region 动态载入部分ItemInstance供测试
         //Debug.Log("spawning some crop instance.");
-        CropInstance tmp1 = (CropInstance)SpawnItem(new Vector3Int(10,10,0),0,ItemInstanceType.CropInstance);
-        CropInstance tmp2 = (CropInstance)SpawnItem(new Vector3Int(10,11,0),1,ItemInstanceType.CropInstance);
-        CropInstance tmp3 = (CropInstance)SpawnItem(new Vector3Int(10,12,0),2,ItemInstanceType.CropInstance);
-        HarvestCrop(tmp1);
-        HarvestCrop(tmp2);
+        CropInstance tmp1 = (CropInstance)SpawnItem(new Vector3Int(30,30,0),0,ItemInstanceType.CropInstance);
+        CropInstance tmp2 = (CropInstance)SpawnItem(new Vector3Int(30,31,0),1,ItemInstanceType.CropInstance);
+        CropInstance tmp3 = (CropInstance)SpawnItem(new Vector3Int(30,32,0),2,ItemInstanceType.CropInstance);
+        //HarvestCrop(tmp1);
+        //HarvestCrop(tmp2);
         HarvestCrop(tmp3);
         #endregion
     }
@@ -486,8 +486,7 @@ public class ItemInstanceManager : MonoBehaviour
         InitInstanceListsData();
     }
 
-    // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         UpdateAllCropInstance();
     }
