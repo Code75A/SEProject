@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 8593677539321930671}
   - component: {fileID: 986060714747120285}
   - component: {fileID: 4349769073857456570}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: BuildingMenuBar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -188,7 +188,7 @@ GameObject:
   - component: {fileID: 6578309737840494783}
   - component: {fileID: 5547118891717469181}
   - component: {fileID: 8512983463936926480}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: TypeName
   m_TagString: Untagged
   m_Icon: {fileID: 0}

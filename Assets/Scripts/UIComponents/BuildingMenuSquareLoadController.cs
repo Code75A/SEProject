@@ -16,13 +16,4 @@ public class BuildingMenuSquareLoadController : MonoBehaviour
         texture.sprite = sprite;
         this.building = building;
     }
-
-    void OnMouseDown(){
-        if(building != null) 
-        {
-            BuildManager.Instance.SetCurrentBuilding(building);
-            UIManager.Instance.DebugTextAdd("选择建筑: " + building.name);
-        }
-        
-    }
 }
