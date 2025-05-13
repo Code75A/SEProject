@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
+using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
@@ -48,7 +49,13 @@ public class ItemManager : MonoBehaviour
         public Dictionary<PawnManager.Pawn.EnhanceType,int> enhancements;
         public int max_durability;
     }
-    public class Material : Item{}
+    public class Material : Item{
+        public int can_plant_crop;
+        public bool IsSeed(){
+            if(can_plant_crop >= 0 && CropManager.Instance.GetCrop(can_plant_crop) != null) return true;
+            return false;
+        }
+    }
 
     const int tempItemSpritesCount = 7;
     public Sprite[] tempItemSprites = new Sprite[tempItemSpritesCount];
@@ -92,11 +99,14 @@ public class ItemManager : MonoBehaviour
                         {PawnManager.Pawn.EnhanceType.Power,0}}});
         // Material
         itemLists[ItemType.Material].Add(
-            new Material{id=3, name="蓝莓", type=ItemType.Material, texture=tempItemSprites[3]});
+            new Material{id=3, name="蓝莓", type=ItemType.Material, texture=tempItemSprites[3], can_plant_crop=-1});
         itemLists[ItemType.Material].Add(
-            new Material{id=4, name="草莓", type=ItemType.Material, texture=tempItemSprites[4]});
+            new Material{id=4, name="草莓", type=ItemType.Material, texture=tempItemSprites[4], can_plant_crop=-1});
         itemLists[ItemType.Material].Add(
-            new Material{id=5, name="木材", type=ItemType.Material, texture=tempItemSprites[5]});
+            new Material{id=5, name="木材", type=ItemType.Material, texture=tempItemSprites[5], can_plant_crop=-1});
+        
+        itemLists[ItemType.Material].Add(
+            new Material{id=7, name="稻种", type=ItemType.Material, texture=tempItemSprites[5], can_plant_crop=0});
         #endregion 
     }
     void Start()
