@@ -402,7 +402,7 @@ public class ItemInstanceManager : MonoBehaviour
             for(int i = 0; i < sample.Count;i++){
                 crop_id = sample[i].Key;
                 amount = sample[i].Value;
-                Debug.Log(crop_id.ToString()+ "|" + amount.ToString());
+                //Debug.Log(crop_id.ToString()+ "|" + amount.ToString());
 
                 if(mode == DestroyMode.RemainWithRate) amount = (int)System.Math.Truncate((double)(amount*remain_rate));
                 
@@ -470,6 +470,8 @@ public class ItemInstanceManager : MonoBehaviour
         #endregion
 
         #region 动态载入部分ItemInstance供测试
+
+        #region (1)CropInstance收割和生长接口自测试
         //Debug.Log("spawning some crop instance.");
         CropInstance tmp1 = (CropInstance)SpawnItem(new Vector3Int(30,30,0),0,ItemInstanceType.CropInstance);
         CropInstance tmp2 = (CropInstance)SpawnItem(new Vector3Int(30,31,0),1,ItemInstanceType.CropInstance);
@@ -477,6 +479,16 @@ public class ItemInstanceManager : MonoBehaviour
         //HarvestCrop(tmp1);
         //HarvestCrop(tmp2);
         HarvestCrop(tmp3);
+        #endregion
+
+        #region (2)ToolInstance获取强化项接口自测试
+        ToolInstance tmp4 = (ToolInstance)SpawnItem(new Vector3Int(30,33,0), 2, ItemInstanceType.ToolInstance);
+        Dictionary<PawnManager.Pawn.EnhanceType, int> tmp4_enh = GetEnhance(tmp4);
+        foreach(var it in tmp4_enh){
+            Debug.Log("key:"+it.Key.ToString() + "|val:"+it.Value.ToString());
+        }
+        #endregion
+
         #endregion
     }
     void Start()
