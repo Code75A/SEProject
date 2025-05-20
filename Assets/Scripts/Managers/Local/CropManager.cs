@@ -43,6 +43,7 @@ public class CropManager : MonoBehaviour
     public List<Crop> cropList = new List<Crop>();
     const int CropSpritesCount = 6;
     public Sprite[] CropSprites = new Sprite[CropSpritesCount*GROWTH_STAGE_COUNT];
+    public Dictionary<int, int> SeedIdDict = new Dictionary<int, int>();
 
     //单例模式
     void Awake(){
@@ -57,10 +58,24 @@ public class CropManager : MonoBehaviour
         }
     }
 
-    void Start(){
+    void Start()
+    {
         InitCropListData();
+        InitSeedIdDict();
     }
     //=========================================Private Function Part=======================================
+    /// <summary>
+    /// private, tempUse without SLM
+    /// </summary>
+    void InitSeedIdDict()
+    {
+        SeedIdDict.Add(0, 7);
+        SeedIdDict.Add(1, 8);
+        SeedIdDict.Add(2, 9);
+        SeedIdDict.Add(3, 10);
+        SeedIdDict.Add(4, 11);
+        SeedIdDict.Add(5, 12);
+    }
     /// <summary>
     /// private
     /// </summary>

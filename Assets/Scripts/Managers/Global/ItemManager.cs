@@ -49,11 +49,18 @@ public class ItemManager : MonoBehaviour
         public Dictionary<PawnManager.Pawn.EnhanceType,int> enhancements;
         public int max_durability;
     }
-    public class Material : Item{
+    public class Material : Item
+    {
         public int can_plant_crop;
-        public bool IsSeed(){
-            if(can_plant_crop >= 0 && CropManager.Instance.GetCrop(can_plant_crop) != null) return true;
+        public bool IsSeed()
+        {
+            if (can_plant_crop >= 0 && CropManager.Instance.GetCrop(can_plant_crop) != null) return true;
             return false;
+        }
+        public int GetPlantCropId()
+        {
+            if (IsSeed()) return can_plant_crop;
+            else return -1;
         }
     }
 
@@ -107,6 +114,16 @@ public class ItemManager : MonoBehaviour
         
         itemLists[ItemType.Material].Add(
             new Material{id=7, name="稻种", type=ItemType.Material, texture=tempItemSprites[5], can_plant_crop=0});
+        itemLists[ItemType.Material].Add(
+            new Material{id=8, name="土豆种子", type=ItemType.Material, texture=tempItemSprites[5], can_plant_crop=1});
+        itemLists[ItemType.Material].Add(
+            new Material{id=9, name="麦种", type=ItemType.Material, texture=tempItemSprites[5], can_plant_crop=2});
+        itemLists[ItemType.Material].Add(
+            new Material{id=10, name="棉花种子", type=ItemType.Material, texture=tempItemSprites[5], can_plant_crop=3});
+        itemLists[ItemType.Material].Add(
+            new Material{id=11, name="葡萄藤根", type=ItemType.Material, texture=tempItemSprites[5], can_plant_crop=4});
+        itemLists[ItemType.Material].Add(
+            new Material{id=12, name="树苗", type=ItemType.Material, texture=tempItemSprites[5], can_plant_crop=5});
         #endregion 
     }
     void Start()
