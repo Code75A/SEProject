@@ -19,12 +19,15 @@ public class ItemInstanceManager : MonoBehaviour
     public bool ISDEBUGMODE = true;
     //======================================Global Reference Part====================================
     public static ItemInstanceManager Instance { get; private set; } // 单例
-    private void Awake(){
+    private void Awake()
+    {
         // 实现单例模式，确保 ItemManager 只有一个实例
-        if (Instance == null){
+        if (Instance == null)
+        {
             Instance = this;
         }
-        else{
+        else
+        {
             Destroy(gameObject);
             UIManager.Instance.DebugTextAdd(
                 "<<Error>> Initing the second ItemManager instance FAILED, because it's not allowed. ");
@@ -35,14 +38,16 @@ public class ItemInstanceManager : MonoBehaviour
     public Tilemap landTilemap;
     public GameObject content;
     public GameObject itemInstance;
-    public const float growthPerFrame = 0.005f; 
+    public const float growthPerFrame = 0.005f;
 
-    
+
     // ===================================Disaster Part========================================
-    public enum DisasterType{
+    public enum DisasterType
+    {
         WeatherDisaster, PestDisaster, Total
     }
-    public class Disaster {
+    public class Disaster
+    {
         public DisasterType type;
         public string name;
         public int arrival;
@@ -65,14 +70,16 @@ public class ItemInstanceManager : MonoBehaviour
             ;
         }
     }
-    public class WeatherDisaster:Disaster{}
-    public class PestDisaster : Disaster {
+    public class WeatherDisaster : Disaster { }
+    public class PestDisaster : Disaster
+    {
         public int aim_crop;
         public int control_level;
     }
 
     List<Disaster> disasterList = new List<Disaster>();
-    public void UpdateDisaster(){
+    public void UpdateDisaster()
+    {
         int now_day = 0; //TODO:get time from timeManager
         foreach (var it in disasterList)
         {
@@ -86,35 +93,40 @@ public class ItemInstanceManager : MonoBehaviour
                 it.DoHarm();
                 // Disaster end (last day)
                 if (now_day == it.end - 1) it.End();
-            } 
-            
+            }
+
         }
         // Remove ended disaster
         disasterList.RemoveAll(s => now_day >= s.end);
     }
 
     //====================================ItemInstance Class Part====================================
-    public enum ItemInstanceType{
+    public enum ItemInstanceType
+    {
         ToolInstance, MaterialInstance, CropInstance, BuildingInstance, PrintInstance, Total
     }
 
     //====================================InsLabel Class Part====================================
-    public class InsLabel{
+    public class InsLabel
+    {
         public ItemInstanceType type;
         public int item_id;
     }
-    public class ToolLabel:InsLabel{
-        public Dictionary<PawnManager.Pawn.EnhanceType,int> enhancements;
+    public class ToolLabel : InsLabel
+    {
+        public Dictionary<PawnManager.Pawn.EnhanceType, int> enhancements;
         public int durability;
     }
-    public class MaterialLabel:InsLabel{
+    public class MaterialLabel : InsLabel
+    {
         public int amount;
     }
     //public class CropLabel:InsLabel{}
     //public class BuildingLabel:InsLabel{}
     //public class PrintLabel:InsLabel{}
-    
-    public class ItemInstance{
+
+    public class ItemInstance
+    {
         public int id;
         public ItemInstanceType type;
         /// <summary>
@@ -129,21 +141,24 @@ public class ItemInstanceManager : MonoBehaviour
         /// <summary>
         /// private:设置Instance贴图
         /// </summary>
-        public void SetSprite(Sprite sprite){
+        public void SetSprite(Sprite sprite)
+        {
             instance.GetComponent<SpriteRenderer>().sprite = sprite;
             return;
         }
         /// <summary>
         /// private:设置显示文本
         /// </summary>
-        public void SetText(string text){
+        public void SetText(string text)
+        {
             instance.GetComponentInChildren<TextMeshPro>().text = text;
             return;
         }
         /// <summary>
         /// private:获取显示文本
         /// </summary>
-        public string GetText(){
+        public string GetText()
+        {
             return instance.GetComponentInChildren<TextMeshPro>().text;
         }
         //--------------------------------public------------------------------------
@@ -151,77 +166,95 @@ public class ItemInstanceManager : MonoBehaviour
         /// <summary>
         /// 获取自身作为ItemInstance的id
         /// </summary>
-        public int GetId(){ return id; }
+        public int GetId() { return id; }
         /// <summary>
         /// 获取自身所属的Item模板的id
         /// </summary>
-        public int GetModelId(){ return item_id; }
-        public Vector3Int GetPosition(){ return position; }
+        public int GetModelId() { return item_id; }
+        public Vector3Int GetPosition() { return position; }
     }
-    public class ToolInstance : ItemInstance{
+    public class ToolInstance : ItemInstance
+    {
         public int durability;
-        
+
         //--------------------------------private------------------------------------
-        public ToolLabel GetLabel(){
-            ToolLabel ret = new ToolLabel{item_id=item_id,type=type,durability=durability,
-                enhancements=ItemInstanceManager.Instance.GetEnhance(this)};
+        public ToolLabel GetLabel()
+        {
+            ToolLabel ret = new ToolLabel
+            {
+                item_id = item_id,
+                type = type,
+                durability = durability,
+                enhancements = ItemInstanceManager.Instance.GetEnhance(this)
+            };
             return ret;
         }
         //--------------------------------public------------------------------------
-        public int GetDurability(){ return durability; }
+        public int GetDurability() { return durability; }
     }
-    public class MaterialInstance : ItemInstance{
+    public class MaterialInstance : ItemInstance
+    {
         public int amount;
-        
+
         //--------------------------------private------------------------------------
-        public MaterialLabel GetLabel(){
+        public MaterialLabel GetLabel()
+        {
             MaterialLabel ret = new MaterialLabel { item_id = item_id, type = type, amount = amount };
             return ret;
         }
         //--------------------------------public------------------------------------
-        public int GetAmount(){
+        public int GetAmount()
+        {
             return amount;
         }
-        public void SetAmount(int new_amount){
+        public void SetAmount(int new_amount)
+        {
             amount = new_amount;
             string old_text = GetText();
             string[] strArray = old_text.Split('|');
-            string new_text = strArray[0]+"|"+new_amount.ToString();
+            string new_text = strArray[0] + "|" + new_amount.ToString();
             SetText(new_text);
             return;
         }
     }
-    public class CropInstance : ItemInstance{
+    public class CropInstance : ItemInstance
+    {
         public float growth;
         public float real_lifetime;
         //--------------------------------public------------------------------------
-        public bool IsMature(){ return growth >= real_lifetime ;}
+        public bool IsMature() { return growth >= real_lifetime; }
     }
-    public class BuildingInstance : ItemInstance{
+    public class BuildingInstance : ItemInstance
+    {
         public int durability;
     }
-    public class PrintInstance : ItemInstance{
-        public struct Progress{
+    public class PrintInstance : ItemInstance
+    {
+        public struct Progress
+        {
             public int current;
             public int need;
         }
         /// <summary>
         /// 蓝图所需材料列表，key为材料的item_id，value为所需数量
         /// </summary>
-        public List<KeyValuePair<int,Progress> > material_list;
-        
+        public List<KeyValuePair<int, Progress>> material_list;
+
         //--------------------------------public------------------------------------
-        public bool IsFinished(){
-            for(int i = 0; i < material_list.Count; i++){
-                if(material_list[i].Value.current < material_list[i].Value.need){
+        public bool IsFinished()
+        {
+            for (int i = 0; i < material_list.Count; i++)
+            {
+                if (material_list[i].Value.current < material_list[i].Value.need)
+                {
                     return false;
                 }
             }
             return true;
         }
     }
-    
-    
+
+
     //======================================Manager Function Part=====================================
     //======================================Private Function Part=====================================
     #region 1.唯一ID生成管理
@@ -231,13 +264,14 @@ public class ItemInstanceManager : MonoBehaviour
     /// 我们约定它只被‘SpawnItem’调用，以确保ID的唯一性。
     /// TODO：目前仍然是最简单的增量分配，需要根据后续决定的ID管理机制实现正式的ID分配方法
     /// </summary>
-    private int GetNewId(){
+    private int GetNewId()
+    {
         // TODO: Make sure the ID is unique and safe
         int new_id = ID_COUNTER;
         ID_COUNTER++;
-        
+
         UIManager.Instance.DebugTextAdd(
-            "[Log] You are getting new id: "+ new_id +". "
+            "[Log] You are getting new id: " + new_id + ". "
         );
         return new_id;
     }
@@ -246,16 +280,17 @@ public class ItemInstanceManager : MonoBehaviour
     /// 我们约定它只被‘DestroyItem’调用，以确保回收操作的唯一性。
     /// TODO：目前仍然是象征性的回收，需要根据后续决定的ID管理机制实现正式的回收工作
     /// </summary>
-    private static void RecycleId(int id){
+    private static void RecycleId(int id)
+    {
         // TODO: 在ItemInstance死亡时回收ID
         UIManager.Instance.DebugTextAdd(
-            "[Log] You are recycling id: "+ id + ". " +
+            "[Log] You are recycling id: " + id + ". " +
             "<<Warning>> But `RecycleId` is not implemented yet. "
         );
         return;
     }
-    #endregion 
-    
+    #endregion
+
     #region 2.创建各种ItemInstance个体的子函数
 
     #region (0) 共用的InitInstance函数, 用来为ItemInstance.instance(GameObject)做初始化
@@ -263,10 +298,11 @@ public class ItemInstanceManager : MonoBehaviour
     /// private：为其instance成员变量装载预制体，设置transform组件（包括position和scale），加载材质；
     /// </summary>
     /// <param name="new_ins">待初始化的ItemInstance，应当被填充基本后端信息</param>I
-    public void InitInstance(ItemInstance new_ins, Sprite texture){
+    public void InitInstance(ItemInstance new_ins, Sprite texture)
+    {
         // 设置transform组件
         //  装载预制体
-        new_ins.instance = Instantiate(itemInstance,this.transform); 
+        new_ins.instance = Instantiate(itemInstance, this.transform);
         //  设置位置
         Vector3 worldPosition = landTilemap.GetCellCenterWorld(new_ins.position);
         new_ins.instance.transform.position = worldPosition;
@@ -278,7 +314,7 @@ public class ItemInstanceManager : MonoBehaviour
             contentLocalScale.y / contentLossyScale.y,
             contentLocalScale.z / contentLossyScale.z
         );
-        new_ins.instance.transform.localScale = totalScale ;
+        new_ins.instance.transform.localScale = totalScale;
 
         // 加载材质
         new_ins.SetSprite(texture);
@@ -290,18 +326,24 @@ public class ItemInstanceManager : MonoBehaviour
     /// <summary>
     /// private
     /// </summary>
-    public ItemInstance MakeToolInstance(int item_id, Vector3Int position){
+    public ItemInstance MakeToolInstance(int item_id, Vector3Int position)
+    {
         ItemManager.Item sample = ItemManager.Instance.GetItem(item_id, ItemManager.ItemType.Tool);
-        if(sample == null){
+        if (sample == null)
+        {
             UIManager.Instance.DebugTextAdd(
                "<<Error>> Spawning ToolInstance FAILED, because the item_id for Tool is not found in ItemManager. "
             );
             return null;
         }
         ItemInstance new_ins;
-        new_ins = new ToolInstance{
-            id=-1, type=ItemInstanceType.ToolInstance, item_id=item_id, position=position, 
-            durability=((ItemManager.Tool)sample).max_durability
+        new_ins = new ToolInstance
+        {
+            id = -1,
+            type = ItemInstanceType.ToolInstance,
+            item_id = item_id,
+            position = position,
+            durability = ((ItemManager.Tool)sample).max_durability
         };
         InitInstance(new_ins, sample.texture);
         new_ins.SetText(sample.name);
@@ -310,18 +352,24 @@ public class ItemInstanceManager : MonoBehaviour
     /// <summary>
     /// private
     /// </summary>
-    public ItemInstance MakeMaterialInstance(int item_id, Vector3Int position, int amount){
+    public ItemInstance MakeMaterialInstance(int item_id, Vector3Int position, int amount)
+    {
         ItemManager.Item sample = ItemManager.Instance.GetItem(item_id, ItemManager.ItemType.Material);
-        if(sample == null){
+        if (sample == null)
+        {
             UIManager.Instance.DebugTextAdd(
                "<<Error>> Spawning MaterialInstance FAILED: the item_id for Material is not found in ItemManager. "
             );
             return null;
         }
         ItemInstance new_ins;
-        new_ins = new MaterialInstance{
-            id=-1, type=ItemInstanceType.MaterialInstance, item_id=item_id, position=position, 
-            amount=amount
+        new_ins = new MaterialInstance
+        {
+            id = -1,
+            type = ItemInstanceType.MaterialInstance,
+            item_id = item_id,
+            position = position,
+            amount = amount
         };
         InitInstance(new_ins, sample.texture);
         new_ins.SetText(sample.name + "|" + amount.ToString());
@@ -330,20 +378,27 @@ public class ItemInstanceManager : MonoBehaviour
     /// <summary>
     /// private
     /// </summary>
-    public ItemInstance MakeCropInstance(int crop_id, Vector3Int position){
+    public ItemInstance MakeCropInstance(int crop_id, Vector3Int position)
+    {
         CropManager.Crop sample = CropManager.Instance.GetCrop(crop_id);
         MapManager.MapData env_data = MapManager.Instance.GetMapData(position);
-        
-        if(sample == null){
+
+        if (sample == null)
+        {
             UIManager.Instance.DebugTextAdd(
                "<<Error>>Spawning an CropInstance FAILED: the crop_id is not found in CropManager. "
             );
             return null;
         }
         ItemInstance new_ins;
-        new_ins = new CropInstance{
-            id=-1, type=ItemInstanceType.CropInstance, item_id=crop_id, position=position, 
-            growth=0, real_lifetime=CropManager.Instance.GetRealLifetime(sample, env_data)
+        new_ins = new CropInstance
+        {
+            id = -1,
+            type = ItemInstanceType.CropInstance,
+            item_id = crop_id,
+            position = position,
+            growth = 0,
+            real_lifetime = CropManager.Instance.GetRealLifetime(sample, env_data)
         };
         InitInstance(new_ins, CropManager.Instance.GetSprite(crop_id, 0));
         new_ins.SetText(sample.name);
@@ -352,18 +407,24 @@ public class ItemInstanceManager : MonoBehaviour
     /// <summary>
     /// private
     /// </summary>
-    public ItemInstance MakeBuildingInstance(int building_id, Vector3Int position){
+    public ItemInstance MakeBuildingInstance(int building_id, Vector3Int position)
+    {
         BuildManager.Building sample = BuildManager.Instance.GetBuilding(building_id);
-        if(sample == null){
+        if (sample == null)
+        {
             UIManager.Instance.DebugTextAdd(
                "<<Error>> Spawning an BuildingInstance FAILED: the building_id is not found in BuildManager. "
             );
             return null;
         }
         ItemInstance new_ins;
-        new_ins = new BuildingInstance{
-            id=-1, type=ItemInstanceType.BuildingInstance, item_id=building_id, position=position, 
-            durability=sample.durability
+        new_ins = new BuildingInstance
+        {
+            id = -1,
+            type = ItemInstanceType.BuildingInstance,
+            item_id = building_id,
+            position = position,
+            durability = sample.durability
         };
         InitInstance(new_ins, sample.texture);
         new_ins.SetText(sample.name);
@@ -372,38 +433,47 @@ public class ItemInstanceManager : MonoBehaviour
     /// <summary>
     /// private
     /// </summary>
-    public ItemInstance MakePrintInstance(int building_id, Vector3Int position){
+    public ItemInstance MakePrintInstance(int building_id, Vector3Int position)
+    {
         BuildManager.Building sample = BuildManager.Instance.GetBuilding(building_id);
-        if(sample == null){
+        if (sample == null)
+        {
             UIManager.Instance.DebugTextAdd(
                "<<Error>> Spawning an PrintInstance FAILED: the building_id is not found in BuildManager. "
             );
             return null;
         }
         ItemInstance new_ins;
-        List<KeyValuePair<int,PrintInstance.Progress> > temp =new List<KeyValuePair<int, PrintInstance.Progress> >();
-        foreach (KeyValuePair<int,int> it in sample.material_list){
+        List<KeyValuePair<int, PrintInstance.Progress>> temp = new List<KeyValuePair<int, PrintInstance.Progress>>();
+        foreach (KeyValuePair<int, int> it in sample.material_list)
+        {
             // <DEBUG>
             //temp.Add(new KeyValuePair<int, PrintInstance.Progress>(it.Key, new PrintInstance.Progress{current=10,need=20}));
-            temp.Add(new KeyValuePair<int, PrintInstance.Progress>(it.Key, new PrintInstance.Progress{current=0,need=it.Value}));
+            temp.Add(new KeyValuePair<int, PrintInstance.Progress>(it.Key, new PrintInstance.Progress { current = 0, need = it.Value }));
             // </DEBUG>
         }
-        new_ins = new PrintInstance{
-            id=-1, type=ItemInstanceType.PrintInstance, item_id=building_id, position=position, 
-            material_list=temp
+        new_ins = new PrintInstance
+        {
+            id = -1,
+            type = ItemInstanceType.PrintInstance,
+            item_id = building_id,
+            position = position,
+            material_list = temp
         };
         InitInstance(new_ins, BuildManager.Instance.printSprite);
         new_ins.SetText(sample.name);
         return new_ins;
     }
     #endregion
-    
+
     #region (2)PrintInstance转BuildInstance
 
-    public void PrintToBuild(ItemInstance aim_ins){
-        if(aim_ins.type != ItemInstanceType.PrintInstance){
+    public void PrintToBuild(ItemInstance aim_ins)
+    {
+        if (aim_ins.type != ItemInstanceType.PrintInstance)
+        {
             UIManager.Instance.DebugTextAdd(
-                "<<Error>>PrintToBuild FAILED: the iteminstance_id "+ aim_ins.id +" is not a PrintInstance. "
+                "<<Error>>PrintToBuild FAILED: the iteminstance_id " + aim_ins.id + " is not a PrintInstance. "
             );
             return;
         }
@@ -422,14 +492,16 @@ public class ItemInstanceManager : MonoBehaviour
     /// RemainAll表示产生最大数量的遗留物
     /// RemainWithRate表示产生部分遗留物，配合remain_rate使用。
     /// </summary>
-    public enum DestroyMode{
+    public enum DestroyMode
+    {
         RemainAll, RemainNone, RemainWithRate, Total
     }
     #region (0) 共用的DestroyInstance函数, 用来销毁ItemInstance.instance(这是一个GameObject)
     /// <summary>
     /// private
     /// </summary>
-    public void DestroyInstance(ItemInstance aim_ins){
+    public void DestroyInstance(ItemInstance aim_ins)
+    {
         GameObject.Destroy(aim_ins.instance);
         aim_ins.instance = null;
         return;
@@ -440,64 +512,76 @@ public class ItemInstanceManager : MonoBehaviour
     /// <summary>
     /// private
     /// </summary>
-    public void ClearPrintInstance(ItemInstance aim_ins, DestroyMode mode, float remain_rate){
-        if(aim_ins.type != ItemInstanceType.PrintInstance){
+    public void ClearPrintInstance(ItemInstance aim_ins, DestroyMode mode, float remain_rate)
+    {
+        if (aim_ins.type != ItemInstanceType.PrintInstance)
+        {
             UIManager.Instance.DebugTextAdd(
-                "<<Error>>Clearing PrintInstance FAILED: the iteminstance_id "+ aim_ins.id +" is not a PrintInstance. "
+                "<<Error>>Clearing PrintInstance FAILED: the iteminstance_id " + aim_ins.id + " is not a PrintInstance. "
             );
             return;
         }
-        if(mode == DestroyMode.RemainNone){
+        if (mode == DestroyMode.RemainNone)
+        {
             ;
         }
-        else if (mode == DestroyMode.RemainAll || mode == DestroyMode.RemainWithRate){
-            List<KeyValuePair<int,int> > temp = new List<KeyValuePair<int,int> >();
+        else if (mode == DestroyMode.RemainAll || mode == DestroyMode.RemainWithRate)
+        {
+            List<KeyValuePair<int, int>> temp = new List<KeyValuePair<int, int>>();
             int item_id, amount;
-            foreach (KeyValuePair<int,PrintInstance.Progress> it in ((PrintInstance)aim_ins).material_list){
+            foreach (KeyValuePair<int, PrintInstance.Progress> it in ((PrintInstance)aim_ins).material_list)
+            {
                 item_id = it.Key;
                 amount = it.Value.current;
 
-                if(mode == DestroyMode.RemainWithRate) amount = (int)System.Math.Truncate((double)(amount*remain_rate));
-                
-                if(amount > 0)
+                if (mode == DestroyMode.RemainWithRate) amount = (int)System.Math.Truncate((double)(amount * remain_rate));
+
+                if (amount > 0)
                     temp.Add(new KeyValuePair<int, int>(item_id, amount));
             }
             int set_res = MapManager.Instance.SetMaterial(aim_ins.position, temp);
-            UIManager.Instance.DebugTextAdd("[Log]From mapManager get set-material-result: "+ set_res + ". ");
+            UIManager.Instance.DebugTextAdd("[Log]From mapManager get set-material-result: " + set_res + ". ");
         }
-        else{
+        else
+        {
             UIManager.Instance.DebugTextAdd("<<Error>>Clearing PrintInstance FAILED: UnDefined DestroyMode. ");
         }
     }
-    public void ClearCropInstance(ItemInstance aim_ins, DestroyMode mode, float remain_rate){
-        if(aim_ins.type != ItemInstanceType.CropInstance){
+    public void ClearCropInstance(ItemInstance aim_ins, DestroyMode mode, float remain_rate)
+    {
+        if (aim_ins.type != ItemInstanceType.CropInstance)
+        {
             UIManager.Instance.DebugTextAdd(
-                "<<Error>>Clearing CropInstance FAILED: the iteminstance_id "+ aim_ins.id +" is not a CropInstance. "
+                "<<Error>>Clearing CropInstance FAILED: the iteminstance_id " + aim_ins.id + " is not a CropInstance. "
             );
             return;
         }
 
-        if(mode == DestroyMode.RemainNone){
+        if (mode == DestroyMode.RemainNone)
+        {
             ;
         }
-        else if (mode == DestroyMode.RemainAll || mode == DestroyMode.RemainWithRate){
-            List<KeyValuePair<int,int> > sample = CropManager.Instance.GetCrop(aim_ins.GetModelId()).harvest_list;
-            List<KeyValuePair<int,int> > temp = new List<KeyValuePair<int,int> >();
+        else if (mode == DestroyMode.RemainAll || mode == DestroyMode.RemainWithRate)
+        {
+            List<KeyValuePair<int, int>> sample = CropManager.Instance.GetCrop(aim_ins.GetModelId()).harvest_list;
+            List<KeyValuePair<int, int>> temp = new List<KeyValuePair<int, int>>();
             int crop_id, amount;
-            for(int i = 0; i < sample.Count;i++){
+            for (int i = 0; i < sample.Count; i++)
+            {
                 crop_id = sample[i].Key;
                 amount = sample[i].Value;
                 //Debug.Log(crop_id.ToString()+ "|" + amount.ToString());
 
-                if(mode == DestroyMode.RemainWithRate) amount = (int)System.Math.Truncate((double)(amount*remain_rate));
-                
-                if(amount > 0)
+                if (mode == DestroyMode.RemainWithRate) amount = (int)System.Math.Truncate((double)(amount * remain_rate));
+
+                if (amount > 0)
                     temp.Add(new KeyValuePair<int, int>(crop_id, amount));
             }
             int set_res = MapManager.Instance.SetMaterial(aim_ins.position, temp);
-            UIManager.Instance.DebugTextAdd("[Log]From mapManager get set-material-result: "+ set_res + ". ");
+            UIManager.Instance.DebugTextAdd("[Log]From mapManager get set-material-result: " + set_res + ". ");
         }
-        else{
+        else
+        {
             UIManager.Instance.DebugTextAdd("<<Error>>Clearing CropInstance FAILED: UnDefined DestroyMode. ");
         }
     }
@@ -514,27 +598,32 @@ public class ItemInstanceManager : MonoBehaviour
     /// <summary>
     /// private:CropInstance的生长更新
     /// </summary>
-    public void UpdateAllCropInstance(){
+    public void UpdateAllCropInstance()
+    {
         float grow, life;
         int stage, new_stage;
-        foreach (ItemInstance it in itemInstanceLists[ItemInstanceType.CropInstance]){
+        foreach (ItemInstance it in itemInstanceLists[ItemInstanceType.CropInstance])
+        {
             grow = ((CropInstance)it).growth;
             life = ((CropInstance)it).real_lifetime;
-            if(grow >= life) continue;
+            if (grow >= life) continue;
 
             ((CropInstance)it).growth += growthPerFrame;
-            
-            stage = (int)(3*(grow/life));
-            new_stage = (int)(3*((grow+growthPerFrame)/life));
-            if(new_stage > stage){
-                if(new_stage < 0 || new_stage > 3){
+
+            stage = (int)(3 * (grow / life));
+            new_stage = (int)(3 * ((grow + growthPerFrame) / life));
+            if (new_stage > stage)
+            {
+                if (new_stage < 0 || new_stage > 3)
+                {
                     UIManager.Instance.DebugTextAdd("<<Error>> illegal growth stage: " + new_stage);
                 }
-                else{
-                    it.SetSprite(CropManager.Instance.GetSprite(it.item_id,new_stage));
+                else
+                {
+                    it.SetSprite(CropManager.Instance.GetSprite(it.item_id, new_stage));
                 }
             }
-            
+
         }
     }
     #endregion
@@ -544,7 +633,8 @@ public class ItemInstanceManager : MonoBehaviour
     /// <summary>
     /// private
     /// </summary>
-    void InitInstanceListsData(){
+    void InitInstanceListsData()
+    {
         #region itemInstanceLists初始化
         itemInstanceLists.Add(ItemInstanceType.ToolInstance, new List<ItemInstance>());
         itemInstanceLists.Add(ItemInstanceType.MaterialInstance, new List<ItemInstance>());
@@ -558,19 +648,20 @@ public class ItemInstanceManager : MonoBehaviour
 
         #region (1)CropInstance收割和生长接口自测试
         //Debug.Log("spawning some crop instance.");
-        CropInstance tmp1 = (CropInstance)SpawnItem(new Vector3Int(30,30,0),0,ItemInstanceType.CropInstance);
-        CropInstance tmp2 = (CropInstance)SpawnItem(new Vector3Int(30,31,0),1,ItemInstanceType.CropInstance);
-        CropInstance tmp3 = (CropInstance)SpawnItem(new Vector3Int(30,32,0),2,ItemInstanceType.CropInstance);
+        CropInstance tmp1 = (CropInstance)SpawnItem(new Vector3Int(30, 30, 0), 0, ItemInstanceType.CropInstance);
+        CropInstance tmp2 = (CropInstance)SpawnItem(new Vector3Int(30, 31, 0), 1, ItemInstanceType.CropInstance);
+        CropInstance tmp3 = (CropInstance)SpawnItem(new Vector3Int(30, 32, 0), 2, ItemInstanceType.CropInstance);
         //HarvestCrop(tmp1);
         //HarvestCrop(tmp2);
         HarvestCrop(tmp3);
         #endregion
 
         #region (2)ToolInstance获取强化项接口自测试
-        ToolInstance tmp4 = (ToolInstance)SpawnItem(new Vector3Int(30,33,0), 2, ItemInstanceType.ToolInstance);
+        ToolInstance tmp4 = (ToolInstance)SpawnItem(new Vector3Int(30, 33, 0), 2, ItemInstanceType.ToolInstance);
         Dictionary<PawnManager.Pawn.EnhanceType, int> tmp4_enh = GetEnhance(tmp4);
-        foreach(var it in tmp4_enh){
-            Debug.Log("key:"+it.Key.ToString() + "|val:"+it.Value.ToString());
+        foreach (var it in tmp4_enh)
+        {
+            Debug.Log("key:" + it.Key.ToString() + "|val:" + it.Value.ToString());
         }
         #endregion
 
@@ -589,16 +680,18 @@ public class ItemInstanceManager : MonoBehaviour
     }
     //======================================Public Function Part=======================================
     //===================================ItemInstance Function Part====================================
-    
+
     /// <summary>
     /// 在指定位置`position`生成一个指定`type`的ItemInstance
     /// </summary>
     /// <param name="sample_id">`id` for class `Item`,`Crop` or `Building` which you're going to make a instance </param>
     /// <param name="amount">default 1, used for type like `Material`</param>
-    public ItemInstance SpawnItem(Vector3Int position, int sample_id, ItemInstanceType type, int amount=1){
+    public ItemInstance SpawnItem(Vector3Int position, int sample_id, ItemInstanceType type, int amount = 1)
+    {
         ItemInstance new_ins = null;
         // 按type要求进行不同类型ItemInstance的生成：
-        switch (type){
+        switch (type)
+        {
             case ItemInstanceType.ToolInstance:
                 new_ins = MakeToolInstance(sample_id, position);
                 break;
@@ -621,7 +714,8 @@ public class ItemInstanceManager : MonoBehaviour
                 break;
         }
         // 若创建成功：
-        if(new_ins != null){
+        if (new_ins != null)
+        {
             // 分配唯一ID
             new_ins.id = GetNewId();
             // 加入列表
@@ -629,17 +723,19 @@ public class ItemInstanceManager : MonoBehaviour
         }
         return new_ins;
     }
-    
+
     /// <summary>
     /// 销毁指定的ItemInstance
     /// note: PawnManager不应使用此函数进行Crop的收获或毁坏,请注意HarvestCrop和RuinCrop函数
     /// </summary>
     /// <param name="remain_rate">遗留物的生成率，只在destroy_mode==DestroyMode.RemainWithRate时有效</param>
-    public void DestroyItem(ItemInstance aim_ins, DestroyMode destroy_mode=DestroyMode.RemainNone, float remain_rate=0.5f){
+    public void DestroyItem(ItemInstance aim_ins, DestroyMode destroy_mode = DestroyMode.RemainNone, float remain_rate = 0.5f)
+    {
         // 检查该Instance是否存在
-        if(GetInstance(aim_ins.id) == null){
+        if (GetInstance(aim_ins.id) == null)
+        {
             UIManager.Instance.DebugTextAdd(
-                "<<Error>>Destroying Item FAILED: the iteminstance_id "+ aim_ins.id +" is not found in ItemInstanceManager. "
+                "<<Error>>Destroying Item FAILED: the iteminstance_id " + aim_ins.id + " is not found in ItemInstanceManager. "
             );
             return;
         }
@@ -649,14 +745,15 @@ public class ItemInstanceManager : MonoBehaviour
         //  与InitInstance对应 销毁GameObject
         DestroyInstance(aim_ins);
         //  清除不同种类的ItemInstance的内含物
-        switch(aim_ins.type){
+        switch (aim_ins.type)
+        {
             case ItemInstanceType.ToolInstance:
                 break;
             case ItemInstanceType.MaterialInstance:
                 break;
             case ItemInstanceType.CropInstance:
                 ClearCropInstance(aim_ins, destroy_mode, remain_rate);
-                break;     
+                break;
             case ItemInstanceType.BuildingInstance:
                 break;
             case ItemInstanceType.PrintInstance:
@@ -673,24 +770,29 @@ public class ItemInstanceManager : MonoBehaviour
         return;
     }
 
-    public Dictionary<ItemInstanceType,List<ItemInstance> > itemInstanceLists = new Dictionary<ItemInstanceType,List<ItemInstance>>();
-    public ItemInstance GetInstance(int iteminstance_id, ItemInstanceType type = ItemInstanceType.Total){
+    public Dictionary<ItemInstanceType, List<ItemInstance>> itemInstanceLists = new Dictionary<ItemInstanceType, List<ItemInstance>>();
+    public ItemInstance GetInstance(int iteminstance_id, ItemInstanceType type = ItemInstanceType.Total)
+    {
         ItemInstance aim_ins = null;
-        if(type != ItemInstanceType.Total){
+        if (type != ItemInstanceType.Total)
+        {
             aim_ins = itemInstanceLists[type].Find(c => c.id == iteminstance_id);
         }
-        else{
-            for(ItemInstanceType i = 0; i < ItemInstanceType.Total; i++){
-                if(itemInstanceLists[i] is not null)
+        else
+        {
+            for (ItemInstanceType i = 0; i < ItemInstanceType.Total; i++)
+            {
+                if (itemInstanceLists[i] is not null)
                     aim_ins = itemInstanceLists[i].Find(c => c.id == iteminstance_id);
-                if(aim_ins is not null)
+                if (aim_ins is not null)
                     break;
             }
         }
 
-        if(aim_ins is null){
+        if (aim_ins is null)
+        {
             UIManager.Instance.DebugTextAdd(
-                "[Log]Getting Item FAILED: the iteminstance_id "+ iteminstance_id +" is not found in "+type.ToString()+" List. "
+                "[Log]Getting Item FAILED: the iteminstance_id " + iteminstance_id + " is not found in " + type.ToString() + " List. "
             );
         }
         return aim_ins;
@@ -702,15 +804,20 @@ public class ItemInstanceManager : MonoBehaviour
     /// <returns>最近物品的地址（Vector3Int），如果未找到则返回null</returns>
     /// 此函数lyq负责，用于运输任务时查询
     /// todo:目前仅实现最近距离查找，后续需要加入物品数量，地块是否可通行等方面的考虑
-    public Vector3Int? FindNearestItemPosition(int item_id, Vector3Int currentPosition, float searchRadius = float.MaxValue){
+    public Vector3Int? FindNearestItemPosition(int item_id, Vector3Int currentPosition, float searchRadius = float.MaxValue)
+    {
         Vector3Int? NearestPosition = null;
         float minDistance = float.MaxValue;
         // 遍历所有ItemInstance列表查找，可以后续优化
-        foreach (var itemList in itemInstanceLists.Values){
-            foreach (var itemInstance in itemList){
-                if (itemInstance.item_id == item_id){
+        foreach (var itemList in itemInstanceLists.Values)
+        {
+            foreach (var itemInstance in itemList)
+            {
+                if (itemInstance.item_id == item_id)
+                {
                     float distance = Vector3Int.Distance(currentPosition, itemInstance.position);
-                    if (distance < minDistance && distance <= searchRadius){
+                    if (distance < minDistance && distance <= searchRadius)
+                    {
                         minDistance = distance;
                         NearestPosition = itemInstance.position;
                     }
@@ -718,7 +825,8 @@ public class ItemInstanceManager : MonoBehaviour
             }
         }
 
-        if (NearestPosition == null){
+        if (NearestPosition == null)
+        {
             UIManager.Instance.DebugTextAdd(
                 "[Log]Finding Nearest Item FAILED: No item with id " + item_id + " found near position " + currentPosition + "."
             );
@@ -727,23 +835,37 @@ public class ItemInstanceManager : MonoBehaviour
         return NearestPosition;
     }
     //===================================ToolInstance Function Part====================================
-    public Dictionary<PawnManager.Pawn.EnhanceType,int> GetEnhance(ToolInstance tool_ins){
-        Dictionary<PawnManager.Pawn.EnhanceType,int> res;
+    public Dictionary<PawnManager.Pawn.EnhanceType, int> GetEnhance(ToolInstance tool_ins)
+    {
+        Dictionary<PawnManager.Pawn.EnhanceType, int> res;
         ItemManager.Tool sample = (ItemManager.Tool)ItemManager.Instance.GetItem(tool_ins.item_id, ItemManager.ItemType.Tool);
         res = sample.enhancements;
         return res;
     }
 
     //==================================CropInstance Function Part=================================
-    public bool HarvestCrop(CropInstance crop_ins){
-        if(crop_ins.IsMature()){
+    public bool HarvestCrop(CropInstance crop_ins)
+    {
+        if (crop_ins.IsMature())
+        {
             DestroyItem(crop_ins, DestroyMode.RemainAll);
             return true;
         }
         return false;
     }
-    public bool RuinCrop(CropInstance crop_ins){
+    public bool RuinCrop(CropInstance crop_ins)
+    {
         DestroyItem(crop_ins, DestroyMode.RemainNone);
+        return true;
+    }
+    public bool PlantSeed(MaterialInstance seed, Vector3Int position)
+    {
+        ItemManager.Material seed_sample = (ItemManager.Material)ItemManager.Instance.GetItem(seed.GetModelId(), ItemManager.ItemType.Material);
+        if (seed_sample is null) return false;
+
+        int crop_id = seed_sample.GetPlantCropId();
+        if (crop_id == -1) return false;
+        SpawnItem(position, crop_id, ItemInstanceType.CropInstance);
         return true;
     }
 
