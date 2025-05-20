@@ -613,12 +613,15 @@ public class PawnManager : MonoBehaviour{
             ResolveTask(pawn);
         }
     }
-    public void HandleHarvestTask(Pawn pawn){
+    //收割任务实现，暂且测试树木产生木材
+    //采用协程形式处理等待问题
+    public System.Collections.IEnumerator HandleHarvestTask(Pawn pawn){
         if (pawn == null || pawn.handlingTask == null){
             Debug.LogWarning("Pawn 或其任务为空，无法执行任务！");
-            return;
+            yield break;
         }
         TaskManager.Task task = pawn.handlingTask;
+        HandleTask(pawn);
         Vector3Int? cropPosition = task.target_position;
         
 
@@ -626,42 +629,66 @@ public class PawnManager : MonoBehaviour{
         PawnInteractController controller = pawn.Instance.GetComponent<PawnInteractController>();
         if (controller == null){
             Debug.LogWarning("PawnInteractController 未挂载在 Pawn 实例上！");
-            return;
+            yield break;
         }
 
         controller.MovePawnToPosition(cropPosition.Value, pawn);
 
+
         // 等待 Pawn 到达农作物位置
-        if (Vector3.Distance(pawn.Instance.transform.position, cropPosition.Value) > 0.05f){
-            Debug.Log("Pawn 正在移动到农作物位置...");
-            return;
-        }
+        //if (Vector3.Distance(pawn.Instance.transform.position, cropPosition.Value) > 0.5f){
+        //     Debug.Log("Pawn 正在移动到农作物位置...");
+        //     yield break; // 等待下一帧再检查位置是否到达
+        // }
+        // Debug.Log("Pawn 到达农作物位置,开始HarvestTask...");
+
+        yield return new WaitWhile(() => controller.isMoving);
+
         Debug.Log("Pawn 到达农作物位置,开始HarvestTask...");
 
         // 3. 等待收割完成
         float workTime = GetWorkTime(pawn, task);
-        Debug.Log($"开始收割任务，预计耗时: {workTime} 秒"); 
-        System.Threading.Thread.Sleep((int)(workTime * 1000)); // 模拟等待收割完成
-        Debug.Log("HarvestTask 完成!");
+        yield return new WaitForSeconds(workTime);
 
         // 4. 收割完成后，创建物品实例
-        MapManager.MapData cropData = MapManager.Instance.GetMapData(cropPosition.Value);
-        if (cropData != null && !cropData.has_item){
-            cropData.has_item = true;
-            //暂时由任务来指定生成出来的物品，用于测试，后续需要根据作物收获物表格获取物品
-            ItemInstanceManager.MaterialInstance newCrop = ItemInstanceManager.Instance.SpawnItem(
-                task.target_position, 
-                task.id, 
-                ItemInstanceManager.ItemInstanceType.MaterialInstance
-            ) as ItemInstanceManager.MaterialInstance;
-            Debug.Log($"收割任务完成，物品已创建在位置: {task.target_position}");
+        // 这里假设收割的物品是木材，实际情况可能需要根据任务类型来判断
+        MapManager.MapData mapData = MapManager.Instance.GetMapData(cropPosition.Value);
+        if(mapData.has_building && mapData.item != null){
+            //判断是否为树木
+            if(mapData.item.id == 3){
+                //todo:mapmanager中的item操纵接口以更改地块上的has_item
+                ItemInstanceManager.MaterialInstance newCrop = ItemInstanceManager.Instance.SpawnItem(
+                    task.target_position, 
+                    task.id, 
+                    ItemInstanceManager.ItemInstanceType.MaterialInstance
+                ) as ItemInstanceManager.MaterialInstance;
+                Debug.Log($"收割任务完成，物品已创建在位置: {task.target_position}");
+            }
+            else{
+                Debug.LogWarning("目标位置的物品不是树木，无法收割！");
+                yield break;
+            }
         }
+
+
+        // MapManager.MapData cropData = MapManager.Instance.GetMapData(cropPosition.Value);
+        // if (cropData != null && !cropData.has_item){
+        //     cropData.has_item = true;
+        //     //暂时由任务来指定生成出来的物品，用于测试，后续需要根据作物收获物表格获取物品
+        //     ItemInstanceManager.MaterialInstance newCrop = ItemInstanceManager.Instance.SpawnItem(
+        //         task.target_position, 
+        //         task.id, 
+        //         ItemInstanceManager.ItemInstanceType.MaterialInstance
+        //     ) as ItemInstanceManager.MaterialInstance;
+        //     Debug.Log($"收割任务完成，物品已创建在位置: {task.target_position}");
+        // }
     }
     
     //任务结束时进行的更新
     Dictionary<TaskManager.TaskTypes, Action<Pawn>> taskResolver = new Dictionary<TaskManager.TaskTypes, Action<Pawn>>{
         { TaskManager.TaskTypes.Move, (pawn) => Instance.ResolveMoveTask(pawn)},
-        { TaskManager.TaskTypes.Build, (pawn) => Instance.ResolveBuildTask(pawn) }
+        { TaskManager.TaskTypes.Build, (pawn) => Instance.ResolveBuildTask(pawn) },
+        { TaskManager.TaskTypes.Harvest, (pawn) => Instance.HandleHarvestTask(pawn)}
     };
 
     public void ResolveTask(Pawn pawn){
