@@ -30,7 +30,7 @@ public class CropManager : MonoBehaviour
             return origin*(1.0f - (Math.Abs(expect_env-env_data)/expect_env));
         }
     }
-
+    // =====================================Crop Part==========================================
     public class Crop{
         public int id;
         public string name;
