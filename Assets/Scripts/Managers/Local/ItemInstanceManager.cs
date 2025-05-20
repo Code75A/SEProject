@@ -37,10 +37,82 @@ public class ItemInstanceManager : MonoBehaviour
     public GameObject itemInstance;
     public const float growthPerFrame = 0.005f; 
 
+    
+    // ===================================Disaster Part========================================
+    public enum DisasterType{
+        WeatherDisaster, PestDisaster, Total
+    }
+    public class Disaster {
+        public DisasterType type;
+        public string name;
+        public int arrival;
+        public int end;
+        public int predictability_level;
+        public bool IsPredictable()
+        {
+            return false;
+        }
+        public void Arrive()
+        {
+            ;
+        }
+        public void End()
+        {
+            ;
+        }
+        public void DoHarm()
+        {
+            ;
+        }
+    }
+    public class WeatherDisaster:Disaster{}
+    public class PestDisaster : Disaster {
+        public int aim_crop;
+        public int control_level;
+    }
+
+    List<Disaster> disasterList = new List<Disaster>();
+    public void UpdateDisaster(){
+        int now_day = 0; //TODO:get time from timeManager
+        foreach (var it in disasterList)
+        {
+            // Disaster not arrive
+            if (now_day < it.arrival) continue;
+            // Disaster arrive
+            if (now_day == it.arrival) it.Arrive();
+            // during Disaster
+            if (now_day >= it.arrival && now_day < it.end)
+            {
+                it.DoHarm();
+                // Disaster end (last day)
+                if (now_day == it.end - 1) it.End();
+            } 
+            
+        }
+        // Remove ended disaster
+        disasterList.RemoveAll(s => now_day >= s.end);
+    }
+
     //====================================ItemInstance Class Part====================================
     public enum ItemInstanceType{
         ToolInstance, MaterialInstance, CropInstance, BuildingInstance, PrintInstance, Total
     }
+
+    //====================================InsLabel Class Part====================================
+    public class InsLabel{
+        public ItemInstanceType type;
+        public int item_id;
+    }
+    public class ToolLabel:InsLabel{
+        public Dictionary<PawnManager.Pawn.EnhanceType,int> enhancements;
+        public int durability;
+    }
+    public class MaterialLabel:InsLabel{
+        public int amount;
+    }
+    //public class CropLabel:InsLabel{}
+    //public class BuildingLabel:InsLabel{}
+    //public class PrintLabel:InsLabel{}
     
     public class ItemInstance{
         public int id;
@@ -74,7 +146,6 @@ public class ItemInstanceManager : MonoBehaviour
         public string GetText(){
             return instance.GetComponentInChildren<TextMeshPro>().text;
         }
-
         //--------------------------------public------------------------------------
 
         /// <summary>
@@ -89,11 +160,24 @@ public class ItemInstanceManager : MonoBehaviour
     }
     public class ToolInstance : ItemInstance{
         public int durability;
+        
+        //--------------------------------private------------------------------------
+        public ToolLabel GetLabel(){
+            ToolLabel ret = new ToolLabel{item_id=item_id,type=type,durability=durability,
+                enhancements=ItemInstanceManager.Instance.GetEnhance(this)};
+            return ret;
+        }
         //--------------------------------public------------------------------------
         public int GetDurability(){ return durability; }
     }
     public class MaterialInstance : ItemInstance{
         public int amount;
+        
+        //--------------------------------private------------------------------------
+        public MaterialLabel GetLabel(){
+            MaterialLabel ret = new MaterialLabel { item_id = item_id, type = type, amount = amount };
+            return ret;
+        }
         //--------------------------------public------------------------------------
         public int GetAmount(){
             return amount;
@@ -136,6 +220,7 @@ public class ItemInstanceManager : MonoBehaviour
             return true;
         }
     }
+    
     
     //======================================Manager Function Part=====================================
     //======================================Private Function Part=====================================
@@ -651,8 +736,11 @@ public class ItemInstanceManager : MonoBehaviour
 
     //==================================CropInstance Function Part=================================
     public bool HarvestCrop(CropInstance crop_ins){
-        DestroyItem(crop_ins, DestroyMode.RemainAll);
-        return true;
+        if(crop_ins.IsMature()){
+            DestroyItem(crop_ins, DestroyMode.RemainAll);
+            return true;
+        }
+        return false;
     }
     public bool RuinCrop(CropInstance crop_ins){
         DestroyItem(crop_ins, DestroyMode.RemainNone);
