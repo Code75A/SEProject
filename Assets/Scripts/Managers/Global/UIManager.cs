@@ -10,6 +10,8 @@ public class UIManager : MonoBehaviour
     public static UIManager Instance { get; private set; }
     public BuildManager buildManager = BuildManager.Instance;
 
+    #region UI元素
+
     [Header("Debug表盘")]
     public GameObject debugPanelCanvas;
     public GameObject debugTextContent;
@@ -25,7 +27,7 @@ public class UIManager : MonoBehaviour
     public ScrollContentController scrollContentController;
 
     [Header("建造菜单")]
-    public Transform buildingMenuConvas;
+    public Transform buildingMenu;
     public GameObject buildingMenuBar;
     public GameObject buildingMenuSquare;
 
@@ -40,6 +42,10 @@ public class UIManager : MonoBehaviour
     public GameObject[] buildingMenuBars = new GameObject[(int)BuildManager.BuildingType.Total];
     public GameObject[] buildingMenuSquares ;//最多一行放8个
 
+    [Header("选中详细")]
+    public GameObject selectedObjectPanel;
+
+    #endregion
 
     //单例模式
     void Awake(){
@@ -94,7 +100,7 @@ public class UIManager : MonoBehaviour
 
         for(int i = 0; i < (int)BuildManager.BuildingType.Total; i++){
 
-            buildingMenuBars[i] = Instantiate(buildingMenuBar,buildingMenuConvas);
+            buildingMenuBars[i] = Instantiate(buildingMenuBar,buildingMenu);
             buildingMenuBars[i].GetComponent<BuildingMenuBarLoadController>().Init(this,(BuildManager.BuildingType)i);
 
             if(i % 2 == 0)
@@ -126,7 +132,7 @@ public class UIManager : MonoBehaviour
         for(int i = 0; i < currentBuildingList.Count; i++){
             int index = i % 8;
             
-            buildingMenuSquares[i] = Instantiate(buildingMenuSquare,buildingMenuConvas);
+            buildingMenuSquares[i] = Instantiate(buildingMenuSquare,buildingMenu);
             
             if(index == 0){
                 current_anchor += square_deltay;
