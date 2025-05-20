@@ -9,7 +9,7 @@ public class PawnInteractController : MonoBehaviour
     public PawnManager.Pawn pawn;
     private UnityEngine.Vector3 targetPosition;
     
-    private bool isMoving = false;
+    public bool isMoving = false;
     
     public Vector3Int fromCellPos;
     private Vector3Int targetCellPos;
