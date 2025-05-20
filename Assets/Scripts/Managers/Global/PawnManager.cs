@@ -415,11 +415,11 @@ public class PawnManager : MonoBehaviour{
     Dictionary<TaskManager.TaskTypes, Action<Pawn>> taskHandler = new Dictionary<TaskManager.TaskTypes, Action<Pawn>>{
         { TaskManager.TaskTypes.Move, (pawn) => Instance.HandleMoveTask(pawn)},
         { TaskManager.TaskTypes.Harvest, (pawn) => Instance.HandleHarvestTask(pawn) },
-        { TaskManager.TaskTypes.Plant, (pawn) => Instance.HandleBuildFarmTask(pawn) }
+        { TaskManager.TaskTypes.Plant, (pawn) => Instance.StartCoroutine(Instance.HandleBuildFarmTask(pawn)) }
     };
 
     Dictionary<BuildManager.BuildingType, Action<Pawn>> buildTaskHandler = new Dictionary<BuildManager.BuildingType, Action<Pawn>>{
-        { BuildManager.BuildingType.Farm, (pawn) => Instance.HandleBuildFarmTask(pawn) },
+        { BuildManager.BuildingType.Farm, (pawn) => Instance.StartCoroutine(Instance.HandleBuildFarmTask(pawn)) },
         { BuildManager.BuildingType.Wall, (pawn) => Instance.HandleBuildTask(pawn) }
     };
 
@@ -557,58 +557,52 @@ public class PawnManager : MonoBehaviour{
         pawn.isOnTask = false;
         pawn.handlingTask = null;
     }
-    public void HandleBuildFarmTask(Pawn pawn){
+    public System.Collections.IEnumerator HandleBuildFarmTask(Pawn pawn){
         Debug.Log("HandleBuildFarmTask开始");
         if (pawn == null || pawn.handlingTask == null){
             Debug.LogWarning("Pawn 或其任务为空，无法执行任务！");
-            return;
+            yield break;
         }
         TaskManager.Task task = pawn.handlingTask;
 
-        // 1. 根据任务查找农作物位置
         Vector3Int? FarmPosition = task.target_position;
-
-        // 2. 移动 Pawn 到农作物位置
         PawnInteractController controller = pawn.Instance.GetComponent<PawnInteractController>();
         if (controller == null){
             Debug.LogWarning("PawnInteractController 未挂载在 Pawn 实例上！");
-            return;
+            yield break;
         }
 
-        //TODO: 可以进行任务的条件：位于蓝图周围的可站位置（因为蓝图本身是不可通行的）
-        if (Vector3Int.Distance(MapManager.Instance.GetCellPosFromWorld(pawn.Instance.transform.position), FarmPosition.Value) != 1){
-            
+        // 判断是否位于蓝图周围的可站位置
+        if (Vector3Int.Distance(
+                MapManager.Instance.GetCellPosFromWorld(pawn.Instance.transform.position),
+                FarmPosition.Value) != 1)
+        {
             TaskManager.Task build_farm_task = pawn.handlingTask;
-
             ClearPawnTaskList(pawn);
 
-            //TODO: 寻找任务点周围的可站位置
+            // 假设位于下侧，可根据需要调整
             pawn.handlingTask = new TaskManager.Task(
-                position: FarmPosition.Value + new Vector3Int(0, -1, 0), // 假设位于下侧
+                position: FarmPosition.Value + new Vector3Int(0, -1, 0),
                 type: TaskManager.TaskTypes.Move,
                 task_id: -1
             );
             AddPawnTask(pawn, build_farm_task);
 
             HandleTask(pawn);
-
             Debug.Log("Pawn拆分BuildFarm任务完成");
-
-            return;
         }
         else{
             float workTime = GetWorkTime(pawn, task);
             Debug.Log($"开始开垦任务，预计耗时: {workTime} 秒"); 
-            System.Threading.Thread.Sleep((int)(workTime * 1000));
+            yield return new WaitForSeconds(workTime);
             Debug.Log("FarmTask 完成!");
 
             MapManager.MapData mapData = MapManager.Instance.GetMapData(FarmPosition.Value);
-
             if (mapData == null){
                 Debug.LogWarning("目标位置的 MapData 不存在，无法创建农田！");
-                return ;
+                yield break;
             }
-            MapManager.Instance.SetTileFarm(mapData, BuildManager.Instance.GetBuilding(task.id)); // 假设农田的类型为 `farm`
+            MapManager.Instance.SetTileFarm(mapData, BuildManager.Instance.GetBuilding(task.id));
 
             ResolveTask(pawn);
         }
