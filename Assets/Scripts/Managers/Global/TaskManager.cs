@@ -63,11 +63,29 @@ public class TaskManager : MonoBehaviour
             this.beginPosition = beginPosition;
         }
     }
+    
+    // 创建一个简易的 TransportTask
+    public TransportTask CreateTransportTask(Vector3Int beginPos, Vector3Int endPos, int itemId, int amount = 1)
+    {
+        int newTaskId = TaskIdUpdate();
+        TransportTask transportTask = new TransportTask(
+            position: endPos,
+            type: TaskTypes.Transport,
+            task_id: newTaskId,
+            id: itemId,
+            amount: amount,
+            beginPosition: beginPos
+        );
+        return transportTask;
+    }
 
-    public class MoveTask : Task{
+
+    public class MoveTask : Task
+    {
         //public Vector3Int beginPosition; // 目标位置
-        public MoveTask(Vector3Int position, TaskTypes type, int task_id, int id, int amount) : base(position, type, task_id, id ,amount, -1){
-            
+        public MoveTask(Vector3Int position, TaskTypes type, int task_id, int id, int amount) : base(position, type, task_id, id, amount, -1)
+        {
+
         }
     }
 
