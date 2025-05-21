@@ -7,9 +7,9 @@ public class pawnharvesttest : MonoBehaviour
     // Start is called before the first frame update
     public void TestHarvestTaskByGrid()
     {
-        // 1. 在 (0,0) 放置树木
+        // // 1. 在 (0,0) 放置树木
         Vector3Int treePos = new Vector3Int(20, 20, 0);
-        ItemInstanceManager.Instance.SpawnItem(treePos, 5, ItemInstanceManager.ItemInstanceType.CropInstance);
+        // ItemInstanceManager.Instance.SpawnItem(treePos, 5, ItemInstanceManager.ItemInstanceType.CropInstance);
 
 
         // 2. 在 (100,100) 创建 Pawn
@@ -36,7 +36,59 @@ public class pawnharvesttest : MonoBehaviour
 
         
     }
+    public void createtree()
+    {
+        Vector3Int treePos = new Vector3Int(20, 20, 0);
+        ItemInstanceManager.Instance.SpawnItem(treePos, 5, ItemInstanceManager.ItemInstanceType.CropInstance);
+    }
 
+    public void TestPawnUnload()
+    {
+        // 1. 获取一个空闲 Pawn，如果没有就创建一个
+        PawnManager.Pawn testPawn = PawnManager.Instance.GetAvailablePawn();
+
+        // 2. 先给 Pawn 装载一些物品（这里随意模拟）
+        testPawn.materialId = 3;
+        testPawn.materialAmount = 5;
+        testPawn.instantCapacity -= 5;
+
+        // 3. 调用 PawnUnload
+        bool unloadSuccess = PawnManager.Instance.PawnUnload(testPawn);
+
+        // 4. 打印结果
+        if (unloadSuccess)
+        {
+            Debug.Log("PawnUnload 测试成功，已在当前位置生成对应物品。");
+        }
+        else
+        {
+            Debug.LogWarning("PawnUnload 测试失败，未成功生成物品。");
+        }
+    }
+    public void TestTransportTask()
+    {
+        // 1. 在 (15,15) 放置一个物品（例如 ID=3 的材料）
+        Vector3Int itemPos = new Vector3Int(15, 15, 0);
+        ItemInstanceManager.Instance.SpawnItem(itemPos, 3, ItemInstanceManager.ItemInstanceType.MaterialInstance);
+        Debug.Log("已在 (15,15) 放置了物品 ID=3...");
+
+        // 2. 新建或获取一个空闲 Pawn
+        PawnManager.Pawn testPawn = PawnManager.Instance.GetAvailablePawn();
+        if (testPawn == null)
+        {
+            PawnManager.Instance.CreatePawn(new Vector3Int(10, 10, 0));
+            testPawn = PawnManager.Instance.GetAvailablePawn();
+        }
+        Debug.Log($"选中的测试 Pawn ID：{testPawn.id}");
+
+        // 3. 创建运输任务 (从 itemPos 搬运到 (20,20))
+        TaskManager.TransportTask tTask = TaskManager.Instance.CreateTransportTask(itemPos, new Vector3Int(20, 20, 0), 3);
+        testPawn.handlingTask = tTask;
+
+        // 4. 启动运输协程
+        StartCoroutine(PawnManager.Instance.HandleTransportTask(testPawn, tTask));
+        Debug.Log("启动运输任务测试，Pawn将移动到物品位置装载，再移动到(20,20)卸载。");
+    }
     public IEnumerator TestHarvestTask()
     {
         // 若没有空闲 Pawn, 先创建一个
@@ -81,5 +133,15 @@ public class pawnharvesttest : MonoBehaviour
         {
             StartCoroutine(TestHarvestTask());
         }
+        if (Input.GetKeyDown(KeyCode.H))
+        {
+            createtree();
+        }
+        if (Input.GetKeyDown(KeyCode.J))
+        {
+            //TestPawnUnload();
+            TestTransportTask();
+        }
+        
     }
 }
