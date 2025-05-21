@@ -720,6 +720,8 @@ public class ItemInstanceManager : MonoBehaviour
             new_ins.id = GetNewId();
             // 加入列表
             itemInstanceLists[type].Add(new_ins);
+            // 设置到地图数据中
+            MapManager.Instance.SetMapDataItem(new_ins, position);
         }
         return new_ins;
     }
