@@ -851,12 +851,17 @@ public class ItemInstanceManager : MonoBehaviour
     //==================================CropInstance Function Part=================================
     public bool HarvestCrop(CropInstance crop_ins)
     {
-        if (crop_ins.IsMature())
-        {
+        // if (crop_ins.IsMature())
+        // {
+            Debug.Log("Harvesting Crop: " + crop_ins.id);
             DestroyItem(crop_ins, DestroyMode.RemainAll);
             return true;
-        }
-        return false;
+        // }
+        // else
+        // {
+        //     Debug.Log("Crop is not mature, cannot harvest.");
+        // }
+        //return false;
     }
     public bool RuinCrop(CropInstance crop_ins)
     {
