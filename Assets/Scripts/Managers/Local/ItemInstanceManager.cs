@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq.Expressions;
 using TMPro;
 using Unity.Collections.LowLevel.Unsafe;
@@ -718,6 +719,8 @@ public class ItemInstanceManager : MonoBehaviour
         {
             // 分配唯一ID
             new_ins.id = GetNewId();
+            // 将其GameObject名字设置为id
+            new_ins.instance.name = new_ins.id.ToString();
             // 加入列表
             itemInstanceLists[type].Add(new_ins);
             // 设置到地图数据中
