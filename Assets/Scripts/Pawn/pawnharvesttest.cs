@@ -9,21 +9,8 @@ public class pawnharvesttest : MonoBehaviour
     {
         // 1. 在 (0,0) 放置树木
         Vector3Int treePos = new Vector3Int(20, 20, 0);
-        MapManager.MapData treeData = MapManager.Instance.GetMapData(treePos);
-        if (treeData != null)
-        {
-            treeData.type = MapManager.tileTypes.tree;
-            treeData.texture = MapManager.Instance.tiles[(int)MapManager.tileTypes.tree];
-            treeData.has_building = true;
-            treeData.has_item = true;
-            treeData.item = new ItemInstanceManager.ItemInstance
-            {
-                id = 3, // 假设树木 ID 为 3
-                type = ItemInstanceManager.ItemInstanceType.MaterialInstance
-            };
-            // 可视化更新
-            MapManager.Instance.landTilemap.SetTile(treePos, treeData.texture);
-        }
+        ItemInstanceManager.Instance.SpawnItem(treePos, 5, ItemInstanceManager.ItemInstanceType.CropInstance);
+
 
         // 2. 在 (100,100) 创建 Pawn
         Vector3Int pawnPos = new Vector3Int(10, 10, 0);
@@ -46,6 +33,8 @@ public class pawnharvesttest : MonoBehaviour
 
         // 4. 启动收割任务
         StartCoroutine(PawnManager.Instance.HandleHarvestTask(testPawn));
+
+        
     }
 
     public IEnumerator TestHarvestTask()
