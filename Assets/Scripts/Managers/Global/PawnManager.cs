@@ -640,12 +640,13 @@ public class PawnManager : MonoBehaviour{
         // 4. 收割完成后，创建物品实例
         // 这里假设收割的物品是木材，实际情况可能需要根据任务类型来判断
         MapManager.MapData mapData = MapManager.Instance.GetMapData(cropPosition.Value);
-        //Debug.Log($"目标位置的 MapData: {mapData.item}");
-        if (mapData.has_building && mapData.item != null)
+        Debug.Log($"目标位置的 MapData: {mapData.item}");
+        if (mapData.item != null)
         {
             //判断是否为树木
-            if (mapData.item.id == 3)
-            {
+            Debug.LogWarning("1");
+            // if (mapData.item.id == 5)
+            // {
                 //mapmanager中的item操纵接口以更改地块上的has_item,重复了
                 //MapManager.Instance.SethasitemState(mapData, true);
                 if (mapData.item is ItemInstanceManager.CropInstance cropInstance)
@@ -683,13 +684,13 @@ public class PawnManager : MonoBehaviour{
                     Debug.LogWarning("目标位置的 MapData 不存在，无法创建物品！");
                 }
 
-            }
-            else
-            {
-                Debug.LogWarning("目标位置的物品不是树木，无法收割！");
+            // }
+            // else
+            // {
+            //     Debug.LogWarning("目标位置的物品不是树木，无法收割！");
 
-                yield break;
-            }
+            //     yield break;
+            // }
         }
 
 
