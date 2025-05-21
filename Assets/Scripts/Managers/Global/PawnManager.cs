@@ -629,37 +629,65 @@ public class PawnManager : MonoBehaviour{
         controller.MovePawnToPosition(cropPosition.Value, pawn);
 
 
-        // 等待 Pawn 到达农作物位置
-        //if (Vector3.Distance(pawn.Instance.transform.position, cropPosition.Value) > 0.5f){
-        //     Debug.Log("Pawn 正在移动到农作物位置...");
-        //     yield break; // 等待下一帧再检查位置是否到达
-        // }
-        // Debug.Log("Pawn 到达农作物位置,开始HarvestTask...");
-
         yield return new WaitWhile(() => controller.isMoving);
 
         Debug.Log("Pawn 到达农作物位置,开始HarvestTask...");
 
         // 3. 等待收割完成
         float workTime = GetWorkTime(pawn, task);
-        yield return new WaitForSeconds(workTime);
+        yield return new WaitForSeconds(0);
 
         // 4. 收割完成后，创建物品实例
         // 这里假设收割的物品是木材，实际情况可能需要根据任务类型来判断
         MapManager.MapData mapData = MapManager.Instance.GetMapData(cropPosition.Value);
-        if(mapData.has_building && mapData.item != null){
+        //Debug.Log($"目标位置的 MapData: {mapData.item}");
+        if (mapData.has_building && mapData.item != null)
+        {
             //判断是否为树木
-            if(mapData.item.id == 3){
-                //todo:mapmanager中的item操纵接口以更改地块上的has_item
-                ItemInstanceManager.MaterialInstance newCrop = ItemInstanceManager.Instance.SpawnItem(
-                    task.target_position, 
-                    task.id, 
-                    ItemInstanceManager.ItemInstanceType.MaterialInstance
-                ) as ItemInstanceManager.MaterialInstance;
+            if (mapData.item.id == 3)
+            {
+                //mapmanager中的item操纵接口以更改地块上的has_item,重复了
+                //MapManager.Instance.SethasitemState(mapData, true);
+                if (mapData.item is ItemInstanceManager.CropInstance cropInstance)
+                {
+                    Debug.LogWarning("目标物品是 CropInstance调用 HarvestCrop");
+                    ItemInstanceManager.Instance.HarvestCrop(cropInstance);
+                }
+                else
+                {
+                    Debug.LogWarning("目标物品不是 CropInstance，无法调用 HarvestCrop！");
+                }
+
+                // ItemInstanceManager.MaterialInstance newCrop = ItemInstanceManager.Instance.SpawnItem(
+                //     task.target_position,
+                //     task.id,
+                //     ItemInstanceManager.ItemInstanceType.MaterialInstance
+                // ) as ItemInstanceManager.MaterialInstance;
                 Debug.Log($"收割任务完成，物品已创建在位置: {task.target_position}");
+                //下述代码用于测试地图数据更新情况
+                MapManager.MapData NEWMAPDATA = MapManager.Instance.GetMapData(cropPosition.Value);
+                if (NEWMAPDATA != null)
+                {
+                    Debug.Log($"目标位置的 MapData 更新成功，has_item: {NEWMAPDATA.has_item}");
+                    if (NEWMAPDATA.item != null)
+                    {
+                        Debug.Log($"目标位置的物品实例 ID: {NEWMAPDATA.item.id}");
+                    }
+                    else
+                    {
+                        Debug.Log("目标位置的物品实例为空！");
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning("目标位置的 MapData 不存在，无法创建物品！");
+                }
+
             }
-            else{
+            else
+            {
                 Debug.LogWarning("目标位置的物品不是树木，无法收割！");
+
                 yield break;
             }
         }

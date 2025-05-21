@@ -50,7 +50,19 @@ public class MapManager : MonoBehaviour
 
         public float walk_speed = 1.0f;
     }
-    
+
+    void SetMapDataItem(MapData data, ItemInstanceManager.ItemInstance item){
+        if (item.type != ItemInstanceManager.ItemInstanceType.BuildingInstance){
+            //Debug.Log("Error: SetMapDataItem传入的物品类型错误！");
+            data.item = item;
+            data.has_item = true;
+            return;
+        }
+        else{
+            //todo: 处理建筑物的item
+            return;
+        }
+    }
     public Tilemap landTilemap;
 
     public GameObject content;
@@ -101,6 +113,13 @@ public class MapManager : MonoBehaviour
     // void AddWallBuildTask(MapData data, BuildManager.Building building){
     //     TaskManager.Instance.AddTask(data.position, TaskManager.TaskTypes.Build, building.id, 1);
     // }
+
+    public void SethasitemState(MapData mapData, bool hasItem){
+        int x = mapData.position.x;int y = mapData.position.y;
+
+        walkVectors[x, y] = hasItem;
+        mapDatas[x, y].has_item = hasItem;
+    }
 
     void AddBuildTask(MapData data, BuildManager.Building building){
         data.has_print = true;
