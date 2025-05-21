@@ -102,7 +102,7 @@ public class CropManager : MonoBehaviour
             }});
         cropList.Add(new Crop{id = 5, name="树", lifetime=20.0f, 
             harvest_list = new List<KeyValuePair<int,int> >{
-                new KeyValuePair<int, int>(ItemManager.Instance.GetItem("蓝莓",ItemManager.ItemType.Material).id ,10)
+                new KeyValuePair<int, int>(ItemManager.Instance.GetItem("木材",ItemManager.ItemType.Material).id ,10)
             }});
     }
     //=========================================Public Function Part=======================================
