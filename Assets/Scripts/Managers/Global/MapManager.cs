@@ -8,6 +8,7 @@ using System.Data;
 using System.Threading.Tasks;
 using System.Linq;
 using Unity.IO.LowLevel.Unsafe;
+using Unity.Collections;
 
 
 public class MapManager : MonoBehaviour
@@ -51,14 +52,17 @@ public class MapManager : MonoBehaviour
         public float walk_speed = 1.0f;
     }
 
-    void SetMapDataItem(MapData data, ItemInstanceManager.ItemInstance item){
-        if (item.type != ItemInstanceManager.ItemInstanceType.BuildingInstance){
+    void SetMapDataItem(ItemInstanceManager.ItemInstance item, Vector3Int pos){
+        int x = pos.x; int y = pos.y;
+        if (item.type != ItemInstanceManager.ItemInstanceType.BuildingInstance)
+        {
             //Debug.Log("Error: SetMapDataItem传入的物品类型错误！");
-            data.item = item;
-            data.has_item = true;
+            mapDatas[x, y].item = item;
+            mapDatas[x, y].has_item = true;
             return;
         }
-        else{
+        else
+        {
             //todo: 处理建筑物的item
             return;
         }
