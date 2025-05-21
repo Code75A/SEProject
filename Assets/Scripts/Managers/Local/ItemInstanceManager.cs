@@ -658,7 +658,7 @@ public class ItemInstanceManager : MonoBehaviour
         #endregion
 
         #region (2)ToolInstance获取强化项接口自测试
-        ToolInstance tmp4 = (ToolInstance)SpawnItem(new Vector3Int(30, 33, 0), 2, ItemInstanceType.ToolInstance);
+        ToolInstance tmp4 = (ToolInstance)SpawnItem(new Vector3Int(30, 34, 0), 2, ItemInstanceType.ToolInstance);
         Dictionary<PawnManager.Pawn.EnhanceType, int> tmp4_enh = GetEnhance(tmp4);
         foreach (var it in tmp4_enh)
         {
