@@ -52,7 +52,7 @@ public class MapManager : MonoBehaviour
         public float walk_speed = 1.0f;
     }
 
-    void SetMapDataItem(ItemInstanceManager.ItemInstance item, Vector3Int pos){
+    public void SetMapDataItem(ItemInstanceManager.ItemInstance item, Vector3Int pos){
         int x = pos.x; int y = pos.y;
         if (item.type != ItemInstanceManager.ItemInstanceType.BuildingInstance)
         {
@@ -121,7 +121,7 @@ public class MapManager : MonoBehaviour
     public void SethasitemState(MapData mapData, bool hasItem){
         int x = mapData.position.x;int y = mapData.position.y;
 
-        walkVectors[x, y] = hasItem;
+        //walkVectors[x, y] = hasItem;
         mapDatas[x, y].has_item = hasItem;
     }
 
