@@ -1,7 +1,9 @@
 
+using System;
 using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -219,15 +221,15 @@ public class UIManager : MonoBehaviour
     #endregion
     #region SelectedObjectPanel相关函数
 
-    public void HideSelectedObjectPanel(){
+    public void HideSelectedObjectPanel() {
         selectedObjectPanel.SetActive(false);
     }
-    public void ShowSelectedObjectPanel(){
+    public void ShowSelectedObjectPanel() {
         selectedObjectPanel.SetActive(true);
     }
 
-        #region 设置描述文本
-    public void SetPanelTextBuild(BuildManager.Building building){
+    #region 设置描述文本
+    public void SetPanelTextBuild(BuildManager.Building building) {
         selectedObjectDescription.text = "建筑物名称: " + building.name + "\n" +
                                         "建筑物类型: " + building.type.ToString() + "\n" +
                                         "建筑物耐久度: " + building.durability.ToString() + "\n" +
@@ -237,7 +239,7 @@ public class UIManager : MonoBehaviour
                                         "建筑物可种植性: " + building.can_plant.ToString();
         ShowSelectedObjectPanel();
     }
-    public void SetPanelTextPawn(PawnManager.Pawn pawn){
+    public void SetPanelTextPawn(PawnManager.Pawn pawn) {
         selectedObjectDescription.text = "小人id: " + pawn.id.ToString() + "\n" +
                                         "小人执行任务中: " + pawn.isOnTask.ToString() + "\n";
         if (pawn.handlingTask != null)
@@ -249,24 +251,39 @@ public class UIManager : MonoBehaviour
                                         "搬运数量: " + pawn.materialAmount.ToString() + "\n";
         ShowSelectedObjectPanel();
     }
-    public void SetPanelTextInstance(GameObject instance){
-        if (instance.layer == LayerMask.NameToLayer("Instance")){
-            TextMeshPro textMesh = instance.GetComponentInChildren<TextMeshPro>();
+    Dictionary<Type, Func<ItemInstanceManager.ItemInstance,string> > instanceDescriptor = new Dictionary<Type, Func<ItemInstanceManager.ItemInstance, string> >(){
+{ typeof(ItemInstanceManager.ToolInstance),         instance => {   return "耐久: " + (instance as ItemInstanceManager.ToolInstance).GetDurability().ToString(); }},
+{ typeof(ItemInstanceManager.CropInstance),         instance => {   ItemInstanceManager.CropInstance crop_instance = instance as ItemInstanceManager.CropInstance;
+                                                                    return "生长进度: " + crop_instance.growth.ToString() + "/" + crop_instance.real_lifetime.ToString(); }},
+{ typeof(ItemInstanceManager.BuildingInstance),     instance => {   return "耐久: " + (instance as ItemInstanceManager.BuildingInstance).durability.ToString(); }},
+{ typeof(ItemInstanceManager.PrintInstance),        instance => {   ItemInstanceManager.PrintInstance print_instance = instance as ItemInstanceManager.PrintInstance;
+                                                                    string tmp = "当前进度: \n";
+                                                                    foreach(var pair in print_instance.material_list){
+                                                                        tmp += ItemManager.Instance.GetItem(pair.Key).name + ": " +
+                                                                                pair.Value.current + "/" + pair.Value.need + "\n";}
+                                                                    return tmp;}}
+    };
 
-            if (textMesh != null)
-            {
-                selectedObjectDescription.text = textMesh.text + "\n";
+    public void SetPanelTextInstance(ItemInstanceManager.ItemInstance instance)
+    {
+        if (instance != null)
+        {
+            selectedObjectDescription.text = instance.GetText() + "\n" +
+                                            "物品id: " + instance.GetModelId().ToString() + "\n" +
+                                            "地块位置: " + instance.GetPosition().ToString() + "\n" +
+                                            "种类: " + instance.type.ToString() + "\n";
+
+            if (instanceDescriptor.TryGetValue(instance.GetType(), out var func)){
+                selectedObjectDescription.text += func(instance);
             }
-            else selectedObjectDescription.text = "\n";
+        }
+        else
+        {
+            selectedObjectDescription.text = "这玩意不是一个Instance\n就不显示了哈";
+        }
 
-            selectedObjectDescription.text += "地块位置: " + MapManager.Instance.landTilemap.WorldToCell(instance.transform.position).ToString();
-        }
-        else{
-            selectedObjectDescription.text = "这玩意不是一个Instance\n我就不显示了哈";
-        }
-        
         ShowSelectedObjectPanel();
-        
+
     }
         #endregion
 

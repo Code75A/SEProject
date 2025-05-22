@@ -199,7 +199,14 @@ public class MouseInteractManager : MonoBehaviour
             Instance.ResetSelectingObject();
         }
         public override void LoadPanel(){
-            UIManager.Instance.SetPanelTextInstance(Instance.selectingObject);
+            if (int.TryParse(Instance.selectingObject.name, out int id)){
+                ItemInstanceManager.ItemInstance instance = ItemInstanceManager.Instance.GetInstance(id);
+                UIManager.Instance.SetPanelTextInstance(instance);
+            }
+            else{
+                UIManager.Instance.SetPanelTextInstance(null);
+            }
+            
         }
     }
     
