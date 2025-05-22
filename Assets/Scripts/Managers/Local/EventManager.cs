@@ -17,10 +17,11 @@ public class EventManager : MonoBehaviour
                 "<<Error>> Initing the second EventManager instance FAILED, because it's not allowed. ");
         }
     }
+    public int dayCount = 0; // 记录当前天数
     //======================================Event Class Part====================================
     public enum EventType
     {
-        WeatherDisaster, PestDisaster, Total
+        Weather, PestDisaster, Total
     }
     public class Event
     {
@@ -46,44 +47,49 @@ public class EventManager : MonoBehaviour
             ;
         }
     }
-    public class WeatherDisaster : Event { }
+    public class Weather : Event { }
     public class PestDisaster : Event
     {
         public int aim_crop;
         public int control_level;
     }
 
-    List<Event> disasterList = new List<Event>();
-    public void UpdateDisaster()
+    List<Event> eventList = new List<Event>();
+    public void UpdateAllEvent()
     {
-        int now_day = 0; //TODO:get time from timeManager
-        foreach (var it in disasterList)
+        int now_day = dayCount;
+        foreach (var it in eventList)
         {
-            // Disaster not arrive
+            // Event not arrive
             if (now_day < it.arrival) continue;
-            // Disaster arrive
+            // Event arrive
             if (now_day == it.arrival) it.Arrive();
-            // during Disaster
+            // during Event
             if (now_day >= it.arrival && now_day < it.end)
             {
                 it.Impact();
-                // Disaster end (last day)
+                // Event end (last day)
                 if (now_day == it.end - 1) it.End();
             }
 
         }
-        // Remove ended disaster
-        disasterList.RemoveAll(s => now_day >= s.end);
+        // Remove ended event
+        eventList.RemoveAll(s => now_day >= s.end);
     }
     // Start is called before the first frame update
     void Start()
     {
-        
+        //TODO: SLManager应当初始化dayCount和载入任务列表
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        
+        if (TimeManager.Instance.gameTime > dayCount * 24)
+        {
+            dayCount++;
+            UpdateAllEvent();
+        }
+        return;
     }
 }
