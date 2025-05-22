@@ -42,64 +42,7 @@ public class ItemInstanceManager : MonoBehaviour
     public const float growthPerFrame = 0.005f;
 
 
-    // ===================================Disaster Part========================================
-    public enum DisasterType
-    {
-        WeatherDisaster, PestDisaster, Total
-    }
-    public class Disaster
-    {
-        public DisasterType type;
-        public string name;
-        public int arrival;
-        public int end;
-        public int predictability_level;
-        public bool IsPredictable()
-        {
-            return false;
-        }
-        public void Arrive()
-        {
-            ;
-        }
-        public void End()
-        {
-            ;
-        }
-        public void DoHarm()
-        {
-            ;
-        }
-    }
-    public class WeatherDisaster : Disaster { }
-    public class PestDisaster : Disaster
-    {
-        public int aim_crop;
-        public int control_level;
-    }
-
-    List<Disaster> disasterList = new List<Disaster>();
-    public void UpdateDisaster()
-    {
-        int now_day = 0; //TODO:get time from timeManager
-        foreach (var it in disasterList)
-        {
-            // Disaster not arrive
-            if (now_day < it.arrival) continue;
-            // Disaster arrive
-            if (now_day == it.arrival) it.Arrive();
-            // during Disaster
-            if (now_day >= it.arrival && now_day < it.end)
-            {
-                it.DoHarm();
-                // Disaster end (last day)
-                if (now_day == it.end - 1) it.End();
-            }
-
-        }
-        // Remove ended disaster
-        disasterList.RemoveAll(s => now_day >= s.end);
-    }
+   
 
     //====================================ItemInstance Class Part====================================
     public enum ItemInstanceType
