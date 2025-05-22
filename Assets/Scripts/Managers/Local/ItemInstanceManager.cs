@@ -50,24 +50,86 @@ public class ItemInstanceManager : MonoBehaviour
         ToolInstance, MaterialInstance, CropInstance, BuildingInstance, PrintInstance, Total
     }
 
+    #region InsLabel
     //====================================InsLabel Class Part====================================
     public class InsLabel
     {
         public ItemInstanceType type;
         public int item_id;
+        public bool can_merge;
     }
     public class ToolLabel : InsLabel
     {
-        public Dictionary<PawnManager.Pawn.EnhanceType, int> enhancements;
         public int durability;
+        public int GetDurability() { return durability; }
+        public void SetDurability(int new_d) { durability = new_d; }
+        /// <summary>
+        /// 工具使用时发生磨损,注意！并非指装备上该Tool！
+        /// </summary>
+        public bool Wear()
+        {
+            if (durability <= 0) return false;
+            else
+            {
+                durability--;
+                return true;
+            }
+        }
+        public bool IsBroken()
+        {
+            return durability <= 0;
+        }
     }
     public class MaterialLabel : InsLabel
     {
         public int amount;
+        public int GetAmount() { return amount; }
+        public void SetAmount(int new_amount) { amount = new_amount; }
     }
     //public class CropLabel:InsLabel{}
     //public class BuildingLabel:InsLabel{}
     //public class PrintLabel:InsLabel{}
+    public bool CanMerge(InsLabel label1, InsLabel label2)
+    {
+        if (label1.type == label2.type
+            && label1.item_id == label2.item_id
+            && label1.can_merge
+            && label2.can_merge)
+            return true;
+        return false;
+    }
+    public InsLabel GetLabel(ItemInstance ins)
+    {
+        InsLabel new_label = null;
+        switch (ins.type)
+        {
+            case ItemInstanceType.ToolInstance:
+                new_label = new ToolLabel
+                {
+                    type = ins.type,
+                    item_id = ins.item_id,
+                    can_merge = false,
+                    durability = ((ToolInstance)ins).durability
+                };
+                break;
+            case ItemInstanceType.MaterialInstance:
+                new_label = new MaterialLabel
+                {
+                    type = ins.type,
+                    item_id = ins.item_id,
+                    can_merge = true,
+                    amount = ((MaterialInstance)ins).amount
+                };
+                break;
+            default:
+                UIManager.Instance.DebugTextAdd(
+                    "<<Error>> Getting Label FAILED: ins with type " + ins.type.ToString() + " can not be transformed to a InsLabel. "
+                );
+                break;
+        }
+        return new_label;
+    }
+    #endregion
 
     public class ItemInstance
     {
@@ -122,17 +184,7 @@ public class ItemInstanceManager : MonoBehaviour
         public int durability;
 
         //--------------------------------private------------------------------------
-        public ToolLabel GetLabel()
-        {
-            ToolLabel ret = new ToolLabel
-            {
-                item_id = item_id,
-                type = type,
-                durability = durability,
-                enhancements = ItemInstanceManager.Instance.GetEnhance(this)
-            };
-            return ret;
-        }
+        
         //--------------------------------public------------------------------------
         public int GetDurability() { return durability; }
     }
@@ -141,11 +193,6 @@ public class ItemInstanceManager : MonoBehaviour
         public int amount;
 
         //--------------------------------private------------------------------------
-        public MaterialLabel GetLabel()
-        {
-            MaterialLabel ret = new MaterialLabel { item_id = item_id, type = type, amount = amount };
-            return ret;
-        }
         //--------------------------------public------------------------------------
         public int GetAmount()
         {
