@@ -41,16 +41,13 @@ public class ItemInstanceManager : MonoBehaviour
     public GameObject itemInstance;
     public const float growthPerFrame = 0.005f;
 
-
-   
-
     //====================================ItemInstance Class Part====================================
     public enum ItemInstanceType
     {
         ToolInstance, MaterialInstance, CropInstance, BuildingInstance, PrintInstance, Total
     }
 
-    #region InsLabel
+    #region InsLabel类定义
     //====================================InsLabel Class Part====================================
     public class InsLabel
     {
@@ -130,7 +127,7 @@ public class ItemInstanceManager : MonoBehaviour
         return new_label;
     }
     #endregion
-
+    #region ItemInstance类定义
     public class ItemInstance
     {
         public int id;
@@ -243,8 +240,62 @@ public class ItemInstanceManager : MonoBehaviour
             }
             return true;
         }
+        public bool PushProgress(int item_id, int amount)
+        {
+            // Copilot: 这段代码的作用是更新材料列表中的进度
+            for (int i = 0; i < material_list.Count; i++)
+            {
+                if (material_list[i].Key == item_id)
+                {
+                    material_list[i] = new KeyValuePair<int, Progress>(item_id,
+                        new Progress
+                        {
+                            current = material_list[i].Value.current + amount,
+                            need = material_list[i].Value.need
+                        });
+                    return true;
+                }
+            }
+            return false;
+        }
+        public int GetRequirement(int item_id)
+        {
+            // Copilot: 这段代码的作用是获取材料列表中指定材料的仍待满足的需求量
+            for (int i = 0; i < material_list.Count; i++)
+            {
+                if (material_list[i].Key == item_id)
+                {
+                    return material_list[i].Value.need - material_list[i].Value.current;
+                }
+            }
+            return 0;
+        }
+        public KeyValuePair<int,int> GetOneRequirement()
+        {
+            // Copilot: 这段代码的作用是获取材料列表中某一项材料的仍待满足的需求量
+            for (int i = 0; i < material_list.Count; i++)
+            {
+                if (material_list[i].Value.current < material_list[i].Value.need)
+                {
+                    return new KeyValuePair<int, int>(material_list[i].Key,
+                        material_list[i].Value.need - material_list[i].Value.current);
+                }
+            }
+            return new KeyValuePair<int, int>(-1, -1);
+        }
+        public Dictionary<int, int> GetAllRequirements()
+        {
+            // Copilot: 这段代码的作用是获取所有材料的仍待满足的需求量
+            Dictionary<int, int> requirements = new Dictionary<int, int>();
+            for (int i = 0; i < material_list.Count; i++)
+            {
+                if (material_list[i].Value.current >= material_list[i].Value.need) continue;
+                requirements[material_list[i].Key] = material_list[i].Value.need - material_list[i].Value.current;
+            }
+            return requirements;
+        }
     }
-
+    #endregion
 
     //======================================Manager Function Part=====================================
     //======================================Private Function Part=====================================
@@ -829,7 +880,7 @@ public class ItemInstanceManager : MonoBehaviour
 
         return NearestPosition;
     }
-    //===================================ToolInstance Function Part====================================
+    #region ======================ToolInstance Function Part=========================
     public Dictionary<PawnManager.Pawn.EnhanceType, int> GetEnhance(ToolInstance tool_ins)
     {
         Dictionary<PawnManager.Pawn.EnhanceType, int> res;
@@ -837,15 +888,16 @@ public class ItemInstanceManager : MonoBehaviour
         res = sample.enhancements;
         return res;
     }
+    #endregion
 
-    //==================================CropInstance Function Part=================================
+    #region ===================CropInstance Function Part=====================
     public bool HarvestCrop(CropInstance crop_ins)
     {
         // if (crop_ins.IsMature())
         // {
-            Debug.Log("Harvesting Crop: " + crop_ins.id);
-            DestroyItem(crop_ins, DestroyMode.RemainAll);
-            return true;
+        Debug.Log("Harvesting Crop: " + crop_ins.id);
+        DestroyItem(crop_ins, DestroyMode.RemainAll);
+        return true;
         // }
         // else
         // {
@@ -879,5 +931,5 @@ public class ItemInstanceManager : MonoBehaviour
         seed.SetAmount(seed.GetAmount() - 1);
         return true;
     }
-
+    #endregion
 }
