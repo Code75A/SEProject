@@ -38,7 +38,7 @@ public class TaskManager : MonoBehaviour
         public int task_id;//任务id，每一个任务的唯一标识
 
         //不只有材料，可能改名 --cjh
-        public int id;//需要材料的id
+        public int id;//需要材料的id，建造任务中建筑的id
 
         public int amount; //需要材料的数量,在运输任务中指代需要运输的物品数量
         //该数量可能并非实际运输的量，当需求量大于单地块上物品数量时，可能需要多次运输
@@ -59,40 +59,40 @@ public class TaskManager : MonoBehaviour
 
     }
 
-    public class BuildingTask : Task{
-        public List<int> materialIds;    // 材料 ID 列表
-        public List<int> materialAmounts; // 对应的每种材料数量
-        public List<int> materialTypes;   // 材料类型（如区分泥土、木材等）
+    // public class BuildingTask : Task{
+    //     public List<int> materialIds;    // 材料 ID 列表
+    //     public List<int> materialAmounts; // 对应的每种材料数量
+    //     public List<int> materialTypes;   // 材料类型（如区分泥土、木材等）
 
-        public BuildingTask(Vector3Int position, TaskTypes type, int task_id)
-            : base(position, type, task_id)
-        {
-            materialIds = new List<int>();
-            materialAmounts = new List<int>();
-            materialTypes = new List<int>();
-        }
+    //     public BuildingTask(Vector3Int position, TaskTypes type, int task_id)
+    //         : base(position, type, task_id)
+    //     {
+    //         materialIds = new List<int>();
+    //         materialAmounts = new List<int>();
+    //         materialTypes = new List<int>();
+    //     }
 
-        public BuildingTask(Vector3Int position, TaskTypes type, int task_id,
-                            List<int> materialIds, List<int> materialAmounts, List<int> materialTypes)
-            : base(position, type, task_id)
-        {
-            this.materialIds = materialIds;
-            this.materialAmounts = materialAmounts;
-            this.materialTypes = materialTypes;
-        }
-    }
+    //     public BuildingTask(Vector3Int position, TaskTypes type, int task_id,
+    //                         List<int> materialIds, List<int> materialAmounts, List<int> materialTypes)
+    //         : base(position, type, task_id)
+    //     {
+    //         this.materialIds = materialIds;
+    //         this.materialAmounts = materialAmounts;
+    //         this.materialTypes = materialTypes;
+    //     }
+    // }
     //检查第index位置上的材料，如果为需求数量为0则删除
-    public bool DeleteMaterial(BuildingTask task, int index = 0)
-    {
-        if (task.materialAmounts[index] == 0)
-        {
-            task.materialIds.RemoveAt(index);
-            task.materialAmounts.RemoveAt(index);
-            task.materialTypes.RemoveAt(index);
-            return true;
-        }
-        return false;
-    }
+    // public bool DeleteMaterial(BuildingTask task, int index = 0)
+    // {
+    //     if (task.materialAmounts[index] == 0)
+    //     {
+    //         task.materialIds.RemoveAt(index);
+    //         task.materialAmounts.RemoveAt(index);
+    //         task.materialTypes.RemoveAt(index);
+    //         return true;
+    //     }
+    //     return false;
+    // }
     //运输任务类，继承自任务类
     public class TransportTask : Task
     {
