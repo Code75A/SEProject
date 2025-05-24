@@ -806,9 +806,9 @@ public class ItemInstanceManager : MonoBehaviour
     /// <returns>最近物品的地址（Vector3Int），如果未找到则返回null</returns>
     /// 此函数lyq负责，用于运输任务时查询
     /// todo:目前仅实现最近距离查找，后续需要加入物品数量，地块是否可通行等方面的考虑
-    public Vector3Int? FindNearestItemPosition(int item_id, Vector3Int currentPosition, float searchRadius = float.MaxValue)
+    public Vector3Int FindNearestItemPosition(int item_id, Vector3Int currentPosition, float searchRadius = float.MaxValue)
     {
-        Vector3Int? NearestPosition = null;
+        Vector3Int NearestPosition = Vector3Int.zero;
         float minDistance = float.MaxValue;
         // 遍历所有ItemInstance列表查找，可以后续优化
         foreach (var itemList in itemInstanceLists.Values)

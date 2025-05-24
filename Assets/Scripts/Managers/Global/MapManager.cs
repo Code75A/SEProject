@@ -67,6 +67,25 @@ public class MapManager : MonoBehaviour
             return;
         }
     }
+    //暂时在卸载函数时调用
+    public void DeleteMapDataItem(Vector3Int pos)
+    {
+        int x = pos.x; int y = pos.y;
+        mapDatas[x, y].has_item = false;
+        mapDatas[x, y].item = null;
+    }
+
+    public void Setmaterialamount(Vector3Int pos, int amount){
+        int x = pos.x; int y = pos.y;
+        if (mapDatas[x, y].item != null)
+        {
+            if (mapDatas[x, y].item is ItemInstanceManager.MaterialInstance material)
+            {
+                material.SetAmount(amount);
+            }
+        }
+    }
+
     public Tilemap landTilemap;
 
     public GameObject content;
