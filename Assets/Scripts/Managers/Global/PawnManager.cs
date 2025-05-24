@@ -61,8 +61,8 @@ public class PawnManager : MonoBehaviour{
         public int capacity = CAPACITY;//运载容量
 
         public int instantCapacity = CAPACITY; //当前运载容量
-        public int materialId;
-        public int materialAmount; //物品数量
+        public int materialId = 0;
+        public int materialAmount = 0; //物品数量
         public ItemInstanceManager.ItemInstanceType materialType; //物品类型
 
         //工具类型EnhanceType枚举，与小人属性挂钩，itemmanager调用
@@ -76,8 +76,7 @@ public class PawnManager : MonoBehaviour{
         public List<TaskManager.Task> PawntaskList = new List<TaskManager.Task>();
         public GameObject Instance;
 
-        public Pawn(int id)
-        {
+        public Pawn(int id){
             this.id = id;
         }
     }
