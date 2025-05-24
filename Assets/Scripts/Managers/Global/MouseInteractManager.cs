@@ -12,63 +12,83 @@ public class MouseInteractManager : MonoBehaviour
     public ItemInstanceManager itemInstanceManager = ItemInstanceManager.Instance;
 
     #region 鼠标交互状态
-    protected abstract class MouseInteractState{
+    protected abstract class MouseInteractState
+    {
         public abstract void OnClickSprite(RaycastHit2D hitSprite);
         public abstract void OnClickNull();
+        public abstract void LoadPanel();
     }
 
-    protected class StateNull : MouseInteractState{
-        public override void OnClickSprite(RaycastHit2D hitSprite){
+    protected class StateNull : MouseInteractState
+    {
+        public override void OnClickSprite(RaycastHit2D hitSprite)
+        {
             GameObject gameObject = hitSprite.collider.gameObject;
-            if(hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("UI")){
+            if (hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("UI"))
+            {
                 Instance.currentState = new StateUI(gameObject);
             }
-            else if(hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("Pawn")){
+            else if (hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("Pawn"))
+            {
                 Instance.currentState = new StatePawn(gameObject);
             }
-            else if(hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("Instance")){
+            else if (hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("Instance"))
+            {
                 Instance.currentState = new StateInstance(gameObject);
             }
         }
-
         public override void OnClickNull(){
             Instance.ResetSelectingObject();
         }
+        public override void LoadPanel(){
+            UIManager.Instance.HideSelectedObjectPanel();
+        }
     }
-    protected class StateUI :MouseInteractState{
+    protected class StateUI : MouseInteractState
+    {
         public StateUI(GameObject gameObject){
             Instance.selectingObject = gameObject;
         }
         public override void OnClickSprite(RaycastHit2D hitSprite){
             GameObject gameObject = hitSprite.collider.gameObject;
-            if(hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("UI")){
-                if(gameObject != Instance.selectingObject){
+            if (hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("UI"))
+            {
+                if (gameObject != Instance.selectingObject)
+                {
                     Instance.currentState = new StateUI(gameObject);
                 }
             }
-            else if(hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("Pawn")){
+            else if (hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("Pawn"))
+            {
                 Instance.currentState = new StatePawn(gameObject);
             }
-            else if(hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("Instance")){
+            else if (hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("Instance"))
+            {
                 Instance.currentState = new StateInstance(gameObject);
             }
         }
         public override void OnClickNull(){
             Instance.ResetSelectingObject();
         }
+        public override void LoadPanel(){
+            UIManager.Instance.HideSelectedObjectPanel();
+        }
     }
-    protected class StateBuilding : MouseInteractState{
+    protected class StateBuilding : MouseInteractState
+    {
         public StateBuilding(BuildManager.Building building){
             Instance.SetCurrentBuilding(building);
         }
-        public override void OnClickSprite(RaycastHit2D hitSprite)
-        {
+
+        public override void OnClickSprite(RaycastHit2D hitSprite){
             GameObject gameObject = hitSprite.collider.gameObject;
-            if(hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("UI")){
+            if (hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("UI"))
+            {
                 Instance.CancelCurrentBuilding();
                 Instance.currentState = new StateUI(gameObject);
             }
-            else{
+            else
+            {
                 ;
             }
         }
@@ -76,7 +96,9 @@ public class MouseInteractManager : MonoBehaviour
             Instance.CancelCurrentBuilding();
             Instance.ResetSelectingObject();
         }
-
+        public override void LoadPanel(){
+            UIManager.Instance.SetPanelTextBuild(Instance.currentBuilding);
+        }
     }
 
     public interface PileClickNext {
@@ -84,78 +106,107 @@ public class MouseInteractManager : MonoBehaviour
     }
     protected class StatePawn : MouseInteractState, PileClickNext{
         private PawnInteractController pawnController;
-        public void OnClickNext(){//Pawn -> ItemInstance
-            Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Vector3Int onMouseCellPos = Instance.mapManager.landTilemap.WorldToCell(mouseWorldPos);
-            if(Instance.mapManager.HasItemAt(onMouseCellPos)){
-                Instance.currentState = new StateInstance(Instance.mapManager.GetItem(onMouseCellPos));
-            }
-            else{
-                OnClickNull();
-            }
-        }   
         public StatePawn(GameObject gameObject){
             pawnController = gameObject.GetComponent<PawnInteractController>();
             Instance.selectingPawn = pawnController.pawn;
             Instance.selectingObject = gameObject;
         }
-        public override void OnClickSprite(RaycastHit2D hitSprite){
-            GameObject gameObject = hitSprite.collider.gameObject;
-            if(hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("UI")){
+        public void OnClickNext(){//Pawn -> ItemInstance
+            Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Vector3Int onMouseCellPos = Instance.mapManager.landTilemap.WorldToCell(mouseWorldPos);
+            if (Instance.mapManager.HasItemAt(onMouseCellPos))
+            {
+                Instance.currentState = new StateInstance(Instance.mapManager.GetItem(onMouseCellPos));
+            }
+            else
+            {
                 OnClickNull();
             }
-            else if(hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("Pawn")){
-                if(gameObject == Instance.selectingObject){
+        }   
+        public override void OnClickSprite(RaycastHit2D hitSprite){
+            GameObject gameObject = hitSprite.collider.gameObject;
+            if (hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("UI"))
+            {
+                OnClickNull();
+            }
+            else if (hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("Pawn"))
+            {
+                if (gameObject == Instance.selectingObject)
+                {
                     OnClickNext();
                 }
-                else{
+                else
+                {
                     Instance.currentState = new StatePawn(gameObject);
                 }
             }
-            else if(hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("Instance")){
+            else if (hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("Instance"))
+            {
                 Instance.currentState = new StateInstance(gameObject);
             }
         }
-
         public override void OnClickNull(){
             Instance.selectingPawn = null;
             Instance.ResetSelectingObject();
         }
+        public override void LoadPanel(){
+            UIManager.Instance.SetPanelTextPawn(pawnController.pawn);
+        }
 
-        public void MoveByPlayer(){
+        public void MoveByPlayer()
+        {
             UnityEngine.Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Vector3Int onMouseCellPos = Instance.mapManager.landTilemap.WorldToCell(mouseWorldPos);
             pawnController.MovePawnToPositionByPlayer(onMouseCellPos);
+
+            LoadPanel();
         }
     }
-    protected class StateInstance : MouseInteractState, PileClickNext{
+    protected class StateInstance : MouseInteractState, PileClickNext
+    {
         public void OnClickNext(){//ItemInstance -> Null/ItemInstance
             OnClickNull();
             //TODO: 未来循环选择ItemInstance
-        }  
+        }
         public StateInstance(GameObject gameObject){
             Instance.selectingObject = gameObject;
         }
-        public override void OnClickSprite(RaycastHit2D hitSprite){
+        public override void OnClickSprite(RaycastHit2D hitSprite)
+        {
             GameObject gameObject = hitSprite.collider.gameObject;
-            if(hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("UI")){
+            if (hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("UI"))
+            {
                 OnClickNull();
             }
-            else if(hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("Pawn")){
+            else if (hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("Pawn"))
+            {
                 Instance.currentState = new StatePawn(gameObject);
             }
-            else if(hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("Instance")){
-                if(gameObject == Instance.selectingObject){
+            else if (hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("Instance"))
+            {
+                if (gameObject == Instance.selectingObject)
+                {
                     OnClickNext();
                 }
-                else{
+                else
+                {
                     Instance.currentState = new StateInstance(gameObject);
                 }
             }
         }
-
-        public override void OnClickNull(){
+        public override void OnClickNull()
+        {
             Instance.ResetSelectingObject();
+        }
+        public override void LoadPanel(){
+            if (int.TryParse(Instance.selectingObject.name, out int id)){
+                ItemInstanceManager.ItemInstance instance = ItemInstanceManager.Instance.GetInstance(id);
+                UIManager.Instance.SetPanelTextInstance(instance);
+            }
+            else{
+                UIManager.Instance.SetPanelTextInstance(null);
+            }
+            
         }
     }
     
@@ -201,7 +252,6 @@ public class MouseInteractManager : MonoBehaviour
             RaycastHit2D hitSprite = Physics2D.Raycast(mousePos2D, Vector2.zero, 0f);
             if (hitSprite.collider != null){
                 currentState.OnClickSprite(hitSprite);
-
                 if(currentState is StateUI){
                     BuildingMenuSquareLoadController controller =selectingObject.GetComponent<BuildingMenuSquareLoadController>();
                     if(controller != null){
@@ -222,6 +272,9 @@ public class MouseInteractManager : MonoBehaviour
                 else
                     currentState.OnClickNull();
             }
+
+            currentState.LoadPanel();
+            
             Debug.Log("左键:"+currentState.GetType());
         }
 
@@ -251,7 +304,9 @@ public class MouseInteractManager : MonoBehaviour
         }
     }
 
-    public void CancelCurrentBuilding(){
+    #region 状态设定函数
+    
+    public void CancelCurrentBuilding() {
         currentBuilding_preview_spriteRenderer.sprite = null;
         currentBuilding_preview.SetActive(false);
         currentBuilding = null;
@@ -266,13 +321,17 @@ public class MouseInteractManager : MonoBehaviour
         currentState = NullState;
     }
 
+    #endregion
     #region 自检
-    private bool PawnStateAvailable(){
-        if(selectingPawn == null){
+    private bool PawnStateAvailable()
+    {
+        if (selectingPawn == null)
+        {
             Debug.LogError("Error: 存在无主selectingPawn为null");
             return false;
         }
-        if(selectingObject.GetComponent<PawnInteractController>() == null){
+        if (selectingObject.GetComponent<PawnInteractController>() == null)
+        {
             Debug.LogError("Error: 选中对象不含PawnInteractController，可能不是Pawn对象");
             return false;
         }

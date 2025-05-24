@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq.Expressions;
 using TMPro;
 using Unity.Collections.LowLevel.Unsafe;
@@ -40,91 +41,93 @@ public class ItemInstanceManager : MonoBehaviour
     public GameObject itemInstance;
     public const float growthPerFrame = 0.005f;
 
-
-    // ===================================Disaster Part========================================
-    public enum DisasterType
-    {
-        WeatherDisaster, PestDisaster, Total
-    }
-    public class Disaster
-    {
-        public DisasterType type;
-        public string name;
-        public int arrival;
-        public int end;
-        public int predictability_level;
-        public bool IsPredictable()
-        {
-            return false;
-        }
-        public void Arrive()
-        {
-            ;
-        }
-        public void End()
-        {
-            ;
-        }
-        public void DoHarm()
-        {
-            ;
-        }
-    }
-    public class WeatherDisaster : Disaster { }
-    public class PestDisaster : Disaster
-    {
-        public int aim_crop;
-        public int control_level;
-    }
-
-    List<Disaster> disasterList = new List<Disaster>();
-    public void UpdateDisaster()
-    {
-        int now_day = 0; //TODO:get time from timeManager
-        foreach (var it in disasterList)
-        {
-            // Disaster not arrive
-            if (now_day < it.arrival) continue;
-            // Disaster arrive
-            if (now_day == it.arrival) it.Arrive();
-            // during Disaster
-            if (now_day >= it.arrival && now_day < it.end)
-            {
-                it.DoHarm();
-                // Disaster end (last day)
-                if (now_day == it.end - 1) it.End();
-            }
-
-        }
-        // Remove ended disaster
-        disasterList.RemoveAll(s => now_day >= s.end);
-    }
-
     //====================================ItemInstance Class Part====================================
     public enum ItemInstanceType
     {
         ToolInstance, MaterialInstance, CropInstance, BuildingInstance, PrintInstance, Total
     }
 
+    #region InsLabel类定义
     //====================================InsLabel Class Part====================================
     public class InsLabel
     {
         public ItemInstanceType type;
         public int item_id;
+        public bool can_merge;
     }
     public class ToolLabel : InsLabel
     {
-        public Dictionary<PawnManager.Pawn.EnhanceType, int> enhancements;
         public int durability;
+        public int GetDurability() { return durability; }
+        public void SetDurability(int new_d) { durability = new_d; }
+        /// <summary>
+        /// 工具使用时发生磨损,注意！并非指装备上该Tool！
+        /// </summary>
+        public bool Wear()
+        {
+            if (durability <= 0) return false;
+            else
+            {
+                durability--;
+                return true;
+            }
+        }
+        public bool IsBroken()
+        {
+            return durability <= 0;
+        }
     }
     public class MaterialLabel : InsLabel
     {
         public int amount;
+        public int GetAmount() { return amount; }
+        public void SetAmount(int new_amount) { amount = new_amount; }
     }
     //public class CropLabel:InsLabel{}
     //public class BuildingLabel:InsLabel{}
     //public class PrintLabel:InsLabel{}
-
+    public bool CanMerge(InsLabel label1, InsLabel label2)
+    {
+        if (label1.type == label2.type
+            && label1.item_id == label2.item_id
+            && label1.can_merge
+            && label2.can_merge)
+            return true;
+        return false;
+    }
+    public InsLabel GetLabel(ItemInstance ins)
+    {
+        InsLabel new_label = null;
+        switch (ins.type)
+        {
+            case ItemInstanceType.ToolInstance:
+                new_label = new ToolLabel
+                {
+                    type = ins.type,
+                    item_id = ins.item_id,
+                    can_merge = false,
+                    durability = ((ToolInstance)ins).durability
+                };
+                break;
+            case ItemInstanceType.MaterialInstance:
+                new_label = new MaterialLabel
+                {
+                    type = ins.type,
+                    item_id = ins.item_id,
+                    can_merge = true,
+                    amount = ((MaterialInstance)ins).amount
+                };
+                break;
+            default:
+                UIManager.Instance.DebugTextAdd(
+                    "<<Error>> Getting Label FAILED: ins with type " + ins.type.ToString() + " can not be transformed to a InsLabel. "
+                );
+                break;
+        }
+        return new_label;
+    }
+    #endregion
+    #region ItemInstance类定义
     public class ItemInstance
     {
         public int id;
@@ -178,17 +181,7 @@ public class ItemInstanceManager : MonoBehaviour
         public int durability;
 
         //--------------------------------private------------------------------------
-        public ToolLabel GetLabel()
-        {
-            ToolLabel ret = new ToolLabel
-            {
-                item_id = item_id,
-                type = type,
-                durability = durability,
-                enhancements = ItemInstanceManager.Instance.GetEnhance(this)
-            };
-            return ret;
-        }
+        
         //--------------------------------public------------------------------------
         public int GetDurability() { return durability; }
     }
@@ -197,11 +190,6 @@ public class ItemInstanceManager : MonoBehaviour
         public int amount;
 
         //--------------------------------private------------------------------------
-        public MaterialLabel GetLabel()
-        {
-            MaterialLabel ret = new MaterialLabel { item_id = item_id, type = type, amount = amount };
-            return ret;
-        }
         //--------------------------------public------------------------------------
         public int GetAmount()
         {
@@ -252,8 +240,62 @@ public class ItemInstanceManager : MonoBehaviour
             }
             return true;
         }
+        public bool PushProgress(int item_id, int amount)
+        {
+            // Copilot: 这段代码的作用是更新材料列表中的进度
+            for (int i = 0; i < material_list.Count; i++)
+            {
+                if (material_list[i].Key == item_id)
+                {
+                    material_list[i] = new KeyValuePair<int, Progress>(item_id,
+                        new Progress
+                        {
+                            current = material_list[i].Value.current + amount,
+                            need = material_list[i].Value.need
+                        });
+                    return true;
+                }
+            }
+            return false;
+        }
+        public int GetRequirement(int item_id)
+        {
+            // Copilot: 这段代码的作用是获取材料列表中指定材料的仍待满足的需求量
+            for (int i = 0; i < material_list.Count; i++)
+            {
+                if (material_list[i].Key == item_id)
+                {
+                    return material_list[i].Value.need - material_list[i].Value.current;
+                }
+            }
+            return 0;
+        }
+        public KeyValuePair<int,int> GetOneRequirement()
+        {
+            // Copilot: 这段代码的作用是获取材料列表中某一项材料的仍待满足的需求量
+            for (int i = 0; i < material_list.Count; i++)
+            {
+                if (material_list[i].Value.current < material_list[i].Value.need)
+                {
+                    return new KeyValuePair<int, int>(material_list[i].Key,
+                        material_list[i].Value.need - material_list[i].Value.current);
+                }
+            }
+            return new KeyValuePair<int, int>(-1, -1);
+        }
+        public Dictionary<int, int> GetAllRequirements()
+        {
+            // Copilot: 这段代码的作用是获取所有材料的仍待满足的需求量
+            Dictionary<int, int> requirements = new Dictionary<int, int>();
+            for (int i = 0; i < material_list.Count; i++)
+            {
+                if (material_list[i].Value.current >= material_list[i].Value.need) continue;
+                requirements[material_list[i].Key] = material_list[i].Value.need - material_list[i].Value.current;
+            }
+            return requirements;
+        }
     }
-
+    #endregion
 
     //======================================Manager Function Part=====================================
     //======================================Private Function Part=====================================
@@ -657,7 +699,7 @@ public class ItemInstanceManager : MonoBehaviour
         #endregion
 
         #region (2)ToolInstance获取强化项接口自测试
-        ToolInstance tmp4 = (ToolInstance)SpawnItem(new Vector3Int(30, 33, 0), 2, ItemInstanceType.ToolInstance);
+        ToolInstance tmp4 = (ToolInstance)SpawnItem(new Vector3Int(30, 34, 0), 2, ItemInstanceType.ToolInstance);
         Dictionary<PawnManager.Pawn.EnhanceType, int> tmp4_enh = GetEnhance(tmp4);
         foreach (var it in tmp4_enh)
         {
@@ -718,6 +760,8 @@ public class ItemInstanceManager : MonoBehaviour
         {
             // 分配唯一ID
             new_ins.id = GetNewId();
+            // 将其GameObject名字设置为id
+            new_ins.instance.name = new_ins.id.ToString();
             // 加入列表
             itemInstanceLists[type].Add(new_ins);
             // 设置到地图数据中
@@ -836,7 +880,7 @@ public class ItemInstanceManager : MonoBehaviour
 
         return NearestPosition;
     }
-    //===================================ToolInstance Function Part====================================
+    #region ======================ToolInstance Function Part=========================
     public Dictionary<PawnManager.Pawn.EnhanceType, int> GetEnhance(ToolInstance tool_ins)
     {
         Dictionary<PawnManager.Pawn.EnhanceType, int> res;
@@ -844,15 +888,16 @@ public class ItemInstanceManager : MonoBehaviour
         res = sample.enhancements;
         return res;
     }
+    #endregion
 
-    //==================================CropInstance Function Part=================================
+    #region ===================CropInstance Function Part=====================
     public bool HarvestCrop(CropInstance crop_ins)
     {
         // if (crop_ins.IsMature())
         // {
-            Debug.Log("Harvesting Crop: " + crop_ins.id);
-            DestroyItem(crop_ins, DestroyMode.RemainAll);
-            return true;
+        Debug.Log("Harvesting Crop: " + crop_ins.id);
+        DestroyItem(crop_ins, DestroyMode.RemainAll);
+        return true;
         // }
         // else
         // {
@@ -886,5 +931,5 @@ public class ItemInstanceManager : MonoBehaviour
         seed.SetAmount(seed.GetAmount() - 1);
         return true;
     }
-
+    #endregion
 }
