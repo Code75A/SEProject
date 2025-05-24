@@ -53,17 +53,17 @@ public class pawnharvesttest : MonoBehaviour
         testPawn.instantCapacity -= 5;
 
         // 3. 调用 PawnUnload
-        bool unloadSuccess = PawnManager.Instance.PawnUnload(testPawn);
+        int unloadSuccess = PawnManager.Instance.PawnUnload(testPawn);
 
-        // 4. 打印结果
-        if (unloadSuccess)
-        {
-            Debug.Log("PawnUnload 测试成功，已在当前位置生成对应物品。");
-        }
-        else
-        {
-            Debug.LogWarning("PawnUnload 测试失败，未成功生成物品。");
-        }
+        // // 4. 打印结果
+        // if (unloadSuccess)
+        // {
+        //     Debug.Log("PawnUnload 测试成功，已在当前位置生成对应物品。");
+        // }
+        // else
+        // {
+        //     Debug.LogWarning("PawnUnload 测试失败，未成功生成物品。");
+        // }
     }
     public void TestTransportTask()
     {
@@ -86,7 +86,7 @@ public class pawnharvesttest : MonoBehaviour
         testPawn.handlingTask = tTask;
 
         // 4. 启动运输协程
-        StartCoroutine(PawnManager.Instance.HandleTransportTask(testPawn, tTask));
+        StartCoroutine(PawnManager.Instance.HandleTransportTask(testPawn, tTask, 10));
         Debug.Log("启动运输任务测试，Pawn将移动到物品位置装载，再移动到(20,20)卸载。");
     }
     public IEnumerator TestHarvestTask()
