@@ -4,6 +4,7 @@ using UnityEngine;
 using TMPro;
 public class TimeManager : MonoBehaviour{
 
+    const float SECONDS_PER_GAMEDAY = 300f;
     public static TimeManager Instance { get; private set; }   //单例模式，确保只有一个timemanager
     public float realityTime { get; private set; } = 0f; // 现实时间
     public float gameTime { get; private set; } = 0f; // 游戏内时间
@@ -57,7 +58,7 @@ public class TimeManager : MonoBehaviour{
         // 游戏时间受 timeScale 影响
         gameTime += deltaTime * timeScale;
 
-        if (gameTime >= (currentDay + 1) * 300f){
+        if (gameTime >= (currentDay + 1) * SECONDS_PER_GAMEDAY){
             currentDay++;
             OnDayChanged();
 
@@ -76,7 +77,7 @@ public class TimeManager : MonoBehaviour{
 
     private void UpdateGameTimeUI(){
         if (gameTimeText != null){
-            gameTimeText.text = $"游戏时间: {gameTime:F2}s (x{timeScale}) 游戏天数：{currentDay}";//显示游戏时间，保留两位小数点，并显示倍率
+            gameTimeText.text = $"游戏时间: {gameTime:F2}s (x{timeScale})\n游戏天数: {currentDay}";//显示游戏时间，保留两位小数点，并显示倍率
             //todo:注意这里计时是多少多少秒，到实际显示需要转换成游戏中的"日期“等数值，比如10秒后是几点几分等。
         }
         else{
