@@ -50,8 +50,7 @@ public class PawnManager : MonoBehaviour{
 
     #endregion
 
-    public struct attribute
-    {
+    public struct attribute{
         int a;
         int b;
         int c;

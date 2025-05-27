@@ -38,7 +38,6 @@ public class TimeManager : MonoBehaviour{
     public TMP_Text gameTimeText;
     private void Awake()
     {
-        float deltaTime = Time.deltaTime;
         if (Instance == null)
         {
             Instance = this;
@@ -48,8 +47,16 @@ public class TimeManager : MonoBehaviour{
         {
             Destroy(gameObject);
         }
-        if (gameTime >= (currentDay + 1) * 300f)
-        {
+    }
+
+    private void Update(){
+        float deltaTime = Time.deltaTime;//利用帧间隔时间计算现实时间
+        // 现实时间累加
+        realityTime += deltaTime;
+        // 游戏时间受 timeScale 影响
+        gameTime += deltaTime * timeScale;
+
+        if (gameTime >= (currentDay + 1) * 300f){
             currentDay++;
             OnDayChanged();
 
@@ -62,21 +69,13 @@ public class TimeManager : MonoBehaviour{
                 OnSeasonChanged();
             }
         }
-    }
-
-    private void Update(){
-        float deltaTime = Time.deltaTime;//利用帧间隔时间计算现实时间
-        // 现实时间累加
-        realityTime += deltaTime;
-        // 游戏时间受 timeScale 影响
-        gameTime += deltaTime * timeScale;
         // 更新 UI
         UpdateGameTimeUI();
     }
 
     private void UpdateGameTimeUI(){
         if (gameTimeText != null){
-            gameTimeText.text = $"游戏时间: {gameTime:F2}s (x{timeScale})";//显示游戏时间，保留两位小数点，并显示倍率
+            gameTimeText.text = $"游戏时间: {gameTime:F2}s (x{timeScale}) 游戏天数：{currentDay}";//显示游戏时间，保留两位小数点，并显示倍率
             //todo:注意这里计时是多少多少秒，到实际显示需要转换成游戏中的"日期“等数值，比如10秒后是几点几分等。
         }
         else{
