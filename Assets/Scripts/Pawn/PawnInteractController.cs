@@ -23,8 +23,9 @@ public class PawnInteractController : MonoBehaviour
         {
             //Debug.Log($"移动参数 | 速度: {pawn.moveSpeed} | 帧时间: {Time.deltaTime}");
             //Debug.Log($"当前位置: {transform.position} | 目标位置: {targetPosition}");
+            float landform_walkspeed = MapManager.Instance.GetMapData(landTilemap.WorldToCell(transform.position)).walk_speed;
 
-            float step = pawn.moveSpeed * Time.deltaTime * content.transform.localScale.x;
+            float step = pawn.moveSpeed * Time.deltaTime * content.transform.localScale.x * landform_walkspeed;
             targetPosition = landTilemap.GetCellCenterWorld(targetCellPos);
 
             //float step = 1.0f;

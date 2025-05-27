@@ -39,7 +39,7 @@ public class BuildManager : MonoBehaviour
     //REMOVE/
     
 
-    const int tempBuildingSpritesCount = 6;
+    const int tempBuildingSpritesCount = 7;
     public Sprite[] tempBuildingSprites = new Sprite[tempBuildingSpritesCount];
     public Sprite printSprite;
 
@@ -89,9 +89,12 @@ public class BuildManager : MonoBehaviour
         buildingLists[BuildingType.Dev].Add(new Building{
             id = 3, name="树木", texture = tempBuildingSprites[3], type = BuildingType.Dev, width = 1, height = 1, durability = -1,
             can_build = false, can_walk = false, can_plant = false, material_list = new List<KeyValuePair<int, int>>()});
+        buildingLists[BuildingType.Dev].Add(new Building{
+            id = 4, name="石地", texture = tempBuildingSprites[6], type = BuildingType.Dev, width = 1, height =1, durability = -1,
+            can_build =true, can_walk = true, can_plant = false, material_list = new List<KeyValuePair<int, int>>()});
 
         buildingLists[BuildingType.Wall].Add(new Building{
-            id = 4, name="墙", texture = tempBuildingSprites[4], type = BuildingType.Wall, width = 1, height = 1, durability = 100,
+            id = 6, name="墙", texture = tempBuildingSprites[4], type = BuildingType.Wall, width = 1, height = 1, durability = 100,
             can_build = false, can_walk = false, can_plant = false, material_list = new List<KeyValuePair<int, int>>{
                 new KeyValuePair<int, int>(ItemManager.Instance.GetItem("木材").id, 10)
             }});

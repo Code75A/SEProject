@@ -9,7 +9,7 @@ public class PawnManager : MonoBehaviour{
     #region 成员变量
 
         #region 常量
-    public const float MOVESPEED = 2.0f; // 移动速度
+    public const float MOVESPEED = 4.0f; // 移动速度
     public const float WORKSPEED = 1.0f; // 工作速度 
     public const int CAPACITY = 50; // 运载容量
         #endregion

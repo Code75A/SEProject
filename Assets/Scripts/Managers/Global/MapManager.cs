@@ -1,14 +1,12 @@
 
 using UnityEngine;
 using UnityEngine.Tilemaps;
-using UnityEngine.EventSystems;
+
 using System.Collections.Generic;
 using System;
-using System.Data;
-using System.Threading.Tasks;
+
 using System.Linq;
-using Unity.IO.LowLevel.Unsafe;
-using Unity.Collections;
+
 
 
 public class MapManager : MonoBehaviour
@@ -22,12 +20,19 @@ public class MapManager : MonoBehaviour
     public Vector3Int[] DIAGONAL_DIRECTIONS = {new Vector3Int(1, 1, 0), new Vector3Int(1, -1, 0), new Vector3Int(-1, 1, 0), new Vector3Int(-1, -1, 0)};
     public const int DEBUG_MAX_PILE_NUM = 100;//TODO: 区分不同物品堆叠数量
 
-    public enum tileTypes{
-        grass,path,water,tree,farm,total
+    const int OFFSET_MIN = -1000000;
+    const int OFFSET_MAX = 1000000;
+
+    public enum tileTypes {
+        grass, path, water, tree, rock, farm, total
+    }
+    public enum landformTypes{
+        waterland, grassland, rockland, total
     }
         #endregion
 
-    public class MapData{
+    public class MapData
+    {
         public Vector3Int position;
         public TileBase texture;
         public tileTypes type;
@@ -87,16 +92,42 @@ public class MapManager : MonoBehaviour
     }
 
     public Tilemap landTilemap;
-
     public GameObject content;
 
-        #region 数据矩阵
-    public bool[,] walkVectors = new bool[MAP_SIZE,MAP_SIZE];
+        #region 柏林噪声地形生成相关参数
+    public bool random_seed = true;
+    public int seed;
+
+    public float lac = 0.075f; //个人测试表现良好的lac值
+
+    public float min_value = 21474836;
+    public float max_value = -21474836;
+
+    class LandformRange
+    {
+        public LandformRange(float min, float max, landformTypes type){
+            min_value = min;
+            max_value = max;
+            landform_type = type;
+        }
+        public float min_value;
+        public float max_value;
+        public landformTypes landform_type;
+
+        public bool InRange(float index) { return index < max_value && index >= min_value; }
+    }
+    LandformRange[] Landforms = new LandformRange[(int)landformTypes.total];
+
+        #endregion
+
+    #region 数据矩阵
+    public bool[,] walkVectors = new bool[MAP_SIZE, MAP_SIZE];
 
     //TODO: 可维护一个bool二位数组，用于优化物品放置时的检测
     //public bool[,] set_material_state = new bool[MAP_SIZE, MAP_SIZE];
 
     public TileBase[] tiles = new TileBase[(int)tileTypes.total];
+    public float[,] landformDatas = new float[MAP_SIZE, MAP_SIZE];
     public MapData[,] mapDatas = new MapData[MAP_SIZE, MAP_SIZE];
         #endregion
 
@@ -216,24 +247,97 @@ public class MapManager : MonoBehaviour
     }
 
     #region 初始化
-    public void GenerateMapData(){
+    public void LandformDataNormalize(int x, int y){
+        landformDatas[x, y] = Mathf.InverseLerp(min_value, max_value, landformDatas[x, y]);
+        return;
+    }
+    public void GenerateMapData()
+    {
+        if (random_seed)
+            seed = System.DateTime.Now.Millisecond + System.DateTime.Now.Second * 1000;
+        else seed = 0;
+        UnityEngine.Random.InitState(seed);
+
+        float random_offset = UnityEngine.Random.Range(OFFSET_MIN, OFFSET_MAX);
+
+        for (int x = 0; x < MAP_SIZE; x++)
+        {
+            for (int y = 0; y < MAP_SIZE; y++)
+            {
+                landformDatas[x, y] = Mathf.PerlinNoise(x * lac + random_offset, y * lac + random_offset);
+                mapDatas[x, y] = new MapData();
+
+                if (landformDatas[x, y] > max_value) max_value = landformDatas[x, y];
+                if (landformDatas[x, y] < min_value) min_value = landformDatas[x, y];
+            }
+        }
+    }
+    public void GenerateMapTiles()
+    {
+        // 生成地图瓦片
         for (int x = 0; x < MAP_SIZE; x++){
             for (int y = 0; y < MAP_SIZE; y++){
-                mapDatas[x, y] = new MapData();
+                LandformDataNormalize(x, y);
+
+                foreach (LandformRange landform in Landforms)
+                {
+                    if (landform.InRange(landformDatas[x, y]))
+                    {
+                        //TODO: 减少复用
+                        switch (landform.landform_type)
+                        {
+                            case landformTypes.waterland:
+                                mapDatas[x, y].type = tileTypes.water;
+                                mapDatas[x, y].texture = tiles[(int)tileTypes.water];
+                                mapDatas[x, y].position = new Vector3Int(x, y, 0);
+
+                                mapDatas[x, y].has_pawn = false;
+
+                                SetTileDev(mapDatas[x, y], BuildManager.Instance.GetBuilding(2));
+                                landTilemap.SetTile(new Vector3Int(x, y, 0), mapDatas[x, y].texture);
+                                break;
+                            case landformTypes.grassland:
+                                mapDatas[x, y].type = tileTypes.grass;
+                                mapDatas[x, y].texture = tiles[(int)tileTypes.grass];
+                                mapDatas[x, y].position = new Vector3Int(x, y, 0);
+
+                                mapDatas[x, y].has_pawn = false;
+
+                                SetTileDev(mapDatas[x, y], BuildManager.Instance.GetBuilding(0));
+                                landTilemap.SetTile(new Vector3Int(x, y, 0), mapDatas[x, y].texture);
+                                break;
+                            case landformTypes.rockland:
+                                mapDatas[x, y].type = tileTypes.rock;
+                                mapDatas[x, y].texture = tiles[(int)tileTypes.rock];
+                                mapDatas[x, y].position = new Vector3Int(x, y, 0);
+
+                                mapDatas[x, y].has_pawn = false;
+
+                                SetTileDev(mapDatas[x, y], BuildManager.Instance.GetBuilding(4));
+                                landTilemap.SetTile(new Vector3Int(x, y, 0), mapDatas[x, y].texture);
+                                break;
+                            default:
+                                Debug.LogError("FatalError: Unknown landformType in(" + x + "," + y + ")");
+                                break;
+                        }
+
+                        break;
+                    }
+                }
+
+                
+            }
+        }
+        
+        for (int x = 30; x < 35; x++){
+            for (int y = 30; y < 35; y++){
                 mapDatas[x, y].type = tileTypes.grass;
                 mapDatas[x, y].texture = tiles[(int)tileTypes.grass];
                 mapDatas[x, y].position = new Vector3Int(x, y, 0);
 
                 mapDatas[x, y].has_pawn = false;
 
-                SetTileDev(mapDatas[x, y], BuildManager.Instance.GetBuilding(0));//草地
-            }
-        }
-    }
-    public void GenerateMapTiles(){
-        // 生成地图瓦片
-        for (int x = 0; x < MAP_SIZE; x++){
-            for (int y = 0; y < MAP_SIZE; y++){
+                SetTileDev(mapDatas[x, y], BuildManager.Instance.GetBuilding(0));
                 landTilemap.SetTile(new Vector3Int(x, y, 0), mapDatas[x, y].texture);
             }
         }
@@ -256,6 +360,10 @@ public class MapManager : MonoBehaviour
     }
 
     void Start(){
+        Landforms[(int)landformTypes.waterland] = new LandformRange(0f, 0.1f, landformTypes.waterland);
+        Landforms[(int)landformTypes.grassland] = new LandformRange(0.1f, 0.8f, landformTypes.grassland);
+        Landforms[(int)landformTypes.rockland] = new LandformRange(0.8f, 1.1f, landformTypes.rockland);
+
         GenerateMapData();
         GenerateMapTiles();
         GenerateBoolVectors();
