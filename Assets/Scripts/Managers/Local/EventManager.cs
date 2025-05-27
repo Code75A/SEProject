@@ -17,7 +17,7 @@ public class EventManager : MonoBehaviour
                 "<<Error>> Initing the second EventManager instance FAILED, because it's not allowed. ");
         }
     }
-    public int dayCount = 0; // 记录当前天数
+    
     //======================================Event Class Part====================================
     public enum EventType
     {
@@ -42,7 +42,7 @@ public class EventManager : MonoBehaviour
         {
             ;
         }
-        public void Impact()
+        public void DailyImpact()
         {
             ;
         }
@@ -55,9 +55,9 @@ public class EventManager : MonoBehaviour
     }
 
     List<Event> eventList = new List<Event>();
-    public void UpdateAllEvent()
+    public void DailyEventUpdate()
     {
-        int now_day = dayCount;
+        int now_day = TimeManager.Instance.GetCurrentDay();
         foreach (var it in eventList)
         {
             // Event not arrive
@@ -67,7 +67,7 @@ public class EventManager : MonoBehaviour
             // during Event
             if (now_day >= it.arrival && now_day < it.end)
             {
-                it.Impact();
+                it.DailyImpact();
                 // Event end (last day)
                 if (now_day == it.end - 1) it.End();
             }
@@ -79,17 +79,12 @@ public class EventManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        //TODO: SLManager应当初始化dayCount和载入任务列表
+        //TODO: SLManager应当初始化载入Event列表
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
-        if (TimeManager.Instance.gameTime > dayCount * 24)
-        {
-            dayCount++;
-            UpdateAllEvent();
-        }
         return;
     }
 }
