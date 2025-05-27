@@ -9,15 +9,58 @@ public class TimeManager : MonoBehaviour{
     public float gameTime { get; private set; } = 0f; // 游戏内时间
     public float timeScale = 1f; // 时间倍率
 
-     // 绑定 UI 组件，显示游戏时间
-    public TMP_Text gameTimeText; 
-    private void Awake(){
-        if (Instance == null){
+    private int currentDay = 0;
+    public enum Seasons { Spring, Summer, Fall, Winter }
+
+    //暂定春季开始，后续可能可以让玩家自行设定初始季节
+    private Seasons currentSeason = Seasons.Spring;
+    
+    public int GetCurrentDay() {
+        return currentDay; // 获取当前天数
+    }
+
+    public Seasons GetCurrentSeason() {
+        return currentSeason; // 获取当前季节
+    }
+
+    // 每次天数变化时需要执行的操作，留作扩展
+    private void OnDayChanged()
+    {
+        // TODO: 在此处进行当天数变化时对应的处理，比如刷新事件、更新界面等
+    }
+
+    // 每次季节变化时需要执行的操作，留作扩展
+    private void OnSeasonChanged(){
+        // TODO: 在此处进行当季节变化时对应的处理，比如切换季节贴图、刷新环境效果等
+    }
+
+    // 绑定 UI 组件，显示游戏时间
+    public TMP_Text gameTimeText;
+    private void Awake()
+    {
+        float deltaTime = Time.deltaTime;
+        if (Instance == null)
+        {
             Instance = this;
             DontDestroyOnLoad(gameObject);
         }
-        else{
+        else
+        {
             Destroy(gameObject);
+        }
+        if (gameTime >= (currentDay + 1) * 300f)
+        {
+            currentDay++;
+            OnDayChanged();
+
+            // 每 30 天改变季节
+            int seasonIndex = (currentDay / 30) % 4;
+            var newSeason = (Seasons)seasonIndex;
+            if (newSeason != currentSeason)
+            {
+                currentSeason = newSeason;
+                OnSeasonChanged();
+            }
         }
     }
 

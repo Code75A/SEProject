@@ -82,11 +82,11 @@ public class pawnharvesttest : MonoBehaviour
         Debug.Log($"选中的测试 Pawn ID：{testPawn.id}");
 
         // 3. 创建运输任务 (从 itemPos 搬运到 (20,20))
-        TaskManager.TransportTask tTask = TaskManager.Instance.CreateTransportTask(itemPos, new Vector3Int(20, 20, 0), 3);
+        TaskManager.TransportTask tTask = TaskManager.Instance.CreateTransportTask(itemPos, new Vector3Int(20, 20, 0), 3,10);
         testPawn.handlingTask = tTask;
 
         // 4. 启动运输协程
-        StartCoroutine(PawnManager.Instance.HandleTransportTask(testPawn, tTask, 10));
+        StartCoroutine(PawnManager.Instance.HandleTransportTask(testPawn, tTask));
         Debug.Log("启动运输任务测试，Pawn将移动到物品位置装载，再移动到(20,20)卸载。");
     }
     public IEnumerator TestHarvestTask()
@@ -117,6 +117,18 @@ public class pawnharvesttest : MonoBehaviour
 
         Debug.Log($"分配前任务数: {preTaskCount}，分配后任务数: {pawn.PawntaskList.Count}");
     }
+    // public void createwood()
+    // {
+    //     Vector3Int woodPos = new Vector3Int(2, 2, 0);
+    //     MapManager.MapData woodData = MapManager.Instance.GetMapData(woodPos);
+    //     if (woodData != null)
+    //     {
+    //         // 创建一份木材 MaterialInstance，数量设为20
+    //         var woodItem = new ItemInstanceManager.MaterialInstance(ItemManager.Instance.GetItem("木材").id, 20);
+    //         woodData.SetItem(woodItem);
+    //         woodData.has_item = true;
+    //     }
+    // }
     void Start()
     {
         

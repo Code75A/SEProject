@@ -50,7 +50,28 @@ public class PawnManager : MonoBehaviour{
 
     #endregion
 
-    public class Pawn{
+    public struct attribute
+    {
+        int a;
+        int b;
+        int c;
+
+        private attribute(int a1, int b2, int c3)
+        {
+            a = a1;
+            b = b2;
+            c = c3;
+        }
+        public void updata_attribute(int da, int db, int dc)
+        {
+            a = da;
+            b = db;
+            c = dc;
+        }
+    }
+
+    public class Pawn
+    {
         public int id;
         public bool isOnTask = false;
         public TaskManager.Task handlingTask = null;
@@ -66,8 +87,9 @@ public class PawnManager : MonoBehaviour{
         public ItemInstanceManager.ItemInstanceType materialType; //物品类型
 
         //工具类型EnhanceType枚举，与小人属性挂钩，itemmanager调用
-        public enum EnhanceType{
-            Speed, Power,capacity, Total
+        public enum EnhanceType
+        {
+            Speed, Power, capacity, Total
         }
 
         //public Vector2 position; 
@@ -76,7 +98,8 @@ public class PawnManager : MonoBehaviour{
         public List<TaskManager.Task> PawntaskList = new List<TaskManager.Task>();
         public GameObject Instance;
 
-        public Pawn(int id){
+        public Pawn(int id)
+        {
             this.id = id;
         }
     }
