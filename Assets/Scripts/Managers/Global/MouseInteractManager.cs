@@ -221,6 +221,21 @@ public class MouseInteractManager : MonoBehaviour
         }
         currentState = NullState;
     }
+    void Start()
+    {
+        //UNHEALTHY
+        const float ORE_SPAWN_LINE = 0.85f;
+        for (int x = 0; x < 64; x++)
+        {
+            for (int y = 0; y < 64; y++)
+            {
+                if (mapManager.landformDatas[x, y] > ORE_SPAWN_LINE)
+                {
+                    ItemInstanceManager.Instance.SpawnItem(new Vector3Int(x, y, 0), 16, ItemInstanceManager.ItemInstanceType.ResourceInstance);
+                }
+            }
+        }
+    }
 
     #region 状态缓存
     protected MouseInteractState currentState;

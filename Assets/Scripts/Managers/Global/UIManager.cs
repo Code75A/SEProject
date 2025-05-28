@@ -251,7 +251,7 @@ public class UIManager : MonoBehaviour
                                         "搬运数量: " + pawn.materialAmount.ToString() + "\n";
         ShowSelectedObjectPanel();
     }
-    Dictionary<Type, Func<ItemInstanceManager.ItemInstance,string> > instanceDescriptor = new Dictionary<Type, Func<ItemInstanceManager.ItemInstance, string> >(){
+    Dictionary<Type, Func<ItemInstanceManager.ItemInstance,string> > instanceDescriptor = new Dictionary<Type, Func<ItemInstanceManager.ItemInstance, string>>(){
 { typeof(ItemInstanceManager.ToolInstance),         instance => {   return "耐久: " + (instance as ItemInstanceManager.ToolInstance).GetDurability().ToString(); }},
 { typeof(ItemInstanceManager.CropInstance),         instance => {   ItemInstanceManager.CropInstance crop_instance = instance as ItemInstanceManager.CropInstance;
                                                                     return "生长进度: " + crop_instance.growth.ToString() + "/" + crop_instance.real_lifetime.ToString(); }},
@@ -261,7 +261,8 @@ public class UIManager : MonoBehaviour
                                                                     foreach(var pair in print_instance.material_list){
                                                                         tmp += ItemManager.Instance.GetItem(pair.Key).name + ": " +
                                                                                 pair.Value.current + "/" + pair.Value.need + "\n";}
-                                                                    return tmp;}}
+                                                                    return tmp;}},
+{ typeof(ItemInstanceManager.ResourceInstance),     instance =>{    return "耐久: " + (instance as ItemInstanceManager.ResourceInstance).durability.ToString(); }}
     };
 
     public void SetPanelTextInstance(ItemInstanceManager.ItemInstance instance)

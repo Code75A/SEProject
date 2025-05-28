@@ -32,9 +32,11 @@ public class ItemManager : MonoBehaviour
             -- 关于Consumable：某些Item可以属于消耗品类，如食物、药品等，可以作为一个接口来实现；
         3. Building(交给BuildingManager)：建筑类, 在地块上消耗Material实例建造，可以被拆除（转化为其他Material实例）或被卸载（Building实例放入背包）；
         4. Crop(交给CropManager)：作物类，其实例一般不会被放在背包里，在地块上生长，成熟后可以被收获，收获后消灭并产生Material实例；
+        5. Resource: 资源类，自然生成的可以采集出材料的对象
         此外，Total用于指示ItemType的总数。
+        
         */
-        Tool, Material, Building, Crop, Total
+        Tool, Material, Building, Crop, Resource, Total
     }
     public class Item{
         public int id;
@@ -49,8 +51,7 @@ public class ItemManager : MonoBehaviour
         public Dictionary<PawnManager.Pawn.EnhanceType,int> enhancements;
         public int max_durability;
     }
-    public class Material : Item
-    {
+    public class Material : Item{
         public int can_plant_crop;
         public bool IsSeed()
         {
@@ -63,8 +64,11 @@ public class ItemManager : MonoBehaviour
             else return -1;
         }
     }
+    public class Resource : Item {
+        public int max_durability;
+    }
 
-    const int tempItemSpritesCount = 7;
+    const int tempItemSpritesCount = 8;
     public Sprite[] tempItemSprites = new Sprite[tempItemSpritesCount];
 
     //=========================================Manager Function Part=======================================
@@ -76,6 +80,7 @@ public class ItemManager : MonoBehaviour
         itemLists.Add(ItemType.Material, new List<Item>());
         itemLists.Add(ItemType.Building, null);
         itemLists.Add(ItemType.Crop, null);
+        itemLists.Add(ItemType.Resource, new List<Item>());
         #endregion
 
         #region 动态载入初始Item, 仅供测试
@@ -111,6 +116,8 @@ public class ItemManager : MonoBehaviour
             new Material{id=4, name="草莓", type=ItemType.Material, texture=tempItemSprites[4], can_plant_crop=-1});
         itemLists[ItemType.Material].Add(
             new Material{id=5, name="木材", type=ItemType.Material, texture=tempItemSprites[5], can_plant_crop=-1});
+        itemLists[ItemType.Material].Add(
+            new Material{id=6, name="铁矿", type=ItemType.Material, texture=tempItemSprites[6], can_plant_crop=-1});
         
         itemLists[ItemType.Material].Add(
             new Material{id=7, name="稻种", type=ItemType.Material, texture=tempItemSprites[5], can_plant_crop=0});
@@ -124,6 +131,9 @@ public class ItemManager : MonoBehaviour
             new Material{id=11, name="葡萄藤根", type=ItemType.Material, texture=tempItemSprites[5], can_plant_crop=4});
         itemLists[ItemType.Material].Add(
             new Material{id=12, name="树苗", type=ItemType.Material, texture=tempItemSprites[5], can_plant_crop=5});
+        //Resource
+        itemLists[ItemType.Resource].Add(
+            new Resource{id=16, name="铁矿脉", type=ItemType.Resource, texture=tempItemSprites[7], max_durability=100});
         #endregion 
     }
     void Start()
