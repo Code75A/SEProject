@@ -23,7 +23,8 @@ public class MapManager : MonoBehaviour
     const int OFFSET_MIN = -1000000;
     const int OFFSET_MAX = 1000000;
 
-    public enum tileTypes {
+    public enum tileTypes
+    {
         grass, path, water, tree, rock, farm, total
     }
     public enum landformTypes{
@@ -359,10 +360,11 @@ public class MapManager : MonoBehaviour
         }
     }
 
-    void Start(){
+    void Start()
+    {
         Landforms[(int)landformTypes.waterland] = new LandformRange(0f, 0.1f, landformTypes.waterland);
-        Landforms[(int)landformTypes.grassland] = new LandformRange(0.1f, 0.8f, landformTypes.grassland);
-        Landforms[(int)landformTypes.rockland] = new LandformRange(0.8f, 1.1f, landformTypes.rockland);
+        Landforms[(int)landformTypes.grassland] = new LandformRange(0.1f, 0.7f, landformTypes.grassland);
+        Landforms[(int)landformTypes.rockland] = new LandformRange(0.7f, 1.1f, landformTypes.rockland);
 
         GenerateMapData();
         GenerateMapTiles();

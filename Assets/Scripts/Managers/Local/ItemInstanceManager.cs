@@ -44,7 +44,7 @@ public class ItemInstanceManager : MonoBehaviour
     //====================================ItemInstance Class Part====================================
     public enum ItemInstanceType
     {
-        ToolInstance, MaterialInstance, CropInstance, BuildingInstance, PrintInstance, Total
+        ToolInstance, MaterialInstance, CropInstance, BuildingInstance, PrintInstance, ResourceInstance, Total
     }
 
     #region InsLabel类定义
@@ -295,6 +295,9 @@ public class ItemInstanceManager : MonoBehaviour
             return requirements;
         }
     }
+    public class ResourceInstance : ItemInstance{
+        public int durability;
+    }
     #endregion
 
     //======================================Manager Function Part=====================================
@@ -506,6 +509,27 @@ public class ItemInstanceManager : MonoBehaviour
         new_ins.SetText(sample.name);
         return new_ins;
     }
+    public ItemInstance MakeResourceInstance(int resource_id, Vector3Int position){
+        ItemManager.Item sample = ItemManager.Instance.GetItem(resource_id, ItemManager.ItemType.Resource);
+        if (sample == null){
+            UIManager.Instance.DebugTextAdd(
+               "<<Error>> Spawning ResourceInstance FAILED: the resource_id for Resource is not found in ItemManager. "
+            );
+
+            return null;
+        }
+        ItemInstance new_ins;
+        new_ins = new ResourceInstance{
+            id = -1,
+            type = ItemInstanceType.ResourceInstance,
+            item_id = resource_id,
+            position = position,
+            durability = (sample as ItemManager.Resource).max_durability
+        };
+        InitInstance(new_ins, sample.texture);
+        new_ins.SetText(sample.name);
+        return new_ins;
+    }
     #endregion
 
     #region (2)PrintInstance转BuildInstance
@@ -678,33 +702,40 @@ public class ItemInstanceManager : MonoBehaviour
     void InitInstanceListsData()
     {
         #region itemInstanceLists初始化
-        itemInstanceLists.Add(ItemInstanceType.ToolInstance, new List<ItemInstance>());
-        itemInstanceLists.Add(ItemInstanceType.MaterialInstance, new List<ItemInstance>());
-        itemInstanceLists.Add(ItemInstanceType.BuildingInstance, new List<ItemInstance>());
-        itemInstanceLists.Add(ItemInstanceType.CropInstance, new List<ItemInstance>());
-        itemInstanceLists.Add(ItemInstanceType.PrintInstance, new List<ItemInstance>());
+        for (ItemInstanceType i = ItemInstanceType.ToolInstance; i < ItemInstanceType.Total; i++){
+            itemInstanceLists.Add(i, new List<ItemInstance>());
+        }
+        // itemInstanceLists.Add(ItemInstanceType.ToolInstance, new List<ItemInstance>());
+        // itemInstanceLists.Add(ItemInstanceType.MaterialInstance, new List<ItemInstance>());
+        // itemInstanceLists.Add(ItemInstanceType.BuildingInstance, new List<ItemInstance>());
+        // itemInstanceLists.Add(ItemInstanceType.CropInstance, new List<ItemInstance>());
+        // itemInstanceLists.Add(ItemInstanceType.PrintInstance, new List<ItemInstance>());
+        // itemInstanceLists.Add(ItemInstanceType.ResourceInstance, new List<ItemInstance>());
+        
         //Debug.Log("init itemInstanceLists finished");
         #endregion
 
         #region 动态载入部分ItemInstance供测试
 
-        #region (1)CropInstance收割和生长接口自测试
+        #region (1)CropInstance收割和生长接口自测试 【由于会导致脚本调用顺序成环暂且停用 原因：用到MapManager】
         //Debug.Log("spawning some crop instance.");
-        CropInstance tmp1 = (CropInstance)SpawnItem(new Vector3Int(30, 30, 0), 0, ItemInstanceType.CropInstance);
-        CropInstance tmp2 = (CropInstance)SpawnItem(new Vector3Int(30, 31, 0), 1, ItemInstanceType.CropInstance);
-        CropInstance tmp3 = (CropInstance)SpawnItem(new Vector3Int(30, 32, 0), 2, ItemInstanceType.CropInstance);
+
+        // CropInstance tmp1 = (CropInstance)SpawnItem(new Vector3Int(30, 30, 0), 0, ItemInstanceType.CropInstance);
+        // CropInstance tmp2 = (CropInstance)SpawnItem(new Vector3Int(30, 31, 0), 1, ItemInstanceType.CropInstance);
+        // CropInstance tmp3 = (CropInstance)SpawnItem(new Vector3Int(30, 32, 0), 2, ItemInstanceType.CropInstance);
+        
         //HarvestCrop(tmp1);
         //HarvestCrop(tmp2);
-        HarvestCrop(tmp3);
+        //HarvestCrop(tmp3);
         #endregion
 
-        #region (2)ToolInstance获取强化项接口自测试
-        ToolInstance tmp4 = (ToolInstance)SpawnItem(new Vector3Int(30, 34, 0), 2, ItemInstanceType.ToolInstance);
-        Dictionary<PawnManager.Pawn.EnhanceType, int> tmp4_enh = GetEnhance(tmp4);
-        foreach (var it in tmp4_enh)
-        {
-            Debug.Log("key:" + it.Key.ToString() + "|val:" + it.Value.ToString());
-        }
+        #region (2)ToolInstance获取强化项接口自测试  【由于会导致脚本调用顺序成环暂且停用 原因：用到MapManager】
+        //ToolInstance tmp4 = (ToolInstance)SpawnItem(new Vector3Int(30, 34, 0), 2, ItemInstanceType.ToolInstance);
+        // Dictionary<PawnManager.Pawn.EnhanceType, int> tmp4_enh = GetEnhance(tmp4);
+        // foreach (var it in tmp4_enh)
+        // {
+        //     Debug.Log("key:" + it.Key.ToString() + "|val:" + it.Value.ToString());
+        // }
         #endregion
 
         #endregion
@@ -748,6 +779,9 @@ public class ItemInstanceManager : MonoBehaviour
                 break;
             case ItemInstanceType.PrintInstance:
                 new_ins = MakePrintInstance(sample_id, position);
+                break;
+            case ItemInstanceType.ResourceInstance:
+                new_ins = MakeResourceInstance(sample_id, position);
                 break;
             default:
                 UIManager.Instance.DebugTextAdd(
@@ -804,6 +838,8 @@ public class ItemInstanceManager : MonoBehaviour
                 break;
             case ItemInstanceType.PrintInstance:
                 ClearPrintInstance(aim_ins, destroy_mode, remain_rate);
+                break;
+            case ItemInstanceType.ResourceInstance:
                 break;
             default:
                 UIManager.Instance.DebugTextAdd(
