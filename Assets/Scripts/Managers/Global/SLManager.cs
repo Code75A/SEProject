@@ -613,7 +613,7 @@ public class SLManager : MonoBehaviour
     }
     #endregion
 
-/*
+
     #region "TaskManagerData"
     [System.Serializable]
     public class TaskManagerData
@@ -624,11 +624,12 @@ public class SLManager : MonoBehaviour
         [System.Serializable]
         public class TaskData
         {
-            public Vector3Int position;
+            public Vector3Int target_position;
             public TaskManager.TaskTypes type;
+            public int task_id;
             public int id;
-            public int MaterialId;
-            public int MaterialAmount;
+            public int amount;
+            public int materialType;
         }
     }
 
@@ -646,19 +647,21 @@ public class SLManager : MonoBehaviour
         {
             availableTasks = TaskManager.Instance.availableTaskList.Select(task => new TaskManagerData.TaskData
             {
-                position = task.position,
+                target_position = task.target_position,
                 type = task.type,
+                task_id = task.task_id,
                 id = task.id,
-                MaterialId = task.MaterialId,
-                MaterialAmount = task.MaterialAmount
+                amount = task.amount,
+                materialType = task.materialType
             }).ToList(),
             inavailableTasks = TaskManager.Instance.inavailableTaskList.Select(task => new TaskManagerData.TaskData
             {
-                position = task.position,
+                target_position = task.target_position,
                 type = task.type,
+                task_id = task.task_id,
                 id = task.id,
-                MaterialId = task.MaterialId,
-                MaterialAmount = task.MaterialAmount
+                amount = task.amount,
+                materialType = task.materialType
             }).ToList()
         };
 
@@ -690,24 +693,24 @@ public class SLManager : MonoBehaviour
         foreach (var taskData in data.availableTasks)
         {
             TaskManager.Instance.availableTaskList.Add(new TaskManager.Task(
-                position: taskData.position,
+                position: taskData.target_position,
                 type: taskData.type,
+                task_id: taskData.task_id,
                 id: taskData.id,
-                materialId: taskData.MaterialId,
-                materialAmount: taskData.MaterialAmount,
-                materialType: -1 // 默认值，TaskManager.Task 构造函数需要
+                amount: taskData.amount,
+                materialType: taskData.materialType
             ));
         }
 
         foreach (var taskData in data.inavailableTasks)
         {
             TaskManager.Instance.inavailableTaskList.Add(new TaskManager.Task(
-                position: taskData.position,
+                position: taskData.target_position,
                 type: taskData.type,
+                task_id: taskData.task_id,
                 id: taskData.id,
-                materialId: taskData.MaterialId,
-                materialAmount: taskData.MaterialAmount,
-                materialType: -1 // 默认值，TaskManager.Task 构造函数需要
+                amount: taskData.amount,
+                materialType: taskData.materialType
             ));
         }
 
@@ -749,17 +752,17 @@ public class SLManager : MonoBehaviour
         // 验证加载的数据
         foreach (var task in TaskManager.Instance.availableTaskList)
         {
-            Debug.Log($"Available Task - ID: {task.id}, Type: {task.type}, Position: {task.position}, MaterialId: {task.MaterialId}, MaterialAmount: {task.MaterialAmount}");
+            Debug.Log($"Available Task - ID: {task.task_id}, Type: {task.type}, Position: {task.target_position}, id: {task.id}, amount: {task.amount}, materialType: {task.materialType}");
         }
 
         foreach (var task in TaskManager.Instance.inavailableTaskList)
         {
-            Debug.Log($"Inavailable Task - ID: {task.id}, Type: {task.type}, Position: {task.position}, MaterialId: {task.MaterialId}, MaterialAmount: {task.MaterialAmount}");
+            Debug.Log($"Inavailable Task - ID: {task.task_id}, Type: {task.type}, Position: {task.target_position}, id: {task.id}, amount: {task.amount}, materialType: {task.materialType}");
         }
     }
     #endregion
-*/
-/*
+
+    
     #region "PawnManagerData"
     [System.Serializable]
     public class PawnManagerData
@@ -777,7 +780,28 @@ public class SLManager : MonoBehaviour
             public int capacity;
             public ToolData handlingTool;
             public List<TaskData> pawnTaskList;
-            public SerializableVector3 position; // 使用可序列化的 Vector3
+            public SerializableVector3 position;
+        }
+
+        [System.Serializable]
+        public class TaskData
+        {
+            public Vector3Int target_position;
+            public TaskManager.TaskTypes type;
+            public int task_id;
+            public int id;
+            public int amount;
+            public int materialType;
+        }
+
+        [System.Serializable]
+        public class ToolData
+        {
+            public int id;
+            public string name;
+            public string texturePath;
+            public int max_durability;
+            public Dictionary<string, int> enhancements;
         }
 
         [System.Serializable]
@@ -788,38 +812,16 @@ public class SLManager : MonoBehaviour
             public float z;
 
             public SerializableVector3() { }
-
             public SerializableVector3(Vector3 vector)
             {
                 x = vector.x;
                 y = vector.y;
                 z = vector.z;
             }
-
             public Vector3 ToVector3()
             {
                 return new Vector3(x, y, z);
             }
-        }
-
-        [System.Serializable]
-        public class TaskData
-        {
-            public Vector3Int position;
-            public TaskManager.TaskTypes type;
-            public int id;
-            public int materialId;
-            public int materialAmount;
-        }
-
-        [System.Serializable]
-        public class ToolData
-        {
-            public int id;
-            public string name;
-            public string texturePath;
-            public int maxDurability;
-            public Dictionary<string, int> enhancements;
         }
     }
 
@@ -846,11 +848,12 @@ public class SLManager : MonoBehaviour
                 isOnTask = pawn.isOnTask,
                 handlingTask = pawn.handlingTask != null ? new PawnManagerData.TaskData
                 {
-                    position = pawn.handlingTask.position,
+                    target_position = pawn.handlingTask.target_position,
                     type = pawn.handlingTask.type,
+                    task_id = pawn.handlingTask.task_id,
                     id = pawn.handlingTask.id,
-                    materialId = pawn.handlingTask.MaterialId,
-                    materialAmount = pawn.handlingTask.MaterialAmount
+                    amount = pawn.handlingTask.amount,
+                    materialType = pawn.handlingTask.materialType
                 } : null,
                 moveSpeed = pawn.moveSpeed,
                 workSpeed = pawn.workSpeed,
@@ -860,18 +863,19 @@ public class SLManager : MonoBehaviour
                     id = pawn.handlingTool.id,
                     name = pawn.handlingTool.name,
                     texturePath = pawn.handlingTool.texture != null ? pawn.handlingTool.texture.name : null,
-                    maxDurability = pawn.handlingTool.max_durability,
+                    max_durability = pawn.handlingTool.max_durability,
                     enhancements = pawn.handlingTool.enhancements.ToDictionary(e => e.Key.ToString(), e => e.Value)
                 } : null,
                 pawnTaskList = pawn.PawntaskList.Select(task => new PawnManagerData.TaskData
                 {
-                    position = task.position,
+                    target_position = task.target_position,
                     type = task.type,
+                    task_id = task.task_id,
                     id = task.id,
-                    materialId = task.MaterialId,
-                    materialAmount = task.MaterialAmount
+                    amount = task.amount,
+                    materialType = task.materialType
                 }).ToList(),
-                position = new PawnManagerData.SerializableVector3(pawn.Instance.transform.position)
+                position = pawn.Instance != null ? new PawnManagerData.SerializableVector3(pawn.Instance.transform.position) : new PawnManagerData.SerializableVector3(Vector3.zero)
             };
 
             data.pawns.Add(pawnData);
@@ -903,16 +907,16 @@ public class SLManager : MonoBehaviour
 
         foreach (var pawnData in data.pawns)
         {
-            var pawn = new PawnManager.Pawn(pawnData.id, Vector3Int.zero, PawnManager.Instance.pawnPrefab)
+            var pawn = new PawnManager.Pawn(pawnData.id)
             {
                 isOnTask = pawnData.isOnTask,
                 handlingTask = pawnData.handlingTask != null ? new TaskManager.Task(
-                    position: pawnData.handlingTask.position,
+                    position: pawnData.handlingTask.target_position,
                     type: pawnData.handlingTask.type,
+                    task_id: pawnData.handlingTask.task_id,
                     id: pawnData.handlingTask.id,
-                    materialId: pawnData.handlingTask.materialId,
-                    materialAmount: pawnData.handlingTask.materialAmount,
-                    materialType: -1 // 默认值
+                    amount: pawnData.handlingTask.amount,
+                    materialType: pawnData.handlingTask.materialType
                 ) : null,
                 moveSpeed = pawnData.moveSpeed,
                 workSpeed = pawnData.workSpeed,
@@ -922,23 +926,29 @@ public class SLManager : MonoBehaviour
                     id = pawnData.handlingTool.id,
                     name = pawnData.handlingTool.name,
                     texture = Resources.Load<Sprite>(pawnData.handlingTool.texturePath),
-                    max_durability = pawnData.handlingTool.maxDurability,
-                    enhancements = pawnData.handlingTool.enhancements.ToDictionary(
-                        e => (PawnManager.Pawn.EnhanceType)System.Enum.Parse(typeof(PawnManager.Pawn.EnhanceType), e.Key),
-                        e => e.Value)
+                    max_durability = pawnData.handlingTool.max_durability,
+                    enhancements = pawnData.handlingTool.enhancements != null
+                        ? pawnData.handlingTool.enhancements.ToDictionary(
+                            e => (PawnManager.Pawn.EnhanceType)System.Enum.Parse(typeof(PawnManager.Pawn.EnhanceType), e.Key),
+                            e => e.Value)
+                        : new Dictionary<PawnManager.Pawn.EnhanceType, int>()
                 } : null,
-                PawntaskList = pawnData.pawnTaskList.Select(task => new TaskManager.Task(
-                    position: task.position,
+                PawntaskList = pawnData.pawnTaskList != null ? pawnData.pawnTaskList.Select(task => new TaskManager.Task(
+                    position: task.target_position,
                     type: task.type,
+                    task_id: task.task_id,
                     id: task.id,
-                    materialId: task.materialId,
-                    materialAmount: task.materialAmount,
-                    materialType: -1 // 默认值
-                )).ToList()
+                    amount: task.amount,
+                    materialType: task.materialType
+                )).ToList() : new List<TaskManager.Task>()
             };
 
-            // 设置位置
-            pawn.Instance.transform.position = pawnData.position.ToVector3();
+            // 实例化Pawn对象并设置位置
+            PawnManager.Instance.InstantiatePawn(pawn, Vector3Int.zero);
+            if (pawn.Instance != null && pawnData.position != null)
+            {
+                pawn.Instance.transform.position = pawnData.position.ToVector3();
+            }
 
             PawnManager.Instance.pawns.Add(pawn);
         }
@@ -959,7 +969,7 @@ public class SLManager : MonoBehaviour
         // 创建测试数据
         PawnManager.Instance.pawns = new List<PawnManager.Pawn>
         {
-            new PawnManager.Pawn(1, new Vector3Int(0, 0, 0), PawnManager.Instance.pawnPrefab)
+            new PawnManager.Pawn(1)
             {
                 isOnTask = true,
                 handlingTask = new TaskManager.Task(new Vector3Int(1, 1, 1), TaskManager.TaskTypes.Build, 1, 101, 5, -1),
@@ -997,11 +1007,12 @@ public class SLManager : MonoBehaviour
         // 验证加载的数据
         foreach (var pawn in PawnManager.Instance.pawns)
         {
-            Debug.Log($"Pawn ID: {pawn.id}, Position: {pawn.Instance.transform.position}, Task Count: {pawn.PawntaskList.Count}");
+            Debug.Log($"Pawn ID: {pawn.id}, Task Count: {pawn.PawntaskList.Count}");
         }
     }
     #endregion
-*/
+    
+
     void Awake()
     {
         
