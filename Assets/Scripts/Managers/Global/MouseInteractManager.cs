@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -53,6 +54,7 @@ public class MouseInteractManager : MonoBehaviour
             GameObject gameObject = hitSprite.collider.gameObject;
             if (hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("UI"))
             {
+                //TODO: necessary?
                 if (gameObject != Instance.selectingObject)
                 {
                     Instance.currentState = new StateUI(gameObject);
@@ -101,44 +103,22 @@ public class MouseInteractManager : MonoBehaviour
         }
     }
 
-    public interface PileClickNext {
-        public void OnClickNext();
-    }
-    protected class StatePawn : MouseInteractState, PileClickNext{
+    protected class StatePawn : MouseInteractState{
         private PawnInteractController pawnController;
         public StatePawn(GameObject gameObject){
             pawnController = gameObject.GetComponent<PawnInteractController>();
             Instance.selectingPawn = pawnController.pawn;
             Instance.selectingObject = gameObject;
         }
-        public void OnClickNext(){//Pawn -> ItemInstance
-            Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Vector3Int onMouseCellPos = Instance.mapManager.landTilemap.WorldToCell(mouseWorldPos);
-            if (Instance.mapManager.HasItemAt(onMouseCellPos))
-            {
-                Instance.currentState = new StateInstance(Instance.mapManager.GetItem(onMouseCellPos));
-            }
-            else
-            {
-                OnClickNull();
-            }
-        }   
         public override void OnClickSprite(RaycastHit2D hitSprite){
             GameObject gameObject = hitSprite.collider.gameObject;
             if (hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("UI"))
             {
-                OnClickNull();
+                Instance.currentState = new StateUI(gameObject);
             }
             else if (hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("Pawn"))
             {
-                if (gameObject == Instance.selectingObject)
-                {
-                    OnClickNext();
-                }
-                else
-                {
-                    Instance.currentState = new StatePawn(gameObject);
-                }
+                Instance.currentState = new StatePawn(gameObject);
             }
             else if (hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("Instance"))
             {
@@ -162,12 +142,8 @@ public class MouseInteractManager : MonoBehaviour
             LoadPanel();
         }
     }
-    protected class StateInstance : MouseInteractState, PileClickNext
+    protected class StateInstance : MouseInteractState
     {
-        public void OnClickNext(){//ItemInstance -> Null/ItemInstance
-            OnClickNull();
-            //TODO: 未来循环选择ItemInstance
-        }
         public StateInstance(GameObject gameObject){
             Instance.selectingObject = gameObject;
         }
@@ -176,7 +152,7 @@ public class MouseInteractManager : MonoBehaviour
             GameObject gameObject = hitSprite.collider.gameObject;
             if (hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("UI"))
             {
-                OnClickNull();
+                Instance.currentState = new StateUI(gameObject);
             }
             else if (hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("Pawn"))
             {
@@ -184,14 +160,7 @@ public class MouseInteractManager : MonoBehaviour
             }
             else if (hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("Instance"))
             {
-                if (gameObject == Instance.selectingObject)
-                {
-                    OnClickNext();
-                }
-                else
-                {
-                    Instance.currentState = new StateInstance(gameObject);
-                }
+                Instance.currentState = new StateInstance(gameObject);
             }
         }
         public override void OnClickNull()
@@ -232,13 +201,15 @@ public class MouseInteractManager : MonoBehaviour
                 if (mapManager.landformDatas[x, y] > ORE_SPAWN_LINE)
                 {
                     ItemInstanceManager.Instance.SpawnItem(new Vector3Int(x, y, 0), 16, ItemInstanceManager.ItemInstanceType.ResourceInstance);
+                    mapManager.mapDatas[x, y].can_build = false;
                 }
             }
         }
     }
 
     #region 状态缓存
-    protected MouseInteractState currentState;
+    protected MouseInteractState currentState = new StateNull();
+    protected Collider2D currentSprite = null;
     protected StateNull NullState = new StateNull();
 
 
@@ -258,38 +229,70 @@ public class MouseInteractManager : MonoBehaviour
     #endregion
 
     //TODO: StateCache
+    int GetSortingLayerOrder(Collider2D col){
+        var renderer = col.GetComponent<Renderer>();
+        if (renderer == null)
+            return int.MinValue; // 没有 Renderer 就排最下面
+
+        // 用排序层ID和层内顺序拼成一个整体的排序指标
+        return (renderer.sortingLayerID << 16) + renderer.sortingOrder;
+    }
     void Update()
     {
         if(Input.GetMouseButtonDown(0)){
             mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition); 
             Vector2 mousePos2D = new Vector2(mouseWorldPos.x, mouseWorldPos.y);
 
-            RaycastHit2D hitSprite = Physics2D.Raycast(mousePos2D, Vector2.zero, 0f);
-            if (hitSprite.collider != null){
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit2D[] hits = Physics2D.RaycastAll(ray.origin, ray.direction);
+            RaycastHit2D[] sorted_hits = hits.OrderByDescending(hit => GetSortingLayerOrder(hit.collider)).ToArray();
+
+            RaycastHit2D hitSprite = sorted_hits.FirstOrDefault();
+
+            if(selectingObject != null)
+                currentSprite = selectingObject.GetComponent<Collider2D>();
+
+
+            int index = -1;
+            if(selectingObject != null)
+                index = Array.FindIndex(sorted_hits, hit => hit.collider == currentSprite);
+
+            if (index != -1) {
+                if (index == sorted_hits.Count() - 1)
+                    hitSprite = default;
+                else
+                    hitSprite = sorted_hits[index + 1];
+            }
+
+            
+            if (currentState is StateBuilding)
+            {
+                if (BuildingStateAvailable())
+                {
+                    Vector3Int cellPos = mapManager.landTilemap.WorldToCell(mouseWorldPos);
+                    if (mapManager.IsInBoard(cellPos))
+                    {
+                        mapManager.BuildByPlayer(cellPos, currentBuilding);
+                    }
+                }
+            }
+            else if (hitSprite.collider != null)
+            {
                 currentState.OnClickSprite(hitSprite);
-                if(currentState is StateUI){
-                    BuildingMenuSquareLoadController controller =selectingObject.GetComponent<BuildingMenuSquareLoadController>();
-                    if(controller != null){
+                if (currentState is StateUI)
+                {
+                    BuildingMenuSquareLoadController controller = selectingObject.GetComponent<BuildingMenuSquareLoadController>();
+                    if (controller != null)
+                    {
                         Debug.Log("转BuildingState");
                         Instance.currentState = new StateBuilding(controller.building);
                     }
                 }
             }
-            else{
-                if(currentState is StateBuilding){
-                    if(BuildingStateAvailable()){
-                        Vector3Int cellPos = mapManager.landTilemap.WorldToCell(mouseWorldPos);
-                        if(mapManager.IsInBoard(cellPos)){
-                            mapManager.BuildByPlayer(cellPos, currentBuilding);
-                        }
-                    }
-                }
-                else
-                    currentState.OnClickNull();
-            }
+            else
+                currentState.OnClickNull();
 
             currentState.LoadPanel();
-            
             Debug.Log("左键:"+currentState.GetType());
         }
 
