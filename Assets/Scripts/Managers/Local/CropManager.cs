@@ -9,36 +9,179 @@ public class CropManager : MonoBehaviour
 {
     public static CropManager Instance { get; private set; }
     const int GROWTH_STAGE_COUNT = 4;
-    //=========================================Env Factor Part=======================================
-    public enum EnvFactorType{
-        Linear, DiffLinear, Total
+    public const float standardGrowthPerFrame = 0.005f;
+    //=========================================Factor Part=======================================
+    public enum FactorType{
+        Linear, LinearDiffEnv, InRangeEnv,Zero, Total
     }
-    public class EnvFactor{
-        public virtual float GetImpacted(float origin, float env_data){
+    public abstract class Factor
+    {
+        //public int id;
+        public FactorType type;
+        public abstract float GetImpacted(float origin);
+        public abstract float GetImpacted(float origin, float env_data);
+    }
+    public class LinearFactor : Factor
+    {
+        public float change_rate;
+        public override float GetImpacted(float origin) { return origin * change_rate; }
+        public override float GetImpacted(float origin, float env_data)
+        {
+            UIManager.Instance.DebugTextAdd("<<Error>>LinearFactor.GetImpacted should not be called with expect_env.");
             return origin;
         }
     }
-    public class LinearFactor:EnvFactor{
-        public override float GetImpacted(float origin, float env_data){
-            return origin*env_data;
+    public class ZeroFactor : Factor
+    {
+        public override float GetImpacted(float origin) { return 0.0f; }
+        public override float GetImpacted(float origin, float env_data)
+        {
+            UIManager.Instance.DebugTextAdd("<<Error>>ZeroFactor.GetImpacted should not be called with expect_env.");
+            return origin;
         }
     }
-    public class DiffLinearFactor:EnvFactor{
-        public float expect_env;
-        public override float GetImpacted(float origin, float env_data){
-            //TODO: ensure the calculation logic!!!
-            return origin*(1.0f - (Math.Abs(expect_env-env_data)/expect_env));
+    public abstract class EnvFactor: Factor
+    {
+        public float standard_env;
+        public float up_limit;
+        public float down_limit;
+        public sealed override float GetImpacted(float origin)
+        {
+            UIManager.Instance.DebugTextAdd("<<Warning>>EnvFactor.GetImpacted should be called with expect_env.");
+            return origin;
         }
     }
+    public class LinearDiffEnvFactor : EnvFactor
+    {
+        public override float GetImpacted(float origin, float env_data)
+        {
+            float use_env_data = Math.Clamp(env_data, down_limit, up_limit);
+            return origin * (1.0f - (Math.Abs(standard_env - use_env_data) / (up_limit - down_limit)));
+        }
+    }
+    public class InRangeEnvFactor : EnvFactor
+    {
+        public override float GetImpacted(float origin, float env_data)
+        {
+            if (env_data < down_limit || env_data > up_limit) return 0.0f; // Outside the range, no impact
+            else return origin;
+        }
+    }
+
+    #region 影响因素模块管理
+    #region 0.变量部分
+    public Dictionary<int, LinearFactor> pestDisasterEnvFactorDict = new Dictionary<int, LinearFactor>();
+    public LinearFactor globalBuffEnvFactor = null;
+    public Dictionary<int, float> growthPerFrameDict = new Dictionary<int, float>();
+    public bool isEnvFactorChange = false;
+    #endregion
+    #region 1.私有函数部分
+    ///<summary>
+    /// private: init the growthPerFrameDict with standardGrowthPerFrame
+    /// </summary>
+    public void InitGrowthPerFrameDict()
+    {
+        foreach (var crop in cropList)
+        {
+            growthPerFrameDict[crop.id] = standardGrowthPerFrame;
+        }
+        isEnvFactorChange = false;
+        globalBuffEnvFactor = new LinearFactor
+        {
+            //id = -1, // -1 means global buff
+            type = FactorType.Linear,
+            change_rate = 1.0f // default no change
+        };
+    }
+    ///<summary>
+    /// private: update the growthPerFrameDict with EnvFactor changed
+    /// </summary>
+    public void UpdateGrowthPerFrameDict()
+    {
+        // globalBuffEnvFactor is the global EnvFactor, it will impact all crops
+        float growth_per_frame = globalBuffEnvFactor.GetImpacted(standardGrowthPerFrame);
+
+        // pestDisasterEnvFactorDict is the local EnvFactor, it will impact each crop
+        foreach (var crop in cropList)
+        {
+            float crop_growth_per_frame = growth_per_frame;
+            if (pestDisasterEnvFactorDict[crop.id] != null)
+            {
+                crop_growth_per_frame = pestDisasterEnvFactorDict[crop.id].GetImpacted(crop_growth_per_frame);
+            }
+            growthPerFrameDict[crop.id] = crop_growth_per_frame;
+            //Debug.Log("Crop: " + crop.name + " growthPerFrame: " + crop_growth_per_frame);
+        }
+        return;
+    }
+    #endregion
+    #region 2.公有函数部分
+    public bool SetCropPestDisaster(int crop_id, float decrease_rate){
+        // Safety check
+        if(crop_id < 0 || crop_id >= cropList.Count){
+            UIManager.Instance.DebugTextAdd("<<Error>>SetCropPestDisaster received invalid crop_id: " + crop_id.ToString());
+            return false;
+        }
+        if(decrease_rate < 0.0f || decrease_rate > 1.0f){
+            UIManager.Instance.DebugTextAdd("<<Error>>SetCropPestDisaster received invalid decrease_rate: " + decrease_rate.ToString());
+            return false;
+        }
+        // Create a new EnvFactor with the decrease_rate
+        LinearFactor env_factor = new LinearFactor{change_rate = decrease_rate};
+        // Register the EnvFactor to the pestDisasterEnvFactorDict
+        if(pestDisasterEnvFactorDict.ContainsKey(crop_id)){
+            pestDisasterEnvFactorDict[crop_id] = env_factor;
+        }
+        else{
+            pestDisasterEnvFactorDict.Add(crop_id, env_factor);
+        }
+        // Set the isEnvFactorChange flag
+        isEnvFactorChange = true;
+        return true;
+    }
+    public bool RemoveCropPestDisaster(int crop_id){
+        // Safety check
+        if(crop_id < 0 || crop_id >= cropList.Count){
+            UIManager.Instance.DebugTextAdd("<<Error>>RemoveCropPestDisaster received invalid crop_id: " + crop_id.ToString());
+            return false;
+        }
+        // Remove the EnvFactor from the pestDisasterEnvFactorDict
+        if(pestDisasterEnvFactorDict.ContainsKey(crop_id)){
+            pestDisasterEnvFactorDict.Remove(crop_id);
+            isEnvFactorChange = true;
+            return true;
+        }
+        else{
+            UIManager.Instance.DebugTextAdd("<<Error>>RemoveCropPestDisaster received invalid crop_id: " + crop_id.ToString());
+            return false;
+        }
+    }
+    public bool SetGlobalBuffEnvFactor(float global_rate)
+    {
+        // Safety check
+        if (global_rate < 0.0f)
+        {
+            UIManager.Instance.DebugTextAdd("<<Error>>SetGlobalBuffEnvFactor received invalid global_rate: " + global_rate.ToString());
+            return false;
+        }
+        // Create a new EnvFactor with the change_rate
+        globalBuffEnvFactor.change_rate = global_rate;
+        isEnvFactorChange = true;
+        return true;
+    }
+    #endregion
+    #endregion
+
     // =====================================Crop Part==========================================
-    public class Crop{
+    public class Crop
+    {
         public int id;
         public string name;
         public float lifetime;
         // public EnvFactor fertility_factor;
         // public EnvFactor humidity_factor;
         // public EnvFactor light_factor;
-        public List<KeyValuePair<int, int> > harvest_list;
+        public List<KeyValuePair<int, int>> harvest_list;
     }
     public List<Crop> cropList = new List<Crop>();
     const int CropSpritesCount = 6;
@@ -62,6 +205,7 @@ public class CropManager : MonoBehaviour
     {
         InitCropListData();
         InitSeedIdDict();
+        InitGrowthPerFrameDict();
     }
     //=========================================Private Function Part=======================================
     /// <summary>
