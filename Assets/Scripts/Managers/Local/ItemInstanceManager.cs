@@ -39,7 +39,6 @@ public class ItemInstanceManager : MonoBehaviour
     public Tilemap landTilemap;
     public GameObject content;
     public GameObject itemInstance;
-    public const float growthPerFrame = 0.005f;
 
     //====================================ItemInstance Class Part====================================
     public enum ItemInstanceType
@@ -209,6 +208,7 @@ public class ItemInstanceManager : MonoBehaviour
     {
         public float growth;
         public float real_lifetime;
+        public float growth_per_frame;
         //--------------------------------public------------------------------------
         public bool IsMature() { return growth >= real_lifetime; }
     }
@@ -443,7 +443,8 @@ public class ItemInstanceManager : MonoBehaviour
             item_id = crop_id,
             position = position,
             growth = 0,
-            real_lifetime = CropManager.Instance.GetRealLifetime(sample, env_data)
+            real_lifetime = CropManager.Instance.GetRealLifetime(sample, env_data),
+            growth_per_frame = CropManager.Instance.GetGrowthPerFrame(crop_id)
         };
         InitInstance(new_ins, CropManager.Instance.GetSprite(crop_id, 0));
         new_ins.SetText(sample.name);
@@ -666,18 +667,19 @@ public class ItemInstanceManager : MonoBehaviour
     /// </summary>
     public void UpdateAllCropInstance()
     {
-        float grow, life;
+        float grow, life, grow_per_frame;
         int stage, new_stage;
         foreach (ItemInstance it in itemInstanceLists[ItemInstanceType.CropInstance])
         {
             grow = ((CropInstance)it).growth;
             life = ((CropInstance)it).real_lifetime;
+            grow_per_frame = ((CropInstance)it).growth_per_frame;
             if (grow >= life) continue;
 
-            ((CropInstance)it).growth += growthPerFrame;
+            ((CropInstance)it).growth += grow_per_frame;
 
             stage = (int)(3 * (grow / life));
-            new_stage = (int)(3 * ((grow + growthPerFrame) / life));
+            new_stage = (int)(3 * ((grow + grow_per_frame) / life));
             if (new_stage > stage)
             {
                 if (new_stage < 0 || new_stage > 3)
@@ -693,7 +695,30 @@ public class ItemInstanceManager : MonoBehaviour
         }
     }
     #endregion
-
+    #region (2) 供外部调用的批量更新
+    /// <summary>
+    /// 供CropManager的影响因素模块调用的批量更新函数
+    /// </summary>
+    public void UpdateGrowthPerFrame(int crop_id = -1)
+    {
+        if (crop_id == -1)
+        {
+            // 更新所有CropInstance的生长速率
+            Dictionary<int, float> growth_per_frame_dict = CropManager.Instance.growthPerFrameDict;
+            foreach (ItemInstance it in itemInstanceLists[ItemInstanceType.CropInstance])
+                ((CropInstance)it).growth_per_frame = growth_per_frame_dict[it.item_id];
+        }
+        else
+        {
+            // 更新指定crop_id的CropInstance的生长速率
+            float growth_per_frame = CropManager.Instance.GetGrowthPerFrame(crop_id);
+            foreach (ItemInstance it in itemInstanceLists[ItemInstanceType.CropInstance])
+                if (it.item_id == crop_id)
+                    ((CropInstance)it).growth_per_frame = growth_per_frame;
+        }
+        return;
+    }
+    #endregion
     #endregion
     // Start is called before the first frame update
     /// <summary>
