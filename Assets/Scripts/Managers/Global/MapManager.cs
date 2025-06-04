@@ -609,10 +609,17 @@ public class MapManager : MonoBehaviour
         if(!IsInBoard(pos)) return false;
         return mapDatas[pos.x, pos.y].can_walk;
     }
+
+    //获取该地块的可种植情况
+    public bool IsPlantable(Vector3Int pos){
+        if(!IsInBoard(pos)) return false;
+        return mapDatas[pos.x, pos.y].can_plant;
+    }
     
     //检测某个格子上是否有pawn
-    public bool HasPawnAt(Vector3Int pos){
-        if(!IsInBoard(pos)) return false;
+    public bool HasPawnAt(Vector3Int pos)
+    {
+        if (!IsInBoard(pos)) return false;
         return mapDatas[pos.x, pos.y].has_pawn;
     }
     
