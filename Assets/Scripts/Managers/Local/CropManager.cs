@@ -70,7 +70,7 @@ public class CropManager : MonoBehaviour
         }
     }
     #endregion
-    #region 影响因素模块-管理
+    #region 影响因素模块-动态growthPerFrame管理
     #region 0.变量部分
     public Dictionary<int, LinearFactor> pestDisasterEnvFactorDict = new Dictionary<int, LinearFactor>();
     public LinearFactor globalBuffEnvFactor = null;
