@@ -900,11 +900,23 @@ MonoBehaviour:
   tempItemSprites:
   - {fileID: 0}
   - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 21300000, guid: 3961f901846cd13448d597edd0e30d38, type: 3}
   - {fileID: 21300000, guid: 3c8773c4eda76bf4996571aff7bb06fc, type: 3}
   - {fileID: 21300000, guid: beebfbd0253d8724aafd028054ba7c8a, type: 3}
   - {fileID: 21300000, guid: 3faefeb8d1f8e154ebb3e3e91de49a0e, type: 3}
   - {fileID: 21300000, guid: a07480482815b41459671010f9016eca, type: 3}
+  - {fileID: 21300000, guid: df02f85577e153644960f5d724ffe63a, type: 3}
+  - {fileID: 21300000, guid: df02f85577e153644960f5d724ffe63a, type: 3}
+  - {fileID: 21300000, guid: df02f85577e153644960f5d724ffe63a, type: 3}
+  - {fileID: 21300000, guid: df02f85577e153644960f5d724ffe63a, type: 3}
+  - {fileID: 21300000, guid: df02f85577e153644960f5d724ffe63a, type: 3}
+  - {fileID: 21300000, guid: df02f85577e153644960f5d724ffe63a, type: 3}
+  - {fileID: 21300000, guid: ec457e2b01dbfa6469966fd671c80424, type: 3}
+  - {fileID: 21300000, guid: 74de89c3328ae7d4b983a4d1ea9e63cc, type: 3}
+  - {fileID: 21300000, guid: 93985d0565e49a14198fc5f83b1f0970, type: 3}
+  - {fileID: 21300000, guid: 93985d0565e49a14198fc5f83b1f0970, type: 3}
+  - {fileID: 21300000, guid: 93985d0565e49a14198fc5f83b1f0970, type: 3}
+  - {fileID: 21300000, guid: 93985d0565e49a14198fc5f83b1f0970, type: 3}
   - {fileID: 21300000, guid: 93985d0565e49a14198fc5f83b1f0970, type: 3}
 --- !u!114 &398816337
 MonoBehaviour:
@@ -2093,7 +2105,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d2a641501872564fa26d14f186971a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isEnvFactorChange: 0
   CropSprites:
   - {fileID: -313223371, guid: 560abfdbdf7c8424fbfaa7153286a74a, type: 3}
   - {fileID: -489098988, guid: 560abfdbdf7c8424fbfaa7153286a74a, type: 3}

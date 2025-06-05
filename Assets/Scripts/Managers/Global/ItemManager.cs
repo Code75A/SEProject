@@ -68,7 +68,7 @@ public class ItemManager : MonoBehaviour
         public int max_durability;
     }
 
-    const int tempItemSpritesCount = 8;
+    const int tempItemSpritesCount = 20;
     public Sprite[] tempItemSprites = new Sprite[tempItemSpritesCount];
 
     //=========================================Manager Function Part=======================================
@@ -104,7 +104,7 @@ public class ItemManager : MonoBehaviour
                         {PawnManager.Pawn.EnhanceType.Speed,10},
                         {PawnManager.Pawn.EnhanceType.Power,100}}});
         itemLists[ItemType.Tool].Add(
-            new Tool{id=6, name="手推车", type=ItemType.Tool, texture=tempItemSprites[6], max_durability=100, 
+            new Tool{id=14, name="手推车", type=ItemType.Tool, texture=tempItemSprites[14], max_durability=100, 
                     enhancements=new Dictionary<PawnManager.Pawn.EnhanceType, int>{
                         {PawnManager.Pawn.EnhanceType.capacity,100}, 
                         {PawnManager.Pawn.EnhanceType.Speed,0},
@@ -118,22 +118,26 @@ public class ItemManager : MonoBehaviour
             new Material{id=5, name="木材", type=ItemType.Material, texture=tempItemSprites[5], can_plant_crop=-1});
         itemLists[ItemType.Material].Add(
             new Material{id=6, name="铁矿", type=ItemType.Material, texture=tempItemSprites[6], can_plant_crop=-1});
-        
         itemLists[ItemType.Material].Add(
-            new Material{id=7, name="稻种", type=ItemType.Material, texture=tempItemSprites[5], can_plant_crop=0});
+            new Material{id=13, name="金币", type=ItemType.Material, texture=tempItemSprites[13], can_plant_crop=-1});
         itemLists[ItemType.Material].Add(
-            new Material{id=8, name="土豆种子", type=ItemType.Material, texture=tempItemSprites[5], can_plant_crop=1});
+            new Material{id=14, name="土豆", type=ItemType.Material, texture=tempItemSprites[14], can_plant_crop=-1});
+
         itemLists[ItemType.Material].Add(
-            new Material{id=9, name="麦种", type=ItemType.Material, texture=tempItemSprites[5], can_plant_crop=2});
+            new Material{id=7, name="稻种", type=ItemType.Material, texture=tempItemSprites[7], can_plant_crop=0});
         itemLists[ItemType.Material].Add(
-            new Material{id=10, name="棉花种子", type=ItemType.Material, texture=tempItemSprites[5], can_plant_crop=3});
+            new Material{id=8, name="土豆种子", type=ItemType.Material, texture=tempItemSprites[8], can_plant_crop=1});
         itemLists[ItemType.Material].Add(
-            new Material{id=11, name="葡萄藤根", type=ItemType.Material, texture=tempItemSprites[5], can_plant_crop=4});
+            new Material{id=9, name="麦种", type=ItemType.Material, texture=tempItemSprites[9], can_plant_crop=2});
         itemLists[ItemType.Material].Add(
-            new Material{id=12, name="树苗", type=ItemType.Material, texture=tempItemSprites[5], can_plant_crop=5});
+            new Material{id=10, name="棉花种子", type=ItemType.Material, texture=tempItemSprites[10], can_plant_crop=3});
+        itemLists[ItemType.Material].Add(
+            new Material{id=11, name="葡萄藤根", type=ItemType.Material, texture=tempItemSprites[11], can_plant_crop=4});
+        itemLists[ItemType.Material].Add(
+            new Material{id=12, name="树苗", type=ItemType.Material, texture=tempItemSprites[12], can_plant_crop=5});
         //Resource
         itemLists[ItemType.Resource].Add(
-            new Resource{id=16, name="铁矿脉", type=ItemType.Resource, texture=tempItemSprites[7], max_durability=100});
+            new Resource{id=16, name="铁矿脉", type=ItemType.Resource, texture=tempItemSprites[16], max_durability=100});
         #endregion 
     }
     void Start()
