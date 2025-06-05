@@ -39,7 +39,6 @@ public class ItemInstanceManager : MonoBehaviour
     public Tilemap landTilemap;
     public GameObject content;
     public GameObject itemInstance;
-    public const float growthPerFrame = 0.005f;
 
     //====================================ItemInstance Class Part====================================
     public enum ItemInstanceType
@@ -209,12 +208,16 @@ public class ItemInstanceManager : MonoBehaviour
     {
         public float growth;
         public float real_lifetime;
+        public float growth_per_frame;
+        public List<KeyValuePair<int, int>> harvest_list; // 指向模板的收获列表
         //--------------------------------public------------------------------------
         public bool IsMature() { return growth >= real_lifetime; }
     }
     public class BuildingInstance : ItemInstance
     {
         public int durability;
+        public ItemInstance content; // 用于存放建筑内部的物品实例
+        public List<KeyValuePair<int, int>> material_list;   // 指向模板的建筑材料列表
     }
     public class PrintInstance : ItemInstance
     {
@@ -443,7 +446,9 @@ public class ItemInstanceManager : MonoBehaviour
             item_id = crop_id,
             position = position,
             growth = 0,
-            real_lifetime = CropManager.Instance.GetRealLifetime(sample, env_data)
+            real_lifetime = CropManager.Instance.GetRealLifetime(sample, env_data),
+            growth_per_frame = CropManager.Instance.GetGrowthPerFrame(crop_id),
+            harvest_list = sample.harvest_list // 指向模板的收获列表
         };
         InitInstance(new_ins, CropManager.Instance.GetSprite(crop_id, 0));
         new_ins.SetText(sample.name);
@@ -469,7 +474,9 @@ public class ItemInstanceManager : MonoBehaviour
             type = ItemInstanceType.BuildingInstance,
             item_id = building_id,
             position = position,
-            durability = sample.durability
+            durability = sample.durability,
+            content = null, // 初始化内容为空
+            material_list = sample.material_list // 指向建筑所需材料列表
         };
         InitInstance(new_ins, sample.texture);
         new_ins.SetText(sample.name);
@@ -534,18 +541,18 @@ public class ItemInstanceManager : MonoBehaviour
 
     #region (2)PrintInstance转BuildInstance
 
-    public void PrintToBuild(ItemInstance aim_ins)
-    {
-        if (aim_ins.type != ItemInstanceType.PrintInstance)
-        {
-            UIManager.Instance.DebugTextAdd(
-                "<<Error>>PrintToBuild FAILED: the iteminstance_id " + aim_ins.id + " is not a PrintInstance. "
-            );
-            return;
-        }
+    // public void PrintToBuild(ItemInstance aim_ins)
+    // {
+    //     if (aim_ins.type != ItemInstanceType.PrintInstance)
+    //     {
+    //         UIManager.Instance.DebugTextAdd(
+    //             "<<Error>>PrintToBuild FAILED: the iteminstance_id " + aim_ins.id + " is not a PrintInstance. "
+    //         );
+    //         return;
+    //     }
 
-        //
-    }
+    //     //
+    // }
 
     #endregion
 
@@ -578,25 +585,22 @@ public class ItemInstanceManager : MonoBehaviour
     /// <summary>
     /// private
     /// </summary>
-    public void ClearPrintInstance(ItemInstance aim_ins, DestroyMode mode, float remain_rate)
-    {
-        if (aim_ins.type != ItemInstanceType.PrintInstance)
-        {
+    public void ClearPrintInstance(ItemInstance aim_ins, DestroyMode mode, float remain_rate){
+        // Safety check
+        if (aim_ins.type != ItemInstanceType.PrintInstance){
             UIManager.Instance.DebugTextAdd(
                 "<<Error>>Clearing PrintInstance FAILED: the iteminstance_id " + aim_ins.id + " is not a PrintInstance. "
             );
             return;
         }
-        if (mode == DestroyMode.RemainNone)
-        {
-            ;
+
+        if (mode == DestroyMode.RemainNone) {
+            // 不产生任何遗留物
         }
-        else if (mode == DestroyMode.RemainAll || mode == DestroyMode.RemainWithRate)
-        {
+        else if (mode == DestroyMode.RemainAll || mode == DestroyMode.RemainWithRate){
             List<KeyValuePair<int, int>> temp = new List<KeyValuePair<int, int>>();
             int item_id, amount;
-            foreach (KeyValuePair<int, PrintInstance.Progress> it in ((PrintInstance)aim_ins).material_list)
-            {
+            foreach (KeyValuePair<int, PrintInstance.Progress> it in ((PrintInstance)aim_ins).material_list){
                 item_id = it.Key;
                 amount = it.Value.current;
 
@@ -608,48 +612,96 @@ public class ItemInstanceManager : MonoBehaviour
             int set_res = MapManager.Instance.SetMaterial(aim_ins.position, temp);
             UIManager.Instance.DebugTextAdd("[Log]From mapManager get set-material-result: " + set_res + ". ");
         }
-        else
-        {
-            UIManager.Instance.DebugTextAdd("<<Error>>Clearing PrintInstance FAILED: UnDefined DestroyMode. ");
+        else{
+            UIManager.Instance.DebugTextAdd(
+                "<<Warning>>ClearPrintInstance has not implement with DestroyMode: " + mode.ToString() + ". "
+            );
         }
+        return;
     }
-    public void ClearCropInstance(ItemInstance aim_ins, DestroyMode mode, float remain_rate)
-    {
-        if (aim_ins.type != ItemInstanceType.CropInstance)
-        {
+    public void ClearCropInstance(ItemInstance aim_ins, DestroyMode mode, float remain_rate){
+        // Safety check
+        if (aim_ins.type != ItemInstanceType.CropInstance){
             UIManager.Instance.DebugTextAdd(
                 "<<Error>>Clearing CropInstance FAILED: the iteminstance_id " + aim_ins.id + " is not a CropInstance. "
             );
             return;
         }
 
-        if (mode == DestroyMode.RemainNone)
-        {
-            ;
+        if (mode == DestroyMode.RemainNone) {
+            // 不产生任何遗留物
         }
-        else if (mode == DestroyMode.RemainAll || mode == DestroyMode.RemainWithRate)
-        {
+        else if (mode == DestroyMode.RemainAll) {
+            List<KeyValuePair<int, int>> sample = CropManager.Instance.GetCrop(aim_ins.GetModelId()).harvest_list;
+            int set_res = MapManager.Instance.SetMaterial(aim_ins.position, sample);
+            UIManager.Instance.DebugTextAdd("[Log]From mapManager get set-material-result: " + set_res + ". ");
+        }
+        else if (mode == DestroyMode.RemainWithRate){
             List<KeyValuePair<int, int>> sample = CropManager.Instance.GetCrop(aim_ins.GetModelId()).harvest_list;
             List<KeyValuePair<int, int>> temp = new List<KeyValuePair<int, int>>();
             int crop_id, amount;
-            for (int i = 0; i < sample.Count; i++)
-            {
+            for (int i = 0; i < sample.Count; i++){
                 crop_id = sample[i].Key;
                 amount = sample[i].Value;
                 //Debug.Log(crop_id.ToString()+ "|" + amount.ToString());
 
-                if (mode == DestroyMode.RemainWithRate) amount = (int)System.Math.Truncate((double)(amount * remain_rate));
-
+                amount = (int)System.Math.Truncate((double)(amount * remain_rate));
                 if (amount > 0)
                     temp.Add(new KeyValuePair<int, int>(crop_id, amount));
             }
             int set_res = MapManager.Instance.SetMaterial(aim_ins.position, temp);
             UIManager.Instance.DebugTextAdd("[Log]From mapManager get set-material-result: " + set_res + ". ");
         }
-        else
-        {
-            UIManager.Instance.DebugTextAdd("<<Error>>Clearing CropInstance FAILED: UnDefined DestroyMode. ");
+        else{
+            UIManager.Instance.DebugTextAdd(
+                "<<Warning>>ClearCropInstance has not implement with DestroyMode: " + mode.ToString() + ". "
+            );
         }
+        return;
+    }
+    public void ClearBuildingInstance(ItemInstance aim_ins, DestroyMode mode, float remain_rate)
+    {
+        // Safety check
+        if (aim_ins.type != ItemInstanceType.BuildingInstance){
+            UIManager.Instance.DebugTextAdd(
+                "<<Error>>Clearing BuildingInstance FAILED: the iteminstance_id " + aim_ins.id + " is not a BuildingInstance. "
+            );
+            return;
+        }
+        // 1.if content is not null, content will replace the aim_ins
+        if( ((BuildingInstance)aim_ins).content != null){
+            // 将内容物放置到地图上
+            MapManager.Instance.SetMapDataItem(((BuildingInstance)aim_ins).content, aim_ins.position);
+            // 将内容物的position设置为aim_ins的position
+            ((BuildingInstance)aim_ins).content.position = aim_ins.position;
+        }
+        // 2.material drop
+        if (mode == DestroyMode.RemainNone) {
+            // 不产生任何遗留物
+        }
+        else if(mode == DestroyMode.RemainAll) {
+            // 直接将建筑所需材料全部掉落
+            int set_res = MapManager.Instance.SetMaterial(aim_ins.position, ((BuildingInstance)aim_ins).material_list);
+            UIManager.Instance.DebugTextAdd("[Log]From mapManager get set-material-result: " + set_res + ". ");
+        }
+        else if (mode == DestroyMode.RemainWithRate) {
+            // 按照remain_rate比例掉落建筑所需材料
+            List<KeyValuePair<int, int>> temp = new List<KeyValuePair<int, int>>();
+            foreach (KeyValuePair<int, int> it in ((BuildingInstance)aim_ins).material_list) {
+                int item_id = it.Key;
+                int amount = (int)System.Math.Truncate((double)(it.Value * remain_rate));
+                if (amount > 0)
+                    temp.Add(new KeyValuePair<int, int>(item_id, amount));
+            }
+            int set_res = MapManager.Instance.SetMaterial(aim_ins.position, temp);
+            UIManager.Instance.DebugTextAdd("[Log]From mapManager get set-material-result: " + set_res + ". ");
+        }
+        else {
+            UIManager.Instance.DebugTextAdd(
+                "<<Warning>>ClearBuildingInstance has not implement with DestroyMode: " + mode.ToString() + ". "
+            );
+        }
+        return;
     }
     #endregion
 
@@ -666,18 +718,19 @@ public class ItemInstanceManager : MonoBehaviour
     /// </summary>
     public void UpdateAllCropInstance()
     {
-        float grow, life;
+        float grow, life, grow_per_frame;
         int stage, new_stage;
         foreach (ItemInstance it in itemInstanceLists[ItemInstanceType.CropInstance])
         {
             grow = ((CropInstance)it).growth;
             life = ((CropInstance)it).real_lifetime;
+            grow_per_frame = ((CropInstance)it).growth_per_frame;
             if (grow >= life) continue;
 
-            ((CropInstance)it).growth += growthPerFrame;
+            ((CropInstance)it).growth += grow_per_frame;
 
             stage = (int)(3 * (grow / life));
-            new_stage = (int)(3 * ((grow + growthPerFrame) / life));
+            new_stage = (int)(3 * ((grow + grow_per_frame) / life));
             if (new_stage > stage)
             {
                 if (new_stage < 0 || new_stage > 3)
@@ -693,7 +746,30 @@ public class ItemInstanceManager : MonoBehaviour
         }
     }
     #endregion
-
+    #region (2) 供外部调用的批量更新
+    /// <summary>
+    /// 供CropManager的影响因素模块调用的批量更新函数
+    /// </summary>
+    public void UpdateGrowthPerFrame(int crop_id = -1)
+    {
+        if (crop_id == -1)
+        {
+            // 更新所有CropInstance的生长速率
+            Dictionary<int, float> growth_per_frame_dict = CropManager.Instance.growthPerFrameDict;
+            foreach (ItemInstance it in itemInstanceLists[ItemInstanceType.CropInstance])
+                ((CropInstance)it).growth_per_frame = growth_per_frame_dict[it.item_id];
+        }
+        else
+        {
+            // 更新指定crop_id的CropInstance的生长速率
+            float growth_per_frame = CropManager.Instance.GetGrowthPerFrame(crop_id);
+            foreach (ItemInstance it in itemInstanceLists[ItemInstanceType.CropInstance])
+                if (it.item_id == crop_id)
+                    ((CropInstance)it).growth_per_frame = growth_per_frame;
+        }
+        return;
+    }
+    #endregion
     #endregion
     // Start is called before the first frame update
     /// <summary>
@@ -809,13 +885,18 @@ public class ItemInstanceManager : MonoBehaviour
     /// note: PawnManager不应使用此函数进行Crop的收获或毁坏,请注意HarvestCrop和RuinCrop函数
     /// </summary>
     /// <param name="remain_rate">遗留物的生成率，只在destroy_mode==DestroyMode.RemainWithRate时有效</param>
-    public void DestroyItem(ItemInstance aim_ins, DestroyMode destroy_mode = DestroyMode.RemainNone, float remain_rate = 0.5f)
-    {
+    public void DestroyItem(ItemInstance aim_ins, DestroyMode destroy_mode = DestroyMode.RemainNone, float remain_rate = 0.5f){
         // 检查该Instance是否存在
-        if (GetInstance(aim_ins.id) == null)
-        {
+        if (GetInstance(aim_ins.id) == null) {
             UIManager.Instance.DebugTextAdd(
                 "<<Error>>Destroying Item FAILED: the iteminstance_id " + aim_ins.id + " is not found in ItemInstanceManager. "
+            );
+            return;
+        }
+        // 检查销毁模式
+        if (destroy_mode >= DestroyMode.Total || destroy_mode < 0) {
+            UIManager.Instance.DebugTextAdd(
+                "<<Error>>Destroying Item FAILED: UnDefined DestroyMode. "
             );
             return;
         }
@@ -825,8 +906,7 @@ public class ItemInstanceManager : MonoBehaviour
         //  与InitInstance对应 销毁GameObject
         DestroyInstance(aim_ins);
         //  清除不同种类的ItemInstance的内含物
-        switch (aim_ins.type)
-        {
+        switch (aim_ins.type) {
             case ItemInstanceType.ToolInstance:
                 break;
             case ItemInstanceType.MaterialInstance:
@@ -835,6 +915,7 @@ public class ItemInstanceManager : MonoBehaviour
                 ClearCropInstance(aim_ins, destroy_mode, remain_rate);
                 break;
             case ItemInstanceType.BuildingInstance:
+                ClearBuildingInstance(aim_ins, destroy_mode, remain_rate);
                 break;
             case ItemInstanceType.PrintInstance:
                 ClearPrintInstance(aim_ins, destroy_mode, remain_rate);
@@ -853,17 +934,13 @@ public class ItemInstanceManager : MonoBehaviour
     }
 
     public Dictionary<ItemInstanceType, List<ItemInstance>> itemInstanceLists = new Dictionary<ItemInstanceType, List<ItemInstance>>();
-    public ItemInstance GetInstance(int iteminstance_id, ItemInstanceType type = ItemInstanceType.Total)
-    {
+    public ItemInstance GetInstance(int iteminstance_id, ItemInstanceType type = ItemInstanceType.Total){
         ItemInstance aim_ins = null;
-        if (type != ItemInstanceType.Total)
-        {
+        if (type != ItemInstanceType.Total) {
             aim_ins = itemInstanceLists[type].Find(c => c.id == iteminstance_id);
         }
-        else
-        {
-            for (ItemInstanceType i = 0; i < ItemInstanceType.Total; i++)
-            {
+        else {
+            for (ItemInstanceType i = 0; i < ItemInstanceType.Total; i++) {
                 if (itemInstanceLists[i] is not null)
                     aim_ins = itemInstanceLists[i].Find(c => c.id == iteminstance_id);
                 if (aim_ins is not null)
@@ -871,8 +948,7 @@ public class ItemInstanceManager : MonoBehaviour
             }
         }
 
-        if (aim_ins is null)
-        {
+        if (aim_ins is null) {
             UIManager.Instance.DebugTextAdd(
                 "[Log]Getting Item FAILED: the iteminstance_id " + iteminstance_id + " is not found in " + type.ToString() + " List. "
             );
@@ -887,7 +963,7 @@ public class ItemInstanceManager : MonoBehaviour
     /// 此函数lyq负责，用于运输任务时查询
     /// todo:目前仅实现最近距离查找，后续需要加入物品数量，地块是否可通行等方面的考虑
     public Vector3Int FindNearestItemPosition(int item_id, Vector3Int currentPosition, float searchRadius = float.MaxValue)
-    {
+{
         Vector3Int NearestPosition = Vector3Int.zero;
         float minDistance = float.MaxValue;
         // 遍历所有ItemInstance列表查找，可以后续优化
@@ -917,8 +993,7 @@ public class ItemInstanceManager : MonoBehaviour
         return NearestPosition;
     }
     #region ======================ToolInstance Function Part=========================
-    public Dictionary<PawnManager.Pawn.EnhanceType, int> GetEnhance(ToolInstance tool_ins)
-    {
+    public Dictionary<PawnManager.Pawn.EnhanceType, int> GetEnhance(ToolInstance tool_ins){
         Dictionary<PawnManager.Pawn.EnhanceType, int> res;
         ItemManager.Tool sample = (ItemManager.Tool)ItemManager.Instance.GetItem(tool_ins.item_id, ItemManager.ItemType.Tool);
         res = sample.enhancements;
@@ -927,8 +1002,7 @@ public class ItemInstanceManager : MonoBehaviour
     #endregion
 
     #region ===================CropInstance Function Part=====================
-    public bool HarvestCrop(CropInstance crop_ins)
-    {
+    public bool HarvestCrop(CropInstance crop_ins) {
         // if (crop_ins.IsMature())
         // {
         Debug.Log("Harvesting Crop: " + crop_ins.id);
@@ -941,19 +1015,16 @@ public class ItemInstanceManager : MonoBehaviour
         // }
         //return false;
     }
-    public bool RuinCrop(CropInstance crop_ins)
-    {
+    public bool RuinCrop(CropInstance crop_ins) {
         DestroyItem(crop_ins, DestroyMode.RemainNone);
         return true;
     }
     /// <summary>
     /// 种植Plant并将使用的seed的数量-1
     /// </summary>
-    public bool PlantSeed(MaterialInstance seed, Vector3Int position)
-    {
+    public bool PlantSeed(MaterialInstance seed, Vector3Int position){
         // Check
-        if (seed.GetAmount() <= 0)
-        {
+        if (seed.GetAmount() <= 0) {
             UIManager.Instance.DebugTextAdd("<<Error>> Planting but the MaterialInstance `seed` with amount below 0!");
             return false;
         }

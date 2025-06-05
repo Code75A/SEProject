@@ -11,8 +11,10 @@ public class CropManager : MonoBehaviour
     const int GROWTH_STAGE_COUNT = 4;
     public const float standardGrowthPerFrame = 0.005f;
     //=========================================Factor Part=======================================
-    public enum FactorType{
-        Linear, LinearDiffEnv, InRangeEnv,Zero, Total
+    #region 影响因素模块-class Factor的基本内容
+    public enum FactorType
+    {
+        Linear, LinearDiffEnv, InRangeEnv, Zero, Total
     }
     public abstract class Factor
     {
@@ -67,13 +69,12 @@ public class CropManager : MonoBehaviour
             else return origin;
         }
     }
-
-    #region 影响因素模块管理
+    #endregion
+    #region 影响因素模块-动态growthPerFrame管理
     #region 0.变量部分
     public Dictionary<int, LinearFactor> pestDisasterEnvFactorDict = new Dictionary<int, LinearFactor>();
     public LinearFactor globalBuffEnvFactor = null;
     public Dictionary<int, float> growthPerFrameDict = new Dictionary<int, float>();
-    public bool isEnvFactorChange = false;
     #endregion
     #region 1.私有函数部分
     ///<summary>
@@ -81,62 +82,75 @@ public class CropManager : MonoBehaviour
     /// </summary>
     public void InitGrowthPerFrameDict()
     {
-        foreach (var crop in cropList)
-        {
-            growthPerFrameDict[crop.id] = standardGrowthPerFrame;
-        }
-        isEnvFactorChange = false;
+        // the globalBuffEnvFactor with a default value of change_rate = 1.0f, which means no change
         globalBuffEnvFactor = new LinearFactor
         {
             //id = -1, // -1 means global buff
             type = FactorType.Linear,
             change_rate = 1.0f // default no change
         };
+        for(int i=0;i< cropList.Count; i++){
+            // Initialize each crop's growthPerFrameDict with the standardGrowthPerFrame
+            growthPerFrameDict.Add(cropList[i].id, standardGrowthPerFrame);
+            // Initialize the pestDisasterEnvFactorDict with null
+            pestDisasterEnvFactorDict.Add(cropList[i].id, null);
+        }
+        UpdateGrowthPerFrameDict();
     }
     ///<summary>
     /// private: update the growthPerFrameDict with EnvFactor changed
     /// </summary>
-    public void UpdateGrowthPerFrameDict()
-    {
+    public void UpdateGrowthPerFrameDict(int crop_id = -1){
         // globalBuffEnvFactor is the global EnvFactor, it will impact all crops
         float growth_per_frame = globalBuffEnvFactor.GetImpacted(standardGrowthPerFrame);
 
         // pestDisasterEnvFactorDict is the local EnvFactor, it will impact each crop
-        foreach (var crop in cropList)
-        {
-            float crop_growth_per_frame = growth_per_frame;
-            if (pestDisasterEnvFactorDict[crop.id] != null)
-            {
-                crop_growth_per_frame = pestDisasterEnvFactorDict[crop.id].GetImpacted(crop_growth_per_frame);
+        if (crop_id == -1){
+            // If crop_id is -1, we update all crops' growthPerFrameDict
+            foreach (var crop in cropList){
+                float crop_growth_per_frame = growth_per_frame;
+                if (pestDisasterEnvFactorDict[crop.id] != null)
+                {
+                    crop_growth_per_frame = pestDisasterEnvFactorDict[crop.id].GetImpacted(crop_growth_per_frame);
+                }
+                growthPerFrameDict[crop.id] = crop_growth_per_frame;
+                Debug.Log("Crop: " + crop.id + " growthPerFrame: " + crop_growth_per_frame);
             }
-            growthPerFrameDict[crop.id] = crop_growth_per_frame;
-            //Debug.Log("Crop: " + crop.name + " growthPerFrame: " + crop_growth_per_frame);
+        }
+        else{
+            float crop_growth_per_frame = growth_per_frame;
+            if (pestDisasterEnvFactorDict[crop_id] != null){
+                crop_growth_per_frame = pestDisasterEnvFactorDict[crop_id].GetImpacted(crop_growth_per_frame);
+            }
+            growthPerFrameDict[crop_id] = crop_growth_per_frame;
+            Debug.Log("Crop: " + crop_id + " growthPerFrame: " + crop_growth_per_frame);
         }
         return;
     }
     #endregion
     #region 2.公有函数部分
+    #region (1)接受改动
     public bool SetCropPestDisaster(int crop_id, float decrease_rate){
         // Safety check
-        if(crop_id < 0 || crop_id >= cropList.Count){
+        if (crop_id < 0 || crop_id >= cropList.Count){
             UIManager.Instance.DebugTextAdd("<<Error>>SetCropPestDisaster received invalid crop_id: " + crop_id.ToString());
             return false;
         }
-        if(decrease_rate < 0.0f || decrease_rate > 1.0f){
+        if (decrease_rate < 0.0f || decrease_rate > 1.0f){
             UIManager.Instance.DebugTextAdd("<<Error>>SetCropPestDisaster received invalid decrease_rate: " + decrease_rate.ToString());
             return false;
         }
         // Create a new EnvFactor with the decrease_rate
-        LinearFactor env_factor = new LinearFactor{change_rate = decrease_rate};
+        LinearFactor env_factor = new LinearFactor { change_rate = decrease_rate };
         // Register the EnvFactor to the pestDisasterEnvFactorDict
-        if(pestDisasterEnvFactorDict.ContainsKey(crop_id)){
+        if (pestDisasterEnvFactorDict.ContainsKey(crop_id))
             pestDisasterEnvFactorDict[crop_id] = env_factor;
-        }
-        else{
+        else
             pestDisasterEnvFactorDict.Add(crop_id, env_factor);
-        }
-        // Set the isEnvFactorChange flag
-        isEnvFactorChange = true;
+        // Update the growthPerFrameDict with the new EnvFactor
+        UpdateGrowthPerFrameDict(crop_id);
+        // Notify the ItemInstanceManager to update the growth_per_frame
+        ItemInstanceManager.Instance.UpdateGrowthPerFrame(crop_id);
         return true;
     }
     public bool RemoveCropPestDisaster(int crop_id){
@@ -148,7 +162,10 @@ public class CropManager : MonoBehaviour
         // Remove the EnvFactor from the pestDisasterEnvFactorDict
         if(pestDisasterEnvFactorDict.ContainsKey(crop_id)){
             pestDisasterEnvFactorDict.Remove(crop_id);
-            isEnvFactorChange = true;
+            // Update the growthPerFrameDict without the EnvFactor
+            UpdateGrowthPerFrameDict(crop_id);
+            // Notify the ItemInstanceManager to update the growth_per_frame
+            ItemInstanceManager.Instance.UpdateGrowthPerFrame(crop_id);
             return true;
         }
         else{
@@ -156,19 +173,53 @@ public class CropManager : MonoBehaviour
             return false;
         }
     }
-    public bool SetGlobalBuffEnvFactor(float global_rate)
-    {
+    public bool SetGlobalBuffEnvFactor(float global_rate){
         // Safety check
         if (global_rate < 0.0f)
         {
             UIManager.Instance.DebugTextAdd("<<Error>>SetGlobalBuffEnvFactor received invalid global_rate: " + global_rate.ToString());
             return false;
         }
-        // Create a new EnvFactor with the change_rate
+        // Set the globalBuffFactor with the change_rate
         globalBuffEnvFactor.change_rate = global_rate;
-        isEnvFactorChange = true;
+        // Update the growthPerFrameDict with the new globalBuffEnvFactor
+        UpdateGrowthPerFrameDict();
+        // Notify the ItemInstanceManager to update the growth_per_frame
+        ItemInstanceManager.Instance.UpdateGrowthPerFrame();
         return true;
     }
+    #endregion
+    #region (2)供CropInstance获取信息
+    /*
+        将生长总耗时的扰动因素换成两部分：
+            - （1）种植下去时的农田的环境因子（fertility, humidity, light）与植物需求的适配度
+            - （2）生长过程中可能会受到的全局灾害和增益（pest disaster（对crop种类分类）, 其他全局buff，etc.）
+        那么我们将（1）绑定到RealLifeTime上，（2）绑定到growthPerFrame上。
+        CropInstance相应地设置私有成员real_lifetime和growth_per_frame作为缓存
+        CropManager将负责使用相应的公式计算这两个值；前者Factor写死（植物特性），后者Factor可变（环境变化、全局buff等）
+        由于后者可变，CropManager需要提供：
+            - 一个接口供CropInstance获取当前的growthPerFrame。
+            - 标志位提醒某种Crop的CropInstance需要更新growthPerFrame。
+            - 各种可以扰动的环境因子（pest disaster, global buff等）修改growthPerFrame的接口。
+    */
+    public float GetGrowthPerFrame(int crop_id)
+    {
+        // Safety check
+        if (crop_id < 0 || crop_id >= cropList.Count)
+        {
+            UIManager.Instance.DebugTextAdd("<<Error>>GetGrowthPerFrame received invalid crop_id: " + crop_id.ToString());
+            return 0.0f;
+        }
+        // Return the growth per frame for the crop
+        return growthPerFrameDict[crop_id];
+    }
+    public float GetRealLifetime(Crop crop, MapManager.MapData env_data){
+        float real_lifetime =  crop.lifetime;
+        real_lifetime = real_lifetime * env_data.fertility * env_data.light * Math.Abs(1.0f-env_data.humidity);
+        // TODO: UseFactor to enable different require for different crop
+        return real_lifetime;
+    }
+    #endregion
     #endregion
     #endregion
 
@@ -260,12 +311,6 @@ public class CropManager : MonoBehaviour
 
         Debug.LogError("GetCrop收到无效id: " + id);
         return null;
-    }
-    public float GetRealLifetime(Crop crop, MapManager.MapData env_data){
-        float real_lifetime =  crop.lifetime;
-        real_lifetime = real_lifetime * env_data.fertility * env_data.light * Math.Abs(1.0f-env_data.humidity);
-        // TODO: UseFactor to enable different require for different crop
-        return real_lifetime;
     }
     
     public Sprite GetSprite(int crop_id, int growth_stage){ 
