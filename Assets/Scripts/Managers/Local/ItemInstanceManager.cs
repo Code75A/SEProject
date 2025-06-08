@@ -446,7 +446,7 @@ public class ItemInstanceManager : MonoBehaviour
             item_id = crop_id,
             position = position,
             growth = 0,
-            real_lifetime = CropManager.Instance.GetRealLifetime(sample, env_data),
+            real_lifetime = CropManager.Instance.GetRealLifetime(sample.id, env_data),
             growth_per_frame = CropManager.Instance.GetGrowthPerFrame(crop_id),
             harvest_list = sample.harvest_list // 指向模板的收获列表
         };
@@ -791,18 +791,22 @@ public class ItemInstanceManager : MonoBehaviour
         //Debug.Log("init itemInstanceLists finished");
         #endregion
 
-        #region 动态载入部分ItemInstance供测试
-
+    }
+    
+    bool isTested = false;
+    public void Test()
+    {
+        //动态载入部分ItemInstance供测试
         #region (1)CropInstance收割和生长接口自测试 【由于会导致脚本调用顺序成环暂且停用 原因：用到MapManager】
-        //Debug.Log("spawning some crop instance.");
+        Debug.Log("spawning some crop instance.");
 
-        // CropInstance tmp1 = (CropInstance)SpawnItem(new Vector3Int(30, 30, 0), 0, ItemInstanceType.CropInstance);
-        // CropInstance tmp2 = (CropInstance)SpawnItem(new Vector3Int(30, 31, 0), 1, ItemInstanceType.CropInstance);
-        // CropInstance tmp3 = (CropInstance)SpawnItem(new Vector3Int(30, 32, 0), 2, ItemInstanceType.CropInstance);
-        
-        //HarvestCrop(tmp1);
-        //HarvestCrop(tmp2);
-        //HarvestCrop(tmp3);
+        CropInstance tmp1 = (CropInstance)SpawnItem(new Vector3Int(30, 30, 0), 0, ItemInstanceType.CropInstance);
+        CropInstance tmp2 = (CropInstance)SpawnItem(new Vector3Int(30, 31, 0), 1, ItemInstanceType.CropInstance);
+        CropInstance tmp3 = (CropInstance)SpawnItem(new Vector3Int(30, 32, 0), 2, ItemInstanceType.CropInstance);
+
+        // HarvestCrop(tmp1);
+        // HarvestCrop(tmp2);
+        // HarvestCrop(tmp3);
         #endregion
 
         #region (2)ToolInstance获取强化项接口自测试  【由于会导致脚本调用顺序成环暂且停用 原因：用到MapManager】
@@ -814,17 +818,22 @@ public class ItemInstanceManager : MonoBehaviour
         // }
         #endregion
 
-        #endregion
+        isTested = true;
+        Debug.Log("ItemInstanceManager Test Finished.");
     }
     void Start()
     {
         // 同步尺寸
         GetComponent<RectTransform>().sizeDelta = content.GetComponent<RectTransform>().sizeDelta;
         InitInstanceListsData();
+        isTested = false;
     }
 
     void FixedUpdate()
     {
+        if(!isTested){
+            Test();
+        }
         UpdateAllCropInstance();
     }
     //======================================Public Function Part=======================================
