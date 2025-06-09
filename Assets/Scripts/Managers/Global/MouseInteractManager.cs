@@ -35,7 +35,13 @@ public class MouseInteractManager : MonoBehaviour
     protected StateNull NullState = new StateNull();
 
     private Vector3 mouseWorldPos;
-    //TODO: CellPos
+
+    #region 鼠标交互射线状态缓存
+    RaycastHit2D hitSprite;
+    RaycastHit2D[] hits;
+    RaycastHit2D[] sorted_hits;
+    Ray ray;
+    #endregion
 
     public GameObject selectingObject = null;
     #region StateBuilding
@@ -297,38 +303,45 @@ public class MouseInteractManager : MonoBehaviour
         // 用排序层ID和层内顺序拼成一个整体的排序指标
         return (renderer.sortingLayerID << 16) + renderer.sortingOrder;
     }
+    void GetMouseInteract()
+    {
+        mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        //<多个collider重叠时时循环选择>
+        ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        hits = Physics2D.RaycastAll(ray.origin, ray.direction);
+        sorted_hits = hits.OrderByDescending(hit => GetSortingLayerOrder(hit.collider)).ToArray();
+
+        hitSprite = sorted_hits.FirstOrDefault();
+    }
+    void UpdateMouseInteractData()
+    {
+        if (selectingObject != null)
+            currentSprite = selectingObject.GetComponent<Collider2D>();
+
+        int index = -1;
+        if (selectingObject != null)
+            index = Array.FindIndex(sorted_hits, hit => hit.collider == currentSprite);
+
+        if (index != -1)
+        {
+            if (hitSprite.collider.gameObject.layer == LayerMask.NameToLayer("UI"))
+                hitSprite = sorted_hits[index];
+            else if (index == sorted_hits.Count() - 1)
+                hitSprite = default;
+            else hitSprite = sorted_hits[index + 1];
+        }
+        //<多个collider重叠时时循环选择>
+        if (hitSprite != default)
+            currentState.OnClickSprite(hitSprite);
+    }
     void Update()
     {
         if (Input.GetMouseButtonDown(0))
         {
             preState = currentState;
 
-            mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Vector2 mousePos2D = new Vector2(mouseWorldPos.x, mouseWorldPos.y);
-            //<多个collider重叠时时循环选择>
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit2D[] hits = Physics2D.RaycastAll(ray.origin, ray.direction);
-            RaycastHit2D[] sorted_hits = hits.OrderByDescending(hit => GetSortingLayerOrder(hit.collider)).ToArray();
-
-            RaycastHit2D hitSprite = sorted_hits.FirstOrDefault();
-
-            if (selectingObject != null)
-                currentSprite = selectingObject.GetComponent<Collider2D>();
-
-            int index = -1;
-            if (selectingObject != null)
-                index = Array.FindIndex(sorted_hits, hit => hit.collider == currentSprite);
-
-            if (index != -1)
-            {
-                if (index == sorted_hits.Count() - 1)
-                    hitSprite = default;
-                else
-                    hitSprite = sorted_hits[index + 1];
-            }
-            //<多个collider重叠时时循环选择>
-            if (hitSprite != default)
-                currentState.OnClickSprite(hitSprite);
+            GetMouseInteract();
+            UpdateMouseInteractData();
 
             if (currentState is StateInstruct)
             {
@@ -363,17 +376,38 @@ public class MouseInteractManager : MonoBehaviour
             {
                 //currentState.OnClickSprite(hitSprite);
 
-                if (currentState is StateUI)
-                {
+                if (currentState is StateUI){
                     UIManager.Instance.HideSelectedObjectPanel();
 
-                    if (SelectBuildSquare()) {; }
-                    else if (SelectInstructSquare()) {; }
-                    else Debug.Log("Invalid StateUI");
+                    GameObject hit_gameObject = hitSprite.collider.gameObject;
+                    if (hit_gameObject.tag == "Untagged")
+                    {
+                        if (SelectBuildSquare()) {; }
+                        else if (SelectInstructSquare()) {; }
+                        else Debug.Log("Invalid StateUI");
+                    }
+                    else if (hit_gameObject.tag == "ExitUI")//TODO:should Expand for more menu
+                    {
+                        UIManager.Instance.HideTraderMenuPanel();
+                        TraderManager.Instance.inTraderPanel = false;
+                    }
+                    else if (hit_gameObject.tag == "UpperUI" || hit_gameObject.tag == "LowerUI")
+                    {
+                        GoodsContentController goods_content = hit_gameObject.GetComponentInParent<GoodsContentController>();
+                        if (goods_content != null)
+                            if (hitSprite.collider == goods_content.collider_upper)
+                                goods_content.Add();
+                            else if (hitSprite.collider == goods_content.collider_lower)
+                                goods_content.Minus();
+                            else Debug.Log("collider Mismatch");
+                        else Debug.Log("Get GoodsContent Failed");
+                    }
 
                     if (currentState is not StatePawn && currentState is not StateInstruct)
                         UIManager.Instance.ClearInstructMenuSquares();
                 }
+                else if (TraderManager.Instance.inTraderPanel)
+                    return;
                 else if (currentState is StatePawn)
                 {
                     if (preState is not StatePawn)
@@ -391,6 +425,23 @@ public class MouseInteractManager : MonoBehaviour
 
         if (Input.GetMouseButtonDown(1))
         {
+            GetMouseInteract();
+            UpdateMouseInteractData();
+
+            if (currentState is StateInstance)
+            {
+                if (int.TryParse(Instance.selectingObject.name, out int id))
+                {
+                    ItemInstanceManager.ItemInstance instance = ItemInstanceManager.Instance.GetInstance(id);
+                    if (instance.item_id == TraderManager.TRADER_ID)
+                    {
+                        UIManager.Instance.ShowTraderMenuPanel();
+                        TraderManager.Instance.inTraderPanel = true;
+                    }
+
+                }
+            }
+
             if (currentState is StatePawn)
             {
                 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);

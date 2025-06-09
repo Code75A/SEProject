@@ -342,6 +342,22 @@ public class MapManager : MonoBehaviour
                 landTilemap.SetTile(new Vector3Int(x, y, 0), mapDatas[x, y].texture);
             }
         }
+
+        {//生成商人测试
+            MapData data = mapDatas[32, 34];
+            TraderManager.TraderBuilding building = TraderManager.Instance.trader;
+            data.has_print = false;
+            data.has_building = true;
+            data.has_item = true;
+
+            SetWalkableState(data, building.can_walk);
+            data.can_build = building.can_build;
+            data.can_plant = building.can_plant;
+
+            data.item = ItemInstanceManager.Instance.SpawnItem(data.position, building.id, ItemInstanceManager.ItemInstanceType.BuildingInstance);
+            Debug.Log(data.item.id + "商人生成");
+        }
+        
     }
     public void GenerateBoolVectors(){
         for (int x = 0; x < MAP_SIZE; x++){

@@ -106,13 +106,17 @@ public class BuildManager : MonoBehaviour
 
     public Building GetBuilding(int id){
         //TODO:CACHE
+        if (id == TraderManager.TRADER_ID)
+            return TraderManager.Instance.trader;
         
-        foreach(var list in buildingLists.Values){
-            foreach(var building in list){
-                if(building.id == id)
-                    return building;
+        foreach (var list in buildingLists.Values)
+            {
+                foreach (var building in list)
+                {
+                    if (building.id == id)
+                        return building;
+                }
             }
-        }
         return null;
     }
 
@@ -136,146 +140,6 @@ public class BuildManager : MonoBehaviour
 
     
 }
-
-
-#region "流浪商人“
-public class TraderBuilding : BuildManager.Building
-{
-    public static TraderBuilding Instance { get; private set; }
-
-    [Header("商人刷新设置")]
-    public float spawnProbability = 0.3f;
-    public float spawnProbabilityIncrement = 0.1f;
-    public float spawnProbabilityMax = 0.9f;
-    public float currentSpawnProbability;
-    public int goodsCount = 5;
-
-    [Header("商人状态")]
-    public bool isTraderActive = false;
-    public List<ItemManager.Item> traderGoods = new List<ItemManager.Item>();
-
-    private Dictionary<ItemManager.Item, float> itemWeights = new();
-    private Dictionary<ItemManager.Item, int> itemHistory = new();
-
-    public List<ItemManager.Item> availableItems = new();
-
-    public TraderBuilding()
-    {
-        // 固定父类属性
-        this.id = 100;
-        this.name = "商人";
-        this.texture = null; // 可以替换为你的商人建筑Sprite
-        this.type = BuildManager.BuildingType.Dev; // 或者你定义的专属类型
-        this.width = 1;
-        this.height = 1;
-        this.durability = 10000;
-        this.can_build = false;
-        this.can_walk = true;
-        this.can_plant = false;
-        this.material_list = new List<KeyValuePair<int, int>>();
-
-        if (Instance == null)
-            Instance = this;
-        else
-            Debug.LogWarning("TraderBuilding 已经存在，禁止重复创建！");
-
-        Init();
-        Debug.Log("TraderBuilding 初始化完成");
-    }
-
-    private void Init()
-    {
-        currentSpawnProbability = spawnProbability;
-
-        // 初始化商品列表
-        if (availableItems == null || availableItems.Count == 0)
-        {
-            availableItems = new List<ItemManager.Item>();
-            for (int i = 0; i < 10; i++)
-            {
-                var testItem = new ItemManager.Item
-                {
-                    id = i,
-                    name = "测试商品" + i,
-                    type = ItemManager.ItemType.Tool,
-                    texture = null
-                };
-                availableItems.Add(testItem);
-            }
-        }
-
-        // 初始化权重
-        itemWeights.Clear();
-        foreach (var item in availableItems)
-            itemWeights[item] = 1f / availableItems.Count;
-    }
-
-    public void DailyRefresh()
-    {
-        float rand = Random.value;
-        if (rand < currentSpawnProbability)
-        {
-            isTraderActive = true;
-            currentSpawnProbability = spawnProbability;
-            GenerateTraderGoods();
-        }
-        else
-        {
-            isTraderActive = false;
-            traderGoods.Clear();
-            currentSpawnProbability = Mathf.Min(currentSpawnProbability + spawnProbabilityIncrement, spawnProbabilityMax);
-        }
-    }
-
-    private void GenerateTraderGoods()
-    {
-        traderGoods.Clear();
-        List<ItemManager.Item> tempItems = new List<ItemManager.Item>(availableItems);
-        Dictionary<ItemManager.Item, float> tempWeights = new Dictionary<ItemManager.Item, float>(itemWeights);
-
-        for (int i = 0; i < goodsCount && tempItems.Count > 0; i++)
-        {
-            float totalWeight = 0f;
-            foreach (var item in tempItems)
-                totalWeight += tempWeights[item];
-
-            float rand = Random.value * totalWeight;
-            float sum = 0f;
-            ItemManager.Item chosen = null;
-            foreach (var item in tempItems)
-            {
-                sum += tempWeights[item];
-                if (rand <= sum)
-                {
-                    chosen = item;
-                    break;
-                }
-            }
-            if (chosen == null) break;
-
-            traderGoods.Add(chosen);
-            tempItems.Remove(chosen);
-            tempWeights.Remove(chosen);
-        }
-
-        foreach (var item in traderGoods)
-        {
-            if (!itemHistory.ContainsKey(item)) itemHistory[item] = 0;
-            itemHistory[item]++;
-        }
-    }
-
-    public bool BuyItem(ItemManager.Item item)
-    {
-        if (traderGoods.Contains(item))
-        {
-            // 这里可以加扣钱、加物品到背包等逻辑
-            return true;
-        }
-        return false;
-    }
-}
-#endregion
 
 #region"箱子"
 // 货币类型Item，可以扩展为更多货币
