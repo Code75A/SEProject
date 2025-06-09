@@ -1,6 +1,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEditor.Rendering;
@@ -60,11 +61,15 @@ public class UIManager : MonoBehaviour
     [Header("选中详细")]
     public GameObject selectedObjectPanel;
     public TextMeshProUGUI selectedObjectDescription;
+    [Header("贸易内容")]
+    public GameObject traderMenuPanel;
+    public GameObject traderMenuPanelContent;
 
     #endregion
 
     //单例模式
-    void Awake(){
+    void Awake()
+    {
         if (Instance == null)
         {
             Instance = this;
@@ -98,7 +103,6 @@ public class UIManager : MonoBehaviour
     }
 
     #region 初始化函数
-
     void InitDebugPanel()
     {
         is_debugPanel_active = false;
@@ -112,14 +116,16 @@ public class UIManager : MonoBehaviour
         DebugTextAdd("Debug Panel Initialized.");
         DebugTextAdd("Press ~ to toggle Debug Panel.");
     }
-    void InitBuildingMenu(){
+    void InitBuildingMenu()
+    {
         bar_anchor = new Vector3(BAR_ANCHOR_X, BAR_ANCHOR_Y, 0f); square_anchor = new Vector3(SQUARE_ANCHOR_X, SQUARE_ANCHOR_Y, 0f);
         bar_deltax = new Vector3(BAR_DELTAX, 0f, 0f); bar_deltay = new Vector3(0f, BAR_DELTAY, 0f);
         square_deltax = new Vector3(SQUARE_DELTAX, 0f, 0f); square_deltay = new Vector3(0f, SQUARE_DELTAY, 0f);
 
         Vector3 current_anchor = bar_anchor - bar_deltay;
 
-        for (int i = 0; i < (int)BuildManager.BuildingType.Total; i++){
+        for (int i = 0; i < (int)BuildManager.BuildingType.Total; i++)
+        {
             buildingMenuBars[i] = Instantiate(buildingMenuBar, buildingMenu);
             buildingMenuBars[i].GetComponent<BuildingMenuBarLoadController>().Init(this, (BuildManager.BuildingType)i);
 
@@ -136,43 +142,10 @@ public class UIManager : MonoBehaviour
             buildingMenuBars[i].GetComponentInChildren<TextMeshProUGUI>().text = ((BuildManager.BuildingType)i).ToString();
         }
     }
-    void InitInstructMenu() {
+    void InitInstructMenu()
+    {
         instruct_anchor = new Vector3(INSTRUCT_ANCHOR_X, INSTRUCT_ANCHOR_Y, 0);
         instruct_deltax = new Vector3(INSTRUCT_DELTAX, 0, 0); instruct_deltay = new Vector3(0, INSTRUCT_DELTAY, 0);
-    }
-    #endregion
-
-    #region BuildingMenu相关函数
-    public void LoadBuildingMenuSquares(BuildManager.BuildingType type){
-        //最多一行加载8个，如果超过8个时需要另行设计
-        ClearBuildingMenuSquares();
-
-        List<BuildManager.Building> currentBuildingList = buildManager.LoadBuildingList(type);
-        buildingMenuSquares = new GameObject[currentBuildingList.Count];
-
-        Vector3 current_anchor = square_anchor - square_deltay;
-
-        for (int i = 0; i < currentBuildingList.Count; i++){
-            int index = i % MAX_BUILD_SQUARE_PER_LINE;
-
-            buildingMenuSquares[i] = Instantiate(buildingMenuSquare, buildingMenu);
-
-            if (index == 0){
-                current_anchor += square_deltay;
-                buildingMenuSquares[i].GetComponent<RectTransform>().localPosition = current_anchor;
-            }
-            else{
-                buildingMenuSquares[i].GetComponent<RectTransform>().localPosition = current_anchor + square_deltax * index;
-            }
-
-            buildingMenuSquares[i].GetComponent<BuildingMenuSquareLoadController>().Init(currentBuildingList[i], currentBuildingList[i].texture);
-
-        }
-    }
-
-    void ClearBuildingMenuSquares(){
-        foreach (GameObject menuSquare in buildingMenuSquares)
-            Destroy(menuSquare);
     }
     #endregion
 
@@ -225,15 +198,17 @@ public class UIManager : MonoBehaviour
     #endregion
     #region SelectedObjectPanel相关函数
 
-    public void HideSelectedObjectPanel(){
+    public void HideSelectedObjectPanel()
+    {
         selectedObjectPanel.SetActive(false);
     }
-    public void ShowSelectedObjectPanel(){
+    public void ShowSelectedObjectPanel()
+    {
         selectedObjectPanel.SetActive(true);
     }
 
     #region 设置描述文本
-    
+
     public void SetPanelTextBuild(BuildManager.Building building)
     {
         selectedObjectDescription.text = "建筑物名称: " + building.name + "\n" +
@@ -245,7 +220,8 @@ public class UIManager : MonoBehaviour
                                         "建筑物可种植性: " + building.can_plant.ToString();
         ShowSelectedObjectPanel();
     }
-    public void SetPanelTextPawn(PawnManager.Pawn pawn){
+    public void SetPanelTextPawn(PawnManager.Pawn pawn)
+    {
         selectedObjectDescription.text = "小人id: " + pawn.id.ToString() + "\n" +
                                         "小人执行任务中: " + pawn.isOnTask.ToString() + "\n";
         if (pawn.handlingTask != null)
@@ -271,7 +247,8 @@ public class UIManager : MonoBehaviour
 { typeof(ItemInstanceManager.ResourceInstance),     instance =>{    return "耐久: " + (instance as ItemInstanceManager.ResourceInstance).durability.ToString(); }}
     };
 
-    public void SetPanelTextInstance(ItemInstanceManager.ItemInstance instance){
+    public void SetPanelTextInstance(ItemInstanceManager.ItemInstance instance)
+    {
         if (instance != null)
         {
             selectedObjectDescription.text = instance.GetText() + "\n" +
@@ -284,14 +261,16 @@ public class UIManager : MonoBehaviour
                 selectedObjectDescription.text += func(instance);
             }
         }
-        else{
+        else
+        {
             selectedObjectDescription.text = "这玩意不是一个Instance\n就不显示了哈";
         }
 
         ShowSelectedObjectPanel();
 
     }
-    public void SetPanelTextInstruct(MouseInteractManager.InstructTypes type){
+    public void SetPanelTextInstruct(MouseInteractManager.InstructTypes type)
+    {
         selectedObjectDescription.text = "指令: " + MouseInteractManager.Instance.CastInstructName(type) + "\n";
         ShowSelectedObjectPanel();
     }
@@ -327,10 +306,84 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void ClearInstructMenuSquares(){
+    public void ClearInstructMenuSquares()
+    {
         foreach (GameObject instructSquare in instructMenuSquares)
             Destroy(instructSquare);
     }
-        #endregion
+    #endregion
+    #endregion
+    #region TraderMenuPanel相关函数
+    public void HideTraderMenuPanel()
+    {
+        traderMenuPanel.SetActive(false);
+        ShowBuildingMenus();
+    }
+    public void ShowTraderMenuPanel()
+    {
+        traderMenuPanel.SetActive(true);
+        HideBuildingMenus();
+    }
+
+    #endregion
+    #region BuildingMenu相关函数
+    public void LoadBuildingMenuSquares(BuildManager.BuildingType type)
+    {
+        //最多一行加载8个，如果超过8个时需要另行设计
+        ClearBuildingMenuSquares();
+
+        List<BuildManager.Building> currentBuildingList = buildManager.LoadBuildingList(type);
+        buildingMenuSquares = new GameObject[currentBuildingList.Count];
+
+        Vector3 current_anchor = square_anchor - square_deltay;
+
+        for (int i = 0; i < currentBuildingList.Count; i++)
+        {
+            int index = i % MAX_BUILD_SQUARE_PER_LINE;
+
+            buildingMenuSquares[i] = Instantiate(buildingMenuSquare, buildingMenu);
+
+            if (index == 0)
+            {
+                current_anchor += square_deltay;
+                buildingMenuSquares[i].GetComponent<RectTransform>().localPosition = current_anchor;
+            }
+            else
+            {
+                buildingMenuSquares[i].GetComponent<RectTransform>().localPosition = current_anchor + square_deltax * index;
+            }
+
+            buildingMenuSquares[i].GetComponent<BuildingMenuSquareLoadController>().Init(currentBuildingList[i], currentBuildingList[i].texture);
+
+        }
+    }
+
+    void ClearBuildingMenuSquares()
+    {
+        foreach (GameObject menuSquare in buildingMenuSquares)
+            Destroy(menuSquare);
+    }
+
+    //reference by TraderMenu
+    void ShowBuildingMenus()
+    {
+        foreach (var buildingBar in buildingMenuBars)
+            buildingBar.SetActive(true);
+        if (buildingMenuSquares.Count() > 0)
+        {
+            foreach (var buildingSquare in buildingMenuSquares)
+                buildingSquare.SetActive(true);
+        }
+    }
+    void HideBuildingMenus()
+    {
+        foreach (var buildingBar in buildingMenuBars)
+            buildingBar.SetActive(false);
+        if (buildingMenuSquares.Count() > 0)
+        {
+            foreach (var buildingSquare in buildingMenuSquares)
+                buildingSquare.SetActive(false);
+        }
+    }
     #endregion
 }
