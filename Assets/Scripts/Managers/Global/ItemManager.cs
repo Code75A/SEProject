@@ -74,6 +74,7 @@ public class ItemManager : MonoBehaviour
     //=========================================Manager Function Part=======================================
     //=========================================Private Function Part=======================================
     public Dictionary<ItemType, List<Item>> itemLists = new Dictionary<ItemType, List<Item>>();
+    public Dictionary<int,Item> itemDict = new Dictionary<int, Item>();
     void InitItemListsData(){
         #region itemLists初始化
         itemLists.Add(ItemType.Tool, new List<Item>());
@@ -140,9 +141,26 @@ public class ItemManager : MonoBehaviour
             new Resource{id=16, name="铁矿脉", type=ItemType.Resource, texture=tempItemSprites[16], max_durability=100});
         #endregion 
     }
+    void InitItemDict(){
+        for (int i = 0; i < (int)ItemType.Total; i++){
+            if(itemLists[(ItemType)i] is null)
+                continue;
+            foreach (var item in itemLists[(ItemType)i]){
+                if(!itemDict.ContainsKey(item.id)){
+                    itemDict.Add(item.id, item);
+                }
+                else{
+                    UIManager.Instance.DebugTextAdd(
+                        "<<Error>>InitItemDict FAILED: the item_id "+ item.id +" is already in ItemDict. "
+                    );
+                }
+            }
+        }
+    }
     void Start()
     {
         InitItemListsData();
+        InitItemDict();
     }
     //void Update(){}
 
@@ -152,20 +170,14 @@ public class ItemManager : MonoBehaviour
     /// </summary>
     public Item GetItem(int item_id, ItemType type = ItemType.Total){
         Item item = null;
-        if(type != ItemType.Total)
-            item = itemLists[type].Find(c => c.id == item_id);
-        else{
-            for(ItemType i = 0; i < ItemType.Total; i++){
-                if(itemLists[i] is not null)
-                    item = itemLists[i].Find(c => c.id == item_id);
-                if(item is not null)
-                    break;
-            }
+        if(itemDict.ContainsKey(item_id)){
+            item = itemDict[item_id];
         }
-        if(item is null){
+        if(item is null || item.type != type){
             UIManager.Instance.DebugTextAdd(
-                "[Log]Getting Item FAILED: the item_id "+ item_id +" is not found in "+type.ToString()+" List of ItemManager. "
+                "[Log]Getting Item FAILED: the item_id "+ item_id.ToString() +" is not in "+type.ToString()+" List of ItemManager. "
             );
+            return null;
         }
         return item;
     }
