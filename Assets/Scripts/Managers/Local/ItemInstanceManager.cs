@@ -479,7 +479,7 @@ public class ItemInstanceManager : MonoBehaviour
             material_list = sample.material_list // 指向建筑所需材料列表
         };
         InitInstance(new_ins, sample.texture);
-        new_ins.SetText(sample.name);
+        new_ins.SetText(sample.build_name);
         return new_ins;
     }
     /// <summary>
@@ -513,7 +513,7 @@ public class ItemInstanceManager : MonoBehaviour
             material_list = temp
         };
         InitInstance(new_ins, BuildManager.Instance.printSprite);
-        new_ins.SetText(sample.name);
+        new_ins.SetText(sample.build_name);
         return new_ins;
     }
     public ItemInstance MakeResourceInstance(int resource_id, Vector3Int position){

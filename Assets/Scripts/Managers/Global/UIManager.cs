@@ -211,7 +211,7 @@ public class UIManager : MonoBehaviour
 
     public void SetPanelTextBuild(BuildManager.Building building)
     {
-        selectedObjectDescription.text = "建筑物名称: " + building.name + "\n" +
+        selectedObjectDescription.text = "建筑物名称: " + building.build_name + "\n" +
                                         "建筑物类型: " + building.type.ToString() + "\n" +
                                         "建筑物耐久度: " + building.durability.ToString() + "\n" +
                                         "建筑物大小: " + building.width.ToString() + "x" + building.height.ToString() + "\n" +
