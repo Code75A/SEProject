@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: "\u8349\u5730"
+  m_EditorClassIdentifier: Assembly-CSharp::BuildManager/Building
+  id: 0
+  build_name: "\u8349\u5730"
+  texture: {fileID: 373727698, guid: 824fcbf5fa6a8214fa68bee50e97c5fb, type: 3}
+  type: 0
+  width: 1
+  height: 1
+  durability: -1
+  can_build: 1
+  can_walk: 1
+  can_plant: 1

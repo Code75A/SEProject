@@ -52,7 +52,7 @@ public class TraderManager : MonoBehaviour
         {
             // 固定父类属性
             this.id = TRADER_ID;
-            this.name = "商人";
+            this.build_name = "商人";
             this.texture = Instance.trader_sprite; // 可以替换为你的商人建筑Sprite
             this.type = BuildManager.BuildingType.Dev; // 或者你定义的专属类型
             this.width = 1;

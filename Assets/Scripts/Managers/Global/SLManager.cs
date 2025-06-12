@@ -55,7 +55,7 @@ public class SLManager : MonoBehaviour
                 buildingDataList.Add(new BuildManagerData.BuildingData
                 {
                     id = building.id,
-                    name = building.name,
+                    name = building.build_name,
                     texturePath = building.texture != null ? building.texture.name : null, // 假设纹理名可用作路径
                     type = building.type,
                     width = building.width,
@@ -97,7 +97,7 @@ public class SLManager : MonoBehaviour
                 BuildManager.Instance.buildingLists[kvp.Key].Add(new BuildManager.Building
                 {
                     id = buildingData.id,
-                    name = buildingData.name,
+                    build_name = buildingData.name,
                     texture = Resources.Load<Sprite>(buildingData.texturePath), // 假设纹理存储在 Resources 文件夹
                     type = buildingData.type,
                     width = buildingData.width,
@@ -127,7 +127,7 @@ public class SLManager : MonoBehaviour
             new BuildManager.Building
             {
                 id = 1,
-                name = "Test Dev Building",
+                build_name = "Test Dev Building",
                 texture = null, // 假设没有纹理
                 type = BuildManager.BuildingType.Dev,
                 width = 5,
@@ -156,7 +156,7 @@ public class SLManager : MonoBehaviour
             Debug.Log($"Building Type: {kvp.Key}");
             foreach (var building in kvp.Value)
             {
-                Debug.Log($"Building Name: {building.name}, ID: {building.id}, Durability: {building.durability}");
+                Debug.Log($"Building Name: {building.build_name}, ID: {building.id}, Durability: {building.durability}");
             }
         }
     }

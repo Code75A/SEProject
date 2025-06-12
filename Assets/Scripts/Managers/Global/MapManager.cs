@@ -400,7 +400,7 @@ public class MapManager : MonoBehaviour
 
             //UIManager.Instance.DebugTextAdd("点击到了 Tile: " + cellPos);
             if(building != null){
-                UIManager.Instance.DebugTextAdd("放置建筑: " + building.name);
+                UIManager.Instance.DebugTextAdd("放置建筑: " + building.build_name);
 
                 //非Dev建筑占地特判
                 if(building.type != BuildManager.BuildingType.Dev && ( !clickedData.can_build )){

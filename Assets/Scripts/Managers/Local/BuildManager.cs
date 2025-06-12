@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEditor;
 
 public class BuildManager : MonoBehaviour
 {
@@ -10,10 +11,12 @@ public class BuildManager : MonoBehaviour
         Dev,Wall,Farm,Total
     }
 
-    public class Building{
+    [CreateAssetMenu(menuName = "Building")]
+    public class Building : ScriptableObject
+    {
         //数据属性
         public int id;
-        public string name;
+        public string build_name;
         public Sprite texture;
         public BuildingType type;
         //游戏属性
@@ -71,37 +74,140 @@ public class BuildManager : MonoBehaviour
     //     }
     // }
 
-    void InitBuildingListsData(){
-        for(int i = 0; i < (int)BuildingType.Total; i++)
+    void InitBuildingListsData()
+    {
+        for (int i = 0; i < (int)BuildingType.Total; i++)
             buildingLists.Add((BuildingType)i, new List<Building>());
-        
+
         //TODO: 目前的material_list直接参考id，后续应该改为引用
 
-        buildingLists[BuildingType.Dev].Add(new Building{
-            id = 0, name="草地", texture = tempBuildingSprites[0], type = BuildingType.Dev, width = 1, height = 1, durability = -1,
-            can_build = true, can_walk = true, can_plant = true, material_list = new List<KeyValuePair<int, int>>()});
-        buildingLists[BuildingType.Dev].Add(new Building{
-            id = 1, name="路径", texture = tempBuildingSprites[1], type = BuildingType.Dev, width = 1, height = 1, durability = -1,
-            can_build = false, can_walk = true, can_plant = false, material_list = new List<KeyValuePair<int, int>>()});
-        buildingLists[BuildingType.Dev].Add(new Building{
-            id = 2, name="水地", texture = tempBuildingSprites[2], type = BuildingType.Dev, width = 1, height = 1, durability = -1,
-            can_build = false, can_walk = false, can_plant = false, material_list = new List<KeyValuePair<int, int>>()});
-        buildingLists[BuildingType.Dev].Add(new Building{
-            id = 3, name="树木", texture = tempBuildingSprites[3], type = BuildingType.Dev, width = 1, height = 1, durability = -1,
-            can_build = false, can_walk = false, can_plant = false, material_list = new List<KeyValuePair<int, int>>()});
-        buildingLists[BuildingType.Dev].Add(new Building{
-            id = 4, name="石地", texture = tempBuildingSprites[6], type = BuildingType.Dev, width = 1, height =1, durability = -1,
-            can_build =true, can_walk = true, can_plant = false, material_list = new List<KeyValuePair<int, int>>()});
+        buildingLists[BuildingType.Dev].Add(new Building
+        {
+            id = 0,
+            build_name = "草地",
+            texture = tempBuildingSprites[0],
+            type = BuildingType.Dev,
+            width = 1,
+            height = 1,
+            durability = -1,
+            can_build = true,
+            can_walk = true,
+            can_plant = true,
+            material_list = new List<KeyValuePair<int, int>>()
+        });
+        buildingLists[BuildingType.Dev].Add(new Building
+        {
+            id = 1,
+            build_name = "路径",
+            texture = tempBuildingSprites[1],
+            type = BuildingType.Dev,
+            width = 1,
+            height = 1,
+            durability = -1,
+            can_build = false,
+            can_walk = true,
+            can_plant = false,
+            material_list = new List<KeyValuePair<int, int>>()
+        });
+        buildingLists[BuildingType.Dev].Add(new Building
+        {
+            id = 2,
+            build_name = "水地",
+            texture = tempBuildingSprites[2],
+            type = BuildingType.Dev,
+            width = 1,
+            height = 1,
+            durability = -1,
+            can_build = false,
+            can_walk = false,
+            can_plant = false,
+            material_list = new List<KeyValuePair<int, int>>()
+        });
+        buildingLists[BuildingType.Dev].Add(new Building
+        {
+            id = 3,
+            build_name = "树木",
+            texture = tempBuildingSprites[3],
+            type = BuildingType.Dev,
+            width = 1,
+            height = 1,
+            durability = -1,
+            can_build = false,
+            can_walk = false,
+            can_plant = false,
+            material_list = new List<KeyValuePair<int, int>>()
+        });
+        buildingLists[BuildingType.Dev].Add(new Building
+        {
+            id = 4,
+            build_name = "石地",
+            texture = tempBuildingSprites[6],
+            type = BuildingType.Dev,
+            width = 1,
+            height = 1,
+            durability = -1,
+            can_build = true,
+            can_walk = true,
+            can_plant = false,
+            material_list = new List<KeyValuePair<int, int>>()
+        });
 
-        buildingLists[BuildingType.Wall].Add(new Building{
-            id = 6, name="墙", texture = tempBuildingSprites[4], type = BuildingType.Wall, width = 1, height = 1, durability = 100,
-            can_build = false, can_walk = false, can_plant = false, material_list = new List<KeyValuePair<int, int>>{
+        buildingLists[BuildingType.Wall].Add(new Building
+        {
+            id = 6,
+            build_name = "墙",
+            texture = tempBuildingSprites[4],
+            type = BuildingType.Wall,
+            width = 1,
+            height = 1,
+            durability = 100,
+            can_build = false,
+            can_walk = false,
+            can_plant = false,
+            material_list = new List<KeyValuePair<int, int>>{
                 new KeyValuePair<int, int>(ItemManager.Instance.GetItem("木材").id, 10)
-            }});
+            }
+        });
 
-        buildingLists[BuildingType.Farm].Add(new Building{
-            id = 5, name="农田", texture = tempBuildingSprites[5], type = BuildingType.Farm, width = 1, height = 1, durability = -1,
-            can_build = false, can_walk = true, can_plant = true, material_list = new List<KeyValuePair<int, int>>()});
+        buildingLists[BuildingType.Farm].Add(new Building
+        {
+            id = 5,
+            build_name = "农田",
+            texture = tempBuildingSprites[5],
+            type = BuildingType.Farm,
+            width = 1,
+            height = 1,
+            durability = -1,
+            can_build = false,
+            can_walk = true,
+            can_plant = true,
+            material_list = new List<KeyValuePair<int, int>>()
+        });
+
+        // foreach (var list in buildingLists.Values)
+        // {
+        //     foreach (var building in list)
+        //     {
+        //         var asset = ScriptableObject.CreateInstance<Building>();
+        //         asset.name = building.build_name;
+        //         asset.build_name = building.build_name;
+        //         asset.id = building.id;
+        //         asset.texture = building.texture;
+        //         asset.type = building.type;
+        //         asset.width = building.width;
+        //         asset.height = building.height;
+        //         asset.durability = building.durability;
+        //         asset.can_build = building.can_build;
+        //         asset.can_walk = building.can_walk;
+        //         asset.can_plant = building.can_plant;
+
+        //         string path = $"Assets/Resources/BuildingData/{building.build_name}.asset";
+        //         AssetDatabase.CreateAsset(asset, path);
+        //     }
+
+        // }
+        // AssetDatabase.SaveAssets();
+        // AssetDatabase.Refresh();
     }
 
     public Building GetBuilding(int id){
@@ -173,7 +279,7 @@ public class ChestBuilding : BuildManager.Building
     public ChestBuilding(int id)
     {
         this.id = id; // 由外部传入
-        this.name = "箱子";
+        this.build_name = "箱子";
         this.texture = null;
         this.type = BuildManager.BuildingType.Dev;
         this.width = 2;
@@ -272,7 +378,7 @@ public class GaleWonderBuilding : BuildManager.Building
     public GaleWonderBuilding()
     {
         this.id = 101;
-        this.name = "疾风奇观";
+        this.build_name = "疾风奇观";
         this.texture = null; // 可指定专属Sprite
         this.type = BuildManager.BuildingType.Dev;
         this.width = 2;
@@ -312,7 +418,7 @@ public class DiligenceWonderBuilding : BuildManager.Building
     public DiligenceWonderBuilding()
     {
         this.id = 102;
-        this.name = "勤工奇观";
+        this.build_name = "勤工奇观";
         this.texture = null;
         this.type = BuildManager.BuildingType.Dev;
         this.width = 2;
@@ -352,7 +458,7 @@ public class MightWonderBuilding : BuildManager.Building
     public MightWonderBuilding()
     {
         this.id = 103;
-        this.name = "巨力奇观";
+        this.build_name = "巨力奇观";
         this.texture = null;
         this.type = BuildManager.BuildingType.Dev;
         this.width = 2;
