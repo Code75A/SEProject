@@ -262,3 +262,125 @@ public class ChestBuilding : BuildManager.Building
 }
 
 #endregion
+
+#region "奇观建筑"
+// 疾风奇观：提升全体小人移动速度
+public class GaleWonderBuilding : BuildManager.Building
+{
+    public static bool IsBuilt = false;
+    public const float MoveSpeedBuff = 1.5f;
+    public GaleWonderBuilding()
+    {
+        this.id = 101;
+        this.name = "疾风奇观";
+        this.texture = null; // 可指定专属Sprite
+        this.type = BuildManager.BuildingType.Dev;
+        this.width = 2;
+        this.height = 2;
+        this.durability = 99999;
+        this.can_build = true;
+        this.can_walk = false;
+        this.can_plant = false;
+        this.material_list = new List<KeyValuePair<int, int>>{
+        };
+    }
+    public static void OnBuilt()
+    {
+        if (!IsBuilt)
+        {
+            IsBuilt = true;
+            //PawnManager.ApplyGaleWonderBuff();
+            Debug.Log("疾风奇观建成，全体小人移动速度提升！");
+        }
+    }
+    public static void OnDestroyed()
+    {
+        if (IsBuilt)
+        {
+            IsBuilt = false;
+            //PawnManager.RemoveGaleWonderBuff();
+            Debug.Log("疾风奇观被摧毁，移动速度恢复正常。");
+        }
+    }
+}
+
+// 勤工奇观：提升全体小人工作速度
+public class DiligenceWonderBuilding : BuildManager.Building
+{
+    public static bool IsBuilt = false;
+    public const float WorkSpeedBuff = 1.5f;
+    public DiligenceWonderBuilding()
+    {
+        this.id = 102;
+        this.name = "勤工奇观";
+        this.texture = null;
+        this.type = BuildManager.BuildingType.Dev;
+        this.width = 2;
+        this.height = 2;
+        this.durability = 99999;
+        this.can_build = true;
+        this.can_walk = false;
+        this.can_plant = false;
+        this.material_list = new List<KeyValuePair<int, int>>{
+        };
+    }
+    public static void OnBuilt()
+    {
+        if (!IsBuilt)
+        {
+            IsBuilt = true;
+            //PawnManager.ApplyDiligenceWonderBuff();
+            Debug.Log("勤工奇观建成，全体小人工作速度提升！");
+        }
+    }
+    public static void OnDestroyed()
+    {
+        if (IsBuilt)
+        {
+            IsBuilt = false;
+            //PawnManager.RemoveDiligenceWonderBuff();
+            Debug.Log("勤工奇观被摧毁，工作速度恢复正常。");
+        }
+    }
+}
+
+// 巨力奇观：提升全体小人运载容量
+public class MightWonderBuilding : BuildManager.Building
+{
+    public static bool IsBuilt = false;
+    public const float CapacityBuff = 1.5f;
+    public MightWonderBuilding()
+    {
+        this.id = 103;
+        this.name = "巨力奇观";
+        this.texture = null;
+        this.type = BuildManager.BuildingType.Dev;
+        this.width = 2;
+        this.height = 2;
+        this.durability = 99999;
+        this.can_build = true;
+        this.can_walk = false;
+        this.can_plant = false;
+        this.material_list = new List<KeyValuePair<int, int>>{
+        };
+    }
+    public static void OnBuilt()
+    {
+        if (!IsBuilt)
+        {
+            IsBuilt = true;
+            //PawnManager.ApplyMightWonderBuff();
+            Debug.Log("巨力奇观建成，全体小人运载容量提升！");
+        }
+    }
+    public static void OnDestroyed()
+    {
+        if (IsBuilt)
+        {
+            IsBuilt = false;
+            //PawnManager.RemoveMightWonderBuff();
+            Debug.Log("巨力奇观被摧毁，运载容量恢复正常。");
+        }
+    }
+}
+#endregion
