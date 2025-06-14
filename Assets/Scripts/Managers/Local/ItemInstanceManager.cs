@@ -907,7 +907,7 @@ public class ItemInstanceManager : MonoBehaviour
             }
         }
 
-        if (NearestPosition == null)
+        if (NearestPosition == Vector3Int.zero)
         {
             UIManager.Instance.DebugTextAdd(
                 "[Log]Finding Nearest Item FAILED: No item with id " + item_id + " found near position " + currentPosition + "."

@@ -2,7 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 
 public class PawnManager : MonoBehaviour{
@@ -281,11 +283,19 @@ public class PawnManager : MonoBehaviour{
 
     public void AddPawnTask(Pawn pawn, TaskManager.Task task){
         if(task != null){
-            if(pawn != null){
+            if (pawn != null)
+            {
                 pawn.PawntaskList.Add(task);
+                // 输出当前任务队列中的所有任务
+                Debug.Log($"任务 {task.task_id} 已添加到 Pawn 的任务队列中。当前任务队列如下：");
+                foreach (var t in pawn.PawntaskList)
+                {
+                    Debug.Log($"任务 ID: {t.task_id}, 类型: {t.type}, 目标位置: {t.target_position}");
+                }
             }
-            else{
-                Debug.Log("Error: AddPawnTask时选中Pawn为空");  
+            else
+            {
+                Debug.Log("Error: AddPawnTask时选中Pawn为空");
             }
         }
         else{
@@ -396,7 +406,7 @@ public class PawnManager : MonoBehaviour{
 
     //运输任务实现：
     //需要新增运输到蓝图的运输函数逻辑，直接改变对应progressinstance的进度而并非调用pawnunload创建新物品实例
-    public System.Collections.IEnumerator HandleToPrintInstanceTransportTask(Pawn pawn, TaskManager.TransportTask task)
+    public System.Collections.IEnumerator HandleTransportTask(Pawn pawn, TaskManager.TransportTask task)
     {
         // 1. 检查合法性
         if (pawn == null || pawn.Instance == null)
@@ -414,9 +424,19 @@ public class PawnManager : MonoBehaviour{
         }
 
         // 2. 移动到物品位置（beginPosition）
-        controller.MovePawnToPosition(task.beginPosition, pawn);
-        // 等待 Pawn 到达
-        yield return new WaitWhile(() => controller.isMoving);
+        // controller.MovePawnToPosition(task.beginPosition, pawn);
+        // // 等待 Pawn 到达
+        // yield return new WaitWhile(() => controller.isMoving);
+        TaskManager.Task Transporttaskstart = pawn.handlingTask;
+        pawn.handlingTask = new TaskManager.Task(
+            position: task.beginPosition,
+            type: TaskManager.TaskTypes.Move,
+            task_id: -1
+        );
+        AddPawnTask(pawn, Transporttaskstart);
+        HandleTask(pawn);
+        //yield return StartCoroutine(HandleTask(pawn));
+        Debug.Log("拆分移动任务完成start");
 
         // 3. 装载物品
         MapManager.MapData beginData = MapManager.Instance.GetMapData(task.beginPosition);
@@ -438,16 +458,26 @@ public class PawnManager : MonoBehaviour{
         }
 
         // 4. 移动到目标位置（endPosition）
-        controller.MovePawnToPosition(task.target_position, pawn);
-        // 等待 Pawn 到达
-        yield return new WaitWhile(() => controller.isMoving);
+        // controller.MovePawnToPosition(task.target_position, pawn);
+        // // 等待 Pawn 到达
+        // yield return new WaitWhile(() => controller.isMoving);
+        TaskManager.Task Transporttaskend = pawn.handlingTask;
+        pawn.handlingTask = new TaskManager.Task(
+            position: task.target_position,
+            type: TaskManager.TaskTypes.Move,
+            task_id: -1
+        );
+        AddPawnTask(pawn, Transporttaskend);
+        HandleTask(pawn);
+        //yield return StartCoroutine(HandleTask(pawn));
+        Debug.Log("拆分移动任务完成end");
 
         // 5. 卸载物品
         int unloadSuccess_amount = PawnUnload(pawn);
 
     }
 
-    public System.Collections.IEnumerator HandleTransportTask(Pawn pawn, TaskManager.TransportTask task)
+    public System.Collections.IEnumerator HandleToPrintInstanceTransportTask(Pawn pawn, TaskManager.TransportTask task)
     {
         // 1. 检查合法性
         if (pawn == null || pawn.Instance == null)
@@ -464,13 +494,27 @@ public class PawnManager : MonoBehaviour{
             yield break;
         }
 
+        //更改移动逻辑
         // 2. 移动到物品位置（beginPosition）
-        controller.MovePawnToPosition(task.beginPosition, pawn);
-        // 等待 Pawn 到达
-        yield return new WaitWhile(() => controller.isMoving);
+        // controller.MovePawnToPosition(task.beginPosition, pawn);
+        // // 等待 Pawn 到达
+        // yield return new WaitWhile(() => controller.isMoving);
+
+        TaskManager.Task Transporttaskstart = pawn.handlingTask;
+        pawn.handlingTask = new TaskManager.Task(
+            position: task.beginPosition,
+            type: TaskManager.TaskTypes.Move,
+            task_id: -1
+        );
+        AddPawnTask(pawn, Transporttaskstart);
+        HandleTask(pawn);
+        //yield return StartCoroutine(HandleTask(pawn));
+        Debug.Log("printinstance拆分移动任务完成start");
 
         // 3. 装载物品
+        //有概率发生随机bug，导致无法进入装载物品分支，有待确定问题位置
         MapManager.MapData beginData = MapManager.Instance.GetMapData(task.beginPosition);
+        Debug.LogWarning($"beginData: {beginData} beginData.has_item: {beginData.has_item} beginData.item: {beginData.item}");
         if (beginData != null && beginData.has_item &&
             beginData.item is ItemInstanceManager.MaterialInstance loadItem)
         {
@@ -490,9 +534,20 @@ public class PawnManager : MonoBehaviour{
 
         // 4. 移动到目标位置（endPosition）
         //由于蓝图的不可达性质，移动到蓝图位置下方一格（后续仍需改进查找临近格子）
-        controller.MovePawnToPosition(task.target_position + new Vector3Int(0, -1, 0), pawn);
-        // 等待 Pawn 到达
-        yield return new WaitWhile(() => controller.isMoving);
+        // controller.MovePawnToPosition(task.target_position + new Vector3Int(0, -1, 0), pawn);
+        // // 等待 Pawn 到达
+        // yield return new WaitWhile(() => controller.isMoving);
+
+        TaskManager.Task Transporttaskend = pawn.handlingTask;
+        pawn.handlingTask = new TaskManager.Task(
+            position: task.target_position + new Vector3Int(0, -1, 0),
+            type: TaskManager.TaskTypes.Move,
+            task_id: -1
+        );
+        AddPawnTask(pawn, Transporttaskend);
+        HandleTask(pawn);
+        //yield return StartCoroutine(HandleTask(pawn));
+        Debug.Log("printinstance拆分移动任务完成end");
 
         // 5. 卸载物品,更改蓝图进度
         //printinstance的装载进度接口，直接调用并清空pawn的装载数据即可
@@ -503,7 +558,10 @@ public class PawnManager : MonoBehaviour{
             pawn.materialId = 0;
             pawn.materialAmount = 0;
         }
-        ResolveTask(pawn);
+        pawn.isOnTask = false;
+        Debug.LogWarning($"卸载物品成功，已将物品 ID: {pawn.materialId} 数量: {pawn.materialAmount} 卸载到蓝图位置: {task.target_position}");
+        //暂时没有对应结束需求
+        //ResolveTask(pawn);
     }
 
     #region 任务处理函数
@@ -511,33 +569,39 @@ public class PawnManager : MonoBehaviour{
     Dictionary<TaskManager.TaskTypes, Action<Pawn>> taskHandler = new Dictionary<TaskManager.TaskTypes, Action<Pawn>>{
         { TaskManager.TaskTypes.Move, (pawn) => Instance.HandleMoveTask(pawn)},
         { TaskManager.TaskTypes.Harvest, (pawn) => Instance.HandleHarvestTask(pawn) },
-        {  TaskManager.TaskTypes.Build, (pawn) => Instance.HandleBuildTask(pawn) },
+        //{  TaskManager.TaskTypes.Build, (pawn) => Instance.HandleBuildTask(pawn) },
         { TaskManager.TaskTypes.Transport, (pawn) => Instance.StartCoroutine(Instance.HandleTransportTask(pawn, pawn.handlingTask as TaskManager.TransportTask)) },
-        { TaskManager.TaskTypes.BuildingTransport, (pawn) => Instance.StartCoroutine(Instance.HandleTransportTask(pawn, pawn.handlingTask as TaskManager.TransportTask)) },
+        { TaskManager.TaskTypes.BuildingTransport, (pawn) => Instance.StartCoroutine(Instance.HandleToPrintInstanceTransportTask(pawn, pawn.handlingTask as TaskManager.TransportTask)) },
         { TaskManager.TaskTypes.Plant, (pawn) => Instance.StartCoroutine(Instance.HandleBuildFarmTask(pawn)) }
     };
 
     Dictionary<BuildManager.BuildingType, Action<Pawn>> buildTaskHandler = new Dictionary<BuildManager.BuildingType, Action<Pawn>>{
         { BuildManager.BuildingType.Farm, (pawn) => Instance.StartCoroutine(Instance.HandleBuildFarmTask(pawn)) },
-        { BuildManager.BuildingType.Wall, (pawn) => Instance.HandleBuildTask(pawn) }
+        { BuildManager.BuildingType.Wall, (pawn) => Instance.StartCoroutine(Instance.HandleBuildTask(pawn)) }
     };
 
     public void HandleTask(Pawn pawn){
         if (pawn == null || pawn.handlingTask == null){
-            //TODO: 多任务队列
+            //TODO: 多任务队列  
             Debug.LogWarning("Pawn 或其任务为空，无法执行任务！");
             return;
         }
         TaskManager.Task task = pawn.handlingTask;
+        Debug.Log($"开始处理任务: {task.type}，ID: {task.task_id}");
 
         pawn.isOnTask = true;
         if(task.type == TaskManager.TaskTypes.Build){
             BuildManager.BuildingType buildingType = BuildManager.Instance.GetBuildingType(task.id);
+            Debug.Log($"建筑类型: {buildingType}");
 
-            if (buildTaskHandler.ContainsKey(buildingType)){
+            if (buildTaskHandler.ContainsKey(buildingType))
+            {
                 buildTaskHandler[buildingType].Invoke(pawn);
+                Debug.Log($"开始处理建筑任务: {buildingType}");
+                
             }
-            else{
+            else
+            {
                 Debug.LogWarning($"不支持的buildTask类型: {buildingType}");
             }
         }
@@ -580,7 +644,10 @@ public class PawnManager : MonoBehaviour{
     }
     public System.Collections.IEnumerator HandleBuildTask(Pawn pawn)
     {
+        //todo:更改所有独立的移动逻辑改为调用移动任务的形式，尝试解决建筑任务中建筑提前完成建造的问题
+        //需求调用的边界处理需要再做考虑
         Debug.Log("HandleBuildTask开始");
+        Debug.Log($"taskid: {pawn.handlingTask.task_id}");
         if (pawn == null || pawn.handlingTask == null)
         {
             Debug.LogWarning("Pawn 或其任务为空，无法执行任务！");
@@ -602,50 +669,56 @@ public class PawnManager : MonoBehaviour{
         {
             // 完成材料列表的运输任务,通过循环发布运输任务实现
             var requirement = printInstance.GetOneRequirement();
+            Debug.Log($"获取到的第一个需求: {requirement}");
             while (!requirement.Equals(new KeyValuePair<int, int>(-1, -1)))
             {
                 // 1. 获取最近的材料位置(相对于建造位置)
-                requirement = printInstance.GetOneRequirement();
+
                 int requireId = requirement.Key;
                 int requireAmount = requirement.Value;
                 Vector3Int pos = ItemInstanceManager.Instance.FindNearestItemPosition(requireId, buildPosition);
-                if (pos == null)
+                if (pos == Vector3Int.zero)
                 {
                     Debug.LogWarning("没有找到最近的材料位置，无法执行运输任务！");
                     yield break;
                 }
                 // 2. 创建并执行运输任务
                 TaskManager.TransportTask transporttask = TaskManager.CreateTransportTask(pos, buildPosition, requireId, requireAmount);
-                // AddPawnTask(pawn, transporttask);
+                TaskManager.Task buildtask = pawn.handlingTask; // 保存当前建造任务
+                pawn.handlingTask = transporttask; // 更新当前任务为运输任务
+                AddPawnTask(pawn, buildtask);
 
-                // HandleTask(pawn);
+                HandleTask(pawn);
+                yield return new WaitUntil(() => !pawn.isOnTask);
+
+                //yield return StartCoroutine(HandleTask(pawn));
+                //yield return StartCoroutine(HandleToPrintInstanceTransportTask(pawn, transporttask));
                 //等待一次运输任务执行完成后再执行下次运输任务
                 //注意这里的任务执行并不会
-                yield return StartCoroutine(HandleTransportTask(pawn, transporttask));
+                //yield return StartCoroutine(HandleTransportTask(pawn, transporttask));
+
+                requirement = printInstance.GetOneRequirement();
+                Debug.Log($"获取到的下一个需求: {requirement}");
             }
+            Debug.Log("所有材料运输任务已完成，开始建造任务。");
+
             if (printInstance.IsFinished())
             {
                 float workTime = GetWorkTime(pawn, task);
-                Debug.Log($"开始建造任务，预计耗时: {workTime} 秒"); 
-                yield return new WaitForSeconds(workTime);
-                Debug.Log("FarmTask 完成!");
-
-                MapManager.MapData mapData = MapManager.Instance.GetMapData(buildPosition);
-                if (mapData == null){
-                    Debug.LogWarning("目标位置的 MapData 不存在，无法创建建筑！");
-                    yield break;
-                }
-                MapManager.Instance.SetTileFarm(mapData, BuildManager.Instance.GetBuilding(task.id));
+                Debug.Log($"开始建造任务，预计耗时: {workTime} 秒");
+                yield return new WaitForSeconds(2);
+                Debug.Log("buildingTask 完成!");
 
                 ResolveTask(pawn);
+                //yield return StartCoroutine(ResolveTask(pawn));
+                yield break;
+
             }
             else
             {
                 Debug.Log("somethings wrong");
             }
         }
-
-
 
         Debug.Log("建造任务完成！");
     }
@@ -681,22 +754,25 @@ public class PawnManager : MonoBehaviour{
             AddPawnTask(pawn, build_farm_task);
 
             HandleTask(pawn);
+            //yield return StartCoroutine(HandleTask(pawn));
             Debug.Log("Pawn拆分BuildFarm任务完成");
         }
-        else{
+        else
+        {
             float workTime = GetWorkTime(pawn, task);
-            Debug.Log($"开始开垦任务，预计耗时: {workTime} 秒"); 
+            Debug.Log($"开始开垦任务，预计耗时: {workTime} 秒");
             yield return new WaitForSeconds(workTime);
             Debug.Log("FarmTask 完成!");
 
             MapManager.MapData mapData = MapManager.Instance.GetMapData(FarmPosition.Value);
-            if (mapData == null){
+            if (mapData == null)
+            {
                 Debug.LogWarning("目标位置的 MapData 不存在，无法创建农田！");
                 yield break;
             }
             MapManager.Instance.SetTileFarm(mapData, BuildManager.Instance.GetBuilding(task.id));
-
             ResolveTask(pawn);
+            //yield return StartCoroutine(ResolveTask(pawn));
         }
     }
     //收割任务实现，暂且测试树木产生木材
@@ -801,7 +877,7 @@ public class PawnManager : MonoBehaviour{
     //任务结束时进行的更新
     Dictionary<TaskManager.TaskTypes, Action<Pawn>> taskResolver = new Dictionary<TaskManager.TaskTypes, Action<Pawn>>{
         { TaskManager.TaskTypes.Move, (pawn) => Instance.ResolveMoveTask(pawn)},
-        { TaskManager.TaskTypes.Build, (pawn) => Instance.ResolveBuildTask(pawn) },
+        { TaskManager.TaskTypes.Build, (pawn) => Instance.StartCoroutine(Instance.ResolveBuildTask(pawn)) },
         { TaskManager.TaskTypes.Harvest, (pawn) => Instance.HandleHarvestTask(pawn)}
     };
 
@@ -819,15 +895,19 @@ public class PawnManager : MonoBehaviour{
             Debug.LogWarning($"未处理的任务类型: {task.type}");
         }
 
-        if(pawn.PawntaskList.Count > 0){
-            pawn.handlingTask = pawn.PawntaskList[0]; 
-            pawn.PawntaskList.RemoveAt(0); 
+        if (pawn.PawntaskList.Count > 0)
+        {
+            pawn.handlingTask = pawn.PawntaskList[0];
+            pawn.PawntaskList.RemoveAt(0);
 
             //谨防循环调度爆栈
             HandleTask(pawn); 
+            //yield return StartCoroutine(HandleTask(pawn));
+            
         }
-        else{
-            pawn.isOnTask = false; 
+        else
+        {
+            pawn.isOnTask = false;
         }
     }
 
@@ -860,20 +940,37 @@ public class PawnManager : MonoBehaviour{
             //TODO: 在即将抵达的时候目标地格变得不可移动，需要重新就近移动
         }
     }
-    
-    public void ResolveBuildTask(Pawn pawn){
+
+    public System.Collections.IEnumerator ResolveBuildTask(Pawn pawn)
+    {
         Debug.Log("ResolveBuildTask开始");
-        if (pawn == null || pawn.handlingTask == null){
+
+        if (pawn == null || pawn.handlingTask == null)
+        {
             Debug.LogWarning("Pawn 或其任务为空，无法执行任务！");
-            return;
+            yield break;
         }
         TaskManager.Task task = pawn.handlingTask;
 
         Vector3Int targetCellPos = task.target_position;
 
         //TODO: 把该地块上的蓝图类型实例转化为
+        MapManager.MapData mapData = MapManager.Instance.GetMapData(targetCellPos);
+        if (mapData == null)
+        {
+            Debug.LogWarning("目标位置的 MapData 不存在，无法创建建筑！");
+            yield break;
+        }
+        int buildingId = task.id;
+        BuildManager.Building building = BuildManager.Instance.GetBuilding(buildingId);
+        Debug.Log($"获取到的建筑: {building}");
+        ItemInstanceManager.Instance.DestroyItem(mapData.item, ItemInstanceManager.DestroyMode.RemainNone);
+        MapManager.Instance.SetTileBuild(mapData, building);
+        // 如需等待动画或其他效果，可在此处 yield return 等待
+        // yield return new WaitForSeconds(1.0f);
+
+        Debug.Log("ResolveBuildTask完成");
     }
-    
-    
-    #endregion 
+
+    #endregion
 }

@@ -176,7 +176,8 @@ public class MapManager : MonoBehaviour
         mapDatas[x, y].has_item = hasItem;
     }
 
-    void AddBuildTask(MapData data, BuildManager.Building building){
+    void AddBuildTask(MapData data, BuildManager.Building building)
+    {
         data.has_print = true;
         SetTilePrint(data, building);
 
@@ -219,13 +220,29 @@ public class MapManager : MonoBehaviour
 
         data.item = ItemInstanceManager.Instance.SpawnItem(data.position, building.id, ItemInstanceManager.ItemInstanceType.PrintInstance);
     }
-    public void SetTileFarm(MapData data, BuildManager.Building building){
-    
-        if(building.type != BuildManager.BuildingType.Farm){
+
+    public void SetTileBuild(MapData data, BuildManager.Building building)
+    {
+
+        data.has_print = true;
+        data.has_item = true;
+
+        SetWalkableState(data, true);//临时
+
+        data.can_build = false;
+        data.can_plant = false;
+
+        data.item = ItemInstanceManager.Instance.SpawnItem(data.position, building.id, ItemInstanceManager.ItemInstanceType.BuildingInstance);
+    }
+    public void SetTileFarm(MapData data, BuildManager.Building building)
+    {
+
+        if (building.type != BuildManager.BuildingType.Farm)
+        {
             Debug.Log("Error: SetTileFarm传入的建筑类型错误！");
             return;
         }
-        
+
         // if(!data.can_plant){
         //     Debug.Log("此处无法种植!");
         //     return;

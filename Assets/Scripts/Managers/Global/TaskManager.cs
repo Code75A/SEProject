@@ -116,6 +116,7 @@ public class TaskManager : MonoBehaviour
             amount: amount,
             beginPosition: beginPos
         );
+        Debug.Log($"创建运输任务：{transportTask.GetType()}");
         return transportTask;
     }
 
@@ -188,13 +189,17 @@ public class TaskManager : MonoBehaviour
             if(availableTaskList.Count == 0) break; // 防止 availableTaskList 为空时的异常
             Task task = availableTaskList[0];
             PawnManager.Pawn availablePawn = pawnManager.GetAvailablePawn();
-            if (availablePawn != null) {
+            if (availablePawn != null)
+            {
                 availablePawn.isOnTask = true;
                 availablePawn.handlingTask = task;
                 availableTaskList.RemoveAt(0);
 
                 PawnManager.Instance.HandleTask(availablePawn);
-            } else {
+                //PawnManager.Instance.StartCoroutine(PawnManager.Instance.HandleTask(availablePawn));
+            }
+            else
+            {
                 inavailableTaskList.Add(task);
                 availableTaskList.RemoveAt(0);
             }
@@ -205,13 +210,17 @@ public class TaskManager : MonoBehaviour
             if(inavailableTaskList.Count == 0) break; // 防止 inavailableTaskList 为空时的异常
             Task task = inavailableTaskList[0];
             PawnManager.Pawn availablePawn = pawnManager.GetAvailablePawn();
-            if (availablePawn != null) {
+            if (availablePawn != null)
+            {
                 availablePawn.isOnTask = true;
                 availablePawn.handlingTask = task;
                 inavailableTaskList.RemoveAt(0);
-                
+
                 PawnManager.Instance.HandleTask(availablePawn);
-            } else {
+                //PawnManager.Instance.StartCoroutine(PawnManager.Instance.HandleTask(availablePawn));
+            }
+            else
+            {
                 inavailableTaskList.Add(task); // 将任务移到列表尾部
                 inavailableTaskList.RemoveAt(0); // 移除列表首部的任务                
             }
