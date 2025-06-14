@@ -12,7 +12,7 @@ public class BuildingMenuSquareLoadController : MonoBehaviour
     public BuildManager.Building building;
 
     public void Init(BuildManager.Building building,Sprite sprite){
-        buildingName.text = building.name;
+        buildingName.text = building.build_name;
         texture.sprite = sprite;
         this.building = building;
     }

@@ -359,6 +359,22 @@ public class MapManager : MonoBehaviour
                 landTilemap.SetTile(new Vector3Int(x, y, 0), mapDatas[x, y].texture);
             }
         }
+
+        {//生成商人测试
+            MapData data = mapDatas[32, 34];
+            TraderManager.TraderBuilding building = TraderManager.Instance.trader;
+            data.has_print = false;
+            data.has_building = true;
+            data.has_item = true;
+
+            SetWalkableState(data, building.can_walk);
+            data.can_build = building.can_build;
+            data.can_plant = building.can_plant;
+
+            data.item = ItemInstanceManager.Instance.SpawnItem(data.position, building.id, ItemInstanceManager.ItemInstanceType.BuildingInstance);
+            Debug.Log(data.item.id + "商人生成");
+        }
+        
     }
     public void GenerateBoolVectors(){
         for (int x = 0; x < MAP_SIZE; x++){
@@ -401,7 +417,7 @@ public class MapManager : MonoBehaviour
 
             //UIManager.Instance.DebugTextAdd("点击到了 Tile: " + cellPos);
             if(building != null){
-                UIManager.Instance.DebugTextAdd("放置建筑: " + building.name);
+                UIManager.Instance.DebugTextAdd("放置建筑: " + building.build_name);
 
                 //非Dev建筑占地特判
                 if(building.type != BuildManager.BuildingType.Dev && ( !clickedData.can_build )){
@@ -626,10 +642,17 @@ public class MapManager : MonoBehaviour
         if(!IsInBoard(pos)) return false;
         return mapDatas[pos.x, pos.y].can_walk;
     }
+
+    //获取该地块的可种植情况
+    public bool IsPlantable(Vector3Int pos){
+        if(!IsInBoard(pos)) return false;
+        return mapDatas[pos.x, pos.y].can_plant;
+    }
     
     //检测某个格子上是否有pawn
-    public bool HasPawnAt(Vector3Int pos){
-        if(!IsInBoard(pos)) return false;
+    public bool HasPawnAt(Vector3Int pos)
+    {
+        if (!IsInBoard(pos)) return false;
         return mapDatas[pos.x, pos.y].has_pawn;
     }
     

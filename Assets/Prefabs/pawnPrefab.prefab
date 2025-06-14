@@ -123,7 +123,7 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0.020878837, y: -0.026748657}
+  m_Offset: {x: -0.00025379658, y: -0.0036950111}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -134,7 +134,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 0.89076495, y: 0.9713721}
+  m_Size: {x: 0.9791378, y: 1.0021107}
   m_EdgeRadius: 0
 --- !u!50 &2346941448636275324
 Rigidbody2D:
@@ -175,6 +175,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93d454b5481ff474bb0856adadec749b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isMoving: 0
   fromCellPos: {x: 0, y: 0, z: 0}
   landTilemap: {fileID: 0}
   content: {fileID: 0}
