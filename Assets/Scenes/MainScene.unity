@@ -2225,11 +2225,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 988757796}
   m_Enabled: 1
   m_EditorHideFlags: 0
-<<<<<<< HEAD
-  m_Script: {fileID: 11500000, guid: 3fd1b05801767804d936b8cb83dcb320, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-=======
   m_Script: {fileID: 11500000, guid: 8968e9f7a5812b54db2f309d54496f3d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -2243,7 +2238,6 @@ MonoBehaviour:
   trader_sprite: {fileID: 21300000, guid: 07526c0ec7e12d5458eb54da923467d7, type: 3}
   isTraderActive: 0
   inTraderPanel: 0
->>>>>>> e6ae58a74567b158ee98a5fa53421d53d7af69fa
 --- !u!1 &1022533043
 GameObject:
   m_ObjectHideFlags: 0
