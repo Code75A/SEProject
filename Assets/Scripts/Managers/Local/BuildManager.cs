@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEditor;
 
 public class BuildManager : MonoBehaviour
 {
@@ -10,10 +11,12 @@ public class BuildManager : MonoBehaviour
         Dev,Wall,Farm,Total
     }
 
-    public class Building{
+    [CreateAssetMenu(menuName = "Building")]
+    public class Building : ScriptableObject
+    {
         //数据属性
         public int id;
-        public string name;
+        public string build_name;
         public Sprite texture;
         public BuildingType type;
         //游戏属性
@@ -71,48 +74,155 @@ public class BuildManager : MonoBehaviour
     //     }
     // }
 
-    void InitBuildingListsData(){
-        for(int i = 0; i < (int)BuildingType.Total; i++)
+    void InitBuildingListsData()
+    {
+        for (int i = 0; i < (int)BuildingType.Total; i++)
             buildingLists.Add((BuildingType)i, new List<Building>());
-        
+
         //TODO: 目前的material_list直接参考id，后续应该改为引用
 
-        buildingLists[BuildingType.Dev].Add(new Building{
-            id = 0, name="草地", texture = tempBuildingSprites[0], type = BuildingType.Dev, width = 1, height = 1, durability = -1,
-            can_build = true, can_walk = true, can_plant = true, material_list = new List<KeyValuePair<int, int>>()});
-        buildingLists[BuildingType.Dev].Add(new Building{
-            id = 1, name="路径", texture = tempBuildingSprites[1], type = BuildingType.Dev, width = 1, height = 1, durability = -1,
-            can_build = false, can_walk = true, can_plant = false, material_list = new List<KeyValuePair<int, int>>()});
-        buildingLists[BuildingType.Dev].Add(new Building{
-            id = 2, name="水地", texture = tempBuildingSprites[2], type = BuildingType.Dev, width = 1, height = 1, durability = -1,
-            can_build = false, can_walk = false, can_plant = false, material_list = new List<KeyValuePair<int, int>>()});
-        buildingLists[BuildingType.Dev].Add(new Building{
-            id = 3, name="树木", texture = tempBuildingSprites[3], type = BuildingType.Dev, width = 1, height = 1, durability = -1,
-            can_build = false, can_walk = false, can_plant = false, material_list = new List<KeyValuePair<int, int>>()});
-        buildingLists[BuildingType.Dev].Add(new Building{
-            id = 4, name="石地", texture = tempBuildingSprites[6], type = BuildingType.Dev, width = 1, height =1, durability = -1,
-            can_build =true, can_walk = true, can_plant = false, material_list = new List<KeyValuePair<int, int>>()});
+        buildingLists[BuildingType.Dev].Add(new Building
+        {
+            id = 0,
+            build_name = "草地",
+            texture = tempBuildingSprites[0],
+            type = BuildingType.Dev,
+            width = 1,
+            height = 1,
+            durability = -1,
+            can_build = true,
+            can_walk = true,
+            can_plant = true,
+            material_list = new List<KeyValuePair<int, int>>()
+        });
+        buildingLists[BuildingType.Dev].Add(new Building
+        {
+            id = 1,
+            build_name = "路径",
+            texture = tempBuildingSprites[1],
+            type = BuildingType.Dev,
+            width = 1,
+            height = 1,
+            durability = -1,
+            can_build = false,
+            can_walk = true,
+            can_plant = false,
+            material_list = new List<KeyValuePair<int, int>>()
+        });
+        buildingLists[BuildingType.Dev].Add(new Building
+        {
+            id = 2,
+            build_name = "水地",
+            texture = tempBuildingSprites[2],
+            type = BuildingType.Dev,
+            width = 1,
+            height = 1,
+            durability = -1,
+            can_build = false,
+            can_walk = false,
+            can_plant = false,
+            material_list = new List<KeyValuePair<int, int>>()
+        });
+        buildingLists[BuildingType.Dev].Add(new Building
+        {
+            id = 3,
+            build_name = "树木",
+            texture = tempBuildingSprites[3],
+            type = BuildingType.Dev,
+            width = 1,
+            height = 1,
+            durability = -1,
+            can_build = false,
+            can_walk = false,
+            can_plant = false,
+            material_list = new List<KeyValuePair<int, int>>()
+        });
+        buildingLists[BuildingType.Dev].Add(new Building
+        {
+            id = 4,
+            build_name = "石地",
+            texture = tempBuildingSprites[6],
+            type = BuildingType.Dev,
+            width = 1,
+            height = 1,
+            durability = -1,
+            can_build = true,
+            can_walk = true,
+            can_plant = false,
+            material_list = new List<KeyValuePair<int, int>>()
+        });
 
-        buildingLists[BuildingType.Wall].Add(new Building{
-            id = 6, name="墙", texture = tempBuildingSprites[4], type = BuildingType.Wall, width = 1, height = 1, durability = 100,
-            can_build = false, can_walk = false, can_plant = false, material_list = new List<KeyValuePair<int, int>>{
+        buildingLists[BuildingType.Wall].Add(new Building
+        {
+            id = 6,
+            build_name = "墙",
+            texture = tempBuildingSprites[4],
+            type = BuildingType.Wall,
+            width = 1,
+            height = 1,
+            durability = 100,
+            can_build = false,
+            can_walk = false,
+            can_plant = false,
+            material_list = new List<KeyValuePair<int, int>>{
                 new KeyValuePair<int, int>(ItemManager.Instance.GetItem("木材").id, 10)
-            }});
+            }
+        });
 
-        buildingLists[BuildingType.Farm].Add(new Building{
-            id = 5, name="农田", texture = tempBuildingSprites[5], type = BuildingType.Farm, width = 1, height = 1, durability = -1,
-            can_build = false, can_walk = true, can_plant = true, material_list = new List<KeyValuePair<int, int>>()});
+        buildingLists[BuildingType.Farm].Add(new Building
+        {
+            id = 5,
+            build_name = "农田",
+            texture = tempBuildingSprites[5],
+            type = BuildingType.Farm,
+            width = 1,
+            height = 1,
+            durability = -1,
+            can_build = false,
+            can_walk = true,
+            can_plant = true,
+            material_list = new List<KeyValuePair<int, int>>()
+        });
+
+        // foreach (var list in buildingLists.Values)
+        // {
+        //     foreach (var building in list)
+        //     {
+        //         var asset = ScriptableObject.CreateInstance<Building>();
+        //         asset.name = building.build_name;
+        //         asset.build_name = building.build_name;
+        //         asset.id = building.id;
+        //         asset.texture = building.texture;
+        //         asset.type = building.type;
+        //         asset.width = building.width;
+        //         asset.height = building.height;
+        //         asset.durability = building.durability;
+        //         asset.can_build = building.can_build;
+        //         asset.can_walk = building.can_walk;
+        //         asset.can_plant = building.can_plant;
+
+        //         string path = $"Assets/Resources/BuildingData/{building.build_name}.asset";
+        //         AssetDatabase.CreateAsset(asset, path);
+        //     }
+
+        // }
+        // AssetDatabase.SaveAssets();
+        // AssetDatabase.Refresh();
     }
 
     public Building GetBuilding(int id){
         //TODO:CACHE
+        if (id == TraderManager.TRADER_ID)
+            return TraderManager.Instance.trader;
         
-        foreach(var list in buildingLists.Values){
-            foreach(var building in list){
-                if(building.id == id)
-                    return building;
+        foreach (var list in buildingLists.Values)
+            {
+                foreach (var building in list)
+                {
+                    if (building.id == id)
+                        return building;
+                }
             }
-        }
         return null;
     }
 
@@ -136,146 +246,6 @@ public class BuildManager : MonoBehaviour
 
     
 }
-
-
-#region "流浪商人“
-public class TraderBuilding : BuildManager.Building
-{
-    public static TraderBuilding Instance { get; private set; }
-
-    [Header("商人刷新设置")]
-    public float spawnProbability = 0.3f;
-    public float spawnProbabilityIncrement = 0.1f;
-    public float spawnProbabilityMax = 0.9f;
-    public float currentSpawnProbability;
-    public int goodsCount = 5;
-
-    [Header("商人状态")]
-    public bool isTraderActive = false;
-    public List<ItemManager.Item> traderGoods = new List<ItemManager.Item>();
-
-    private Dictionary<ItemManager.Item, float> itemWeights = new();
-    private Dictionary<ItemManager.Item, int> itemHistory = new();
-
-    public List<ItemManager.Item> availableItems = new();
-
-    public TraderBuilding()
-    {
-        // 固定父类属性
-        this.id = 100;
-        this.name = "商人";
-        this.texture = null; // 可以替换为你的商人建筑Sprite
-        this.type = BuildManager.BuildingType.Dev; // 或者你定义的专属类型
-        this.width = 1;
-        this.height = 1;
-        this.durability = 10000;
-        this.can_build = false;
-        this.can_walk = true;
-        this.can_plant = false;
-        this.material_list = new List<KeyValuePair<int, int>>();
-
-        if (Instance == null)
-            Instance = this;
-        else
-            Debug.LogWarning("TraderBuilding 已经存在，禁止重复创建！");
-
-        Init();
-        Debug.Log("TraderBuilding 初始化完成");
-    }
-
-    private void Init()
-    {
-        currentSpawnProbability = spawnProbability;
-
-        // 初始化商品列表
-        if (availableItems == null || availableItems.Count == 0)
-        {
-            availableItems = new List<ItemManager.Item>();
-            for (int i = 0; i < 10; i++)
-            {
-                var testItem = new ItemManager.Item
-                {
-                    id = i,
-                    name = "测试商品" + i,
-                    type = ItemManager.ItemType.Tool,
-                    texture = null
-                };
-                availableItems.Add(testItem);
-            }
-        }
-
-        // 初始化权重
-        itemWeights.Clear();
-        foreach (var item in availableItems)
-            itemWeights[item] = 1f / availableItems.Count;
-    }
-
-    public void DailyRefresh()
-    {
-        float rand = Random.value;
-        if (rand < currentSpawnProbability)
-        {
-            isTraderActive = true;
-            currentSpawnProbability = spawnProbability;
-            GenerateTraderGoods();
-        }
-        else
-        {
-            isTraderActive = false;
-            traderGoods.Clear();
-            currentSpawnProbability = Mathf.Min(currentSpawnProbability + spawnProbabilityIncrement, spawnProbabilityMax);
-        }
-    }
-
-    private void GenerateTraderGoods()
-    {
-        traderGoods.Clear();
-        List<ItemManager.Item> tempItems = new List<ItemManager.Item>(availableItems);
-        Dictionary<ItemManager.Item, float> tempWeights = new Dictionary<ItemManager.Item, float>(itemWeights);
-
-        for (int i = 0; i < goodsCount && tempItems.Count > 0; i++)
-        {
-            float totalWeight = 0f;
-            foreach (var item in tempItems)
-                totalWeight += tempWeights[item];
-
-            float rand = Random.value * totalWeight;
-            float sum = 0f;
-            ItemManager.Item chosen = null;
-            foreach (var item in tempItems)
-            {
-                sum += tempWeights[item];
-                if (rand <= sum)
-                {
-                    chosen = item;
-                    break;
-                }
-            }
-            if (chosen == null) break;
-
-            traderGoods.Add(chosen);
-            tempItems.Remove(chosen);
-            tempWeights.Remove(chosen);
-        }
-
-        foreach (var item in traderGoods)
-        {
-            if (!itemHistory.ContainsKey(item)) itemHistory[item] = 0;
-            itemHistory[item]++;
-        }
-    }
-
-    public bool BuyItem(ItemManager.Item item)
-    {
-        if (traderGoods.Contains(item))
-        {
-            // 这里可以加扣钱、加物品到背包等逻辑
-            return true;
-        }
-        return false;
-    }
-}
-#endregion
 
 #region"箱子"
 // 货币类型Item，可以扩展为更多货币
@@ -309,7 +279,7 @@ public class ChestBuilding : BuildManager.Building
     public ChestBuilding(int id)
     {
         this.id = id; // 由外部传入
-        this.name = "箱子";
+        this.build_name = "箱子";
         this.texture = null;
         this.type = BuildManager.BuildingType.Dev;
         this.width = 2;
@@ -397,4 +367,126 @@ public class ChestBuilding : BuildManager.Building
     }
 }
 
+#endregion
+
+#region "奇观建筑"
+// 疾风奇观：提升全体小人移动速度
+public class GaleWonderBuilding : BuildManager.Building
+{
+    public static bool IsBuilt = false;
+    public const float MoveSpeedBuff = 1.5f;
+    public GaleWonderBuilding()
+    {
+        this.id = 101;
+        this.build_name = "疾风奇观";
+        this.texture = null; // 可指定专属Sprite
+        this.type = BuildManager.BuildingType.Dev;
+        this.width = 2;
+        this.height = 2;
+        this.durability = 99999;
+        this.can_build = true;
+        this.can_walk = false;
+        this.can_plant = false;
+        this.material_list = new List<KeyValuePair<int, int>>{
+        };
+    }
+    public static void OnBuilt()
+    {
+        if (!IsBuilt)
+        {
+            IsBuilt = true;
+            //PawnManager.ApplyGaleWonderBuff();
+            Debug.Log("疾风奇观建成，全体小人移动速度提升！");
+        }
+    }
+    public static void OnDestroyed()
+    {
+        if (IsBuilt)
+        {
+            IsBuilt = false;
+            //PawnManager.RemoveGaleWonderBuff();
+            Debug.Log("疾风奇观被摧毁，移动速度恢复正常。");
+        }
+    }
+}
+
+// 勤工奇观：提升全体小人工作速度
+public class DiligenceWonderBuilding : BuildManager.Building
+{
+    public static bool IsBuilt = false;
+    public const float WorkSpeedBuff = 1.5f;
+    public DiligenceWonderBuilding()
+    {
+        this.id = 102;
+        this.build_name = "勤工奇观";
+        this.texture = null;
+        this.type = BuildManager.BuildingType.Dev;
+        this.width = 2;
+        this.height = 2;
+        this.durability = 99999;
+        this.can_build = true;
+        this.can_walk = false;
+        this.can_plant = false;
+        this.material_list = new List<KeyValuePair<int, int>>{
+        };
+    }
+    public static void OnBuilt()
+    {
+        if (!IsBuilt)
+        {
+            IsBuilt = true;
+            //PawnManager.ApplyDiligenceWonderBuff();
+            Debug.Log("勤工奇观建成，全体小人工作速度提升！");
+        }
+    }
+    public static void OnDestroyed()
+    {
+        if (IsBuilt)
+        {
+            IsBuilt = false;
+            //PawnManager.RemoveDiligenceWonderBuff();
+            Debug.Log("勤工奇观被摧毁，工作速度恢复正常。");
+        }
+    }
+}
+
+// 巨力奇观：提升全体小人运载容量
+public class MightWonderBuilding : BuildManager.Building
+{
+    public static bool IsBuilt = false;
+    public const float CapacityBuff = 1.5f;
+    public MightWonderBuilding()
+    {
+        this.id = 103;
+        this.build_name = "巨力奇观";
+        this.texture = null;
+        this.type = BuildManager.BuildingType.Dev;
+        this.width = 2;
+        this.height = 2;
+        this.durability = 99999;
+        this.can_build = true;
+        this.can_walk = false;
+        this.can_plant = false;
+        this.material_list = new List<KeyValuePair<int, int>>{
+        };
+    }
+    public static void OnBuilt()
+    {
+        if (!IsBuilt)
+        {
+            IsBuilt = true;
+            //PawnManager.ApplyMightWonderBuff();
+            Debug.Log("巨力奇观建成，全体小人运载容量提升！");
+        }
+    }
+    public static void OnDestroyed()
+    {
+        if (IsBuilt)
+        {
+            IsBuilt = false;
+            //PawnManager.RemoveMightWonderBuff();
+            Debug.Log("巨力奇观被摧毁，运载容量恢复正常。");
+        }
+    }
+}
 #endregion
