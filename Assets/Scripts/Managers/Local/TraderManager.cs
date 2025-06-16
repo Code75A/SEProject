@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class TraderManager : MonoBehaviour
@@ -45,16 +46,16 @@ public class TraderManager : MonoBehaviour
     public bool isTraderActive = true;
     public bool inTraderPanel = false;
 
-    public class TraderBuilding : BuildManager.Building
+    public class TraderBuilding : Building
     {
         public List<KeyValuePair<ItemManager.Item, int>> goods = new List<KeyValuePair<ItemManager.Item, int>>();
-        public TraderBuilding()
+        public void Init()
         {
             // 固定父类属性
             this.id = TRADER_ID;
             this.build_name = "商人";
             this.texture = Instance.trader_sprite; // 可以替换为你的商人建筑Sprite
-            this.type = BuildManager.BuildingType.Dev; // 或者你定义的专属类型
+            this.type = BuildingType.Dev; // 或者你定义的专属类型
             this.width = 1;
             this.height = 1;
             this.durability = -1;
@@ -71,7 +72,9 @@ public class TraderManager : MonoBehaviour
     void Start()
     {
         Init();
-        trader = new TraderBuilding();
+        trader = ScriptableObject.CreateInstance<TraderBuilding>();
+        trader.Init();
+
         GenerateTraderGoods();
 
         foreach (var trader_goods_pair in trader.goods)

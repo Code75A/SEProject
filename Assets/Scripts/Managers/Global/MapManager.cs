@@ -7,8 +7,6 @@ using System;
 
 using System.Linq;
 
-
-
 public class MapManager : MonoBehaviour
 {
     #region 成员变量
@@ -152,20 +150,20 @@ public class MapManager : MonoBehaviour
         mapDatas[pos.x, pos.y].has_pawn = hasPawn;
     }
 
-    Dictionary<BuildManager.BuildingType, Action<MapData, BuildManager.Building>> buildSetActions = new Dictionary<BuildManager.BuildingType, Action<MapData, BuildManager.Building>>{
-        {BuildManager.BuildingType.Dev, (data, building) => Instance.SetTileDev(data, building)},
-        {BuildManager.BuildingType.Wall, (data, building) => Instance.SetTilePrint(data, building)},
-        {BuildManager.BuildingType.Farm, (data, building) => Instance.SetTileFarm(data, building)}
+    Dictionary<BuildingType, Action<MapData, Building>> buildSetActions = new Dictionary<BuildingType, Action<MapData, Building>>{
+        {BuildingType.Dev, (data, building) => Instance.SetTileDev(data, building)},
+        {BuildingType.Wall, (data, building) => Instance.SetTilePrint(data, building)},
+        {BuildingType.Farm, (data, building) => Instance.SetTileFarm(data, building)}
     };
 
-    Dictionary<BuildManager.BuildingType, Action<MapData, BuildManager.Building>> buildTaskActions = new Dictionary<BuildManager.BuildingType, Action<MapData, BuildManager.Building>>{
-        {BuildManager.BuildingType.Dev, (data, building) => Instance.SetTileDev(data, building)},
-        {BuildManager.BuildingType.Wall, (data, building) => Instance.AddBuildTask(data, building)},
-        {BuildManager.BuildingType.Farm, (data, building) => Instance.AddBuildTask(data, building)},
+    Dictionary<BuildingType, Action<MapData, Building>> buildTaskActions = new Dictionary<BuildingType, Action<MapData, Building>>{
+        {BuildingType.Dev, (data, building) => Instance.SetTileDev(data, building)},
+        {BuildingType.Wall, (data, building) => Instance.AddBuildTask(data, building)},
+        {BuildingType.Farm, (data, building) => Instance.AddBuildTask(data, building)},
     };
 
     //或许有必要分开？
-    // void AddWallBuildTask(MapData data, BuildManager.Building building){
+    // void AddWallBuildTask(MapData data, Building building){
     //     TaskManager.Instance.AddTask(data.position, TaskManager.TaskTypes.Build, building.id, 1);
     // }
 
@@ -176,7 +174,7 @@ public class MapManager : MonoBehaviour
         mapDatas[x, y].has_item = hasItem;
     }
 
-    void AddBuildTask(MapData data, BuildManager.Building building)
+    void AddBuildTask(MapData data, Building building)
     {
         data.has_print = true;
         SetTilePrint(data, building);
@@ -184,7 +182,7 @@ public class MapManager : MonoBehaviour
         TaskManager.Instance.AddTask(data.position, TaskManager.TaskTypes.Build, building.id, 1);
     }
 
-    public void SetTileDev(MapData data,BuildManager.Building building){
+    public void SetTileDev(MapData data,Building building){
         int id=building.id;
 
         data.type = (tileTypes)id;
@@ -208,7 +206,7 @@ public class MapManager : MonoBehaviour
 
         landTilemap.SetTile(data.position, data.texture);
     }
-    public void SetTilePrint(MapData data, BuildManager.Building building){
+    public void SetTilePrint(MapData data, Building building){
 
         data.has_print = true;
         data.has_item = true;
@@ -221,7 +219,7 @@ public class MapManager : MonoBehaviour
         data.item = ItemInstanceManager.Instance.SpawnItem(data.position, building.id, ItemInstanceManager.ItemInstanceType.PrintInstance);
     }
 
-    public void SetTileBuild(MapData data, BuildManager.Building building)
+    public void SetTileBuild(MapData data, Building building)
     {
 
         data.has_print = true;
@@ -234,10 +232,10 @@ public class MapManager : MonoBehaviour
 
         data.item = ItemInstanceManager.Instance.SpawnItem(data.position, building.id, ItemInstanceManager.ItemInstanceType.BuildingInstance);
     }
-    public void SetTileFarm(MapData data, BuildManager.Building building)
+    public void SetTileFarm(MapData data, Building building)
     {
 
-        if (building.type != BuildManager.BuildingType.Farm)
+        if (building.type != BuildingType.Farm)
         {
             Debug.Log("Error: SetTileFarm传入的建筑类型错误！");
             return;
@@ -409,7 +407,7 @@ public class MapManager : MonoBehaviour
 
     #region 对外方法
 
-    public void BuildByPlayer(Vector3Int cellPos, BuildManager.Building building){
+    public void BuildByPlayer(Vector3Int cellPos, Building building){
         TileBase clickedTile = landTilemap.GetTile(cellPos);
         MapData clickedData = mapDatas[cellPos.x, cellPos.y];
 
@@ -420,19 +418,19 @@ public class MapManager : MonoBehaviour
                 UIManager.Instance.DebugTextAdd("放置建筑: " + building.build_name);
 
                 //非Dev建筑占地特判
-                if(building.type != BuildManager.BuildingType.Dev && ( !clickedData.can_build )){
+                if(building.type != BuildingType.Dev && ( !clickedData.can_build )){
                     Debug.Log("此处已有建筑/蓝图，无法放置");
                     return;
                 }
 
                 //根据buildingType更新数据
-                if(buildTaskActions.TryGetValue(building.type, out Action<MapData, BuildManager.Building> action))
+                if(buildTaskActions.TryGetValue(building.type, out Action<MapData, Building> action))
                     action(clickedData, building);
                 else
                     Debug.Log("未定义的建筑类型: " + building.type);
 
                 //Dev：landtilemap更新贴图
-                if(building.type == BuildManager.BuildingType.Dev || building.type == BuildManager.BuildingType.Farm){
+                if(building.type == BuildingType.Dev || building.type == BuildingType.Farm){
                     landTilemap.SetTile(cellPos, clickedData.texture);
                 }
             }

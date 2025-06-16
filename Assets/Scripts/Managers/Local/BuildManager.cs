@@ -4,33 +4,10 @@ using UnityEngine;
 using TMPro;
 using UnityEditor;
 
+
 public class BuildManager : MonoBehaviour
 {
     public static BuildManager Instance { get; private set; }
-    public enum BuildingType{
-        Dev,Wall,Farm,Total
-    }
-
-    [CreateAssetMenu(menuName = "Building")]
-    public class Building : ScriptableObject
-    {
-        //数据属性
-        public int id;
-        public string build_name;
-        public Sprite texture;
-        public BuildingType type;
-        //游戏属性
-        public int width, height;
-        public int durability;
-
-        public bool can_build;
-        public bool can_walk;
-        public bool can_plant;
-
-        public List<KeyValuePair<int, int>> material_list = new List<KeyValuePair<int, int>>();
-
-        //TODO: 拓展为List<bool> cans + enum canTypes{walk,build,plant}
-    }
 
     public Dictionary<BuildingType, List<Building>> buildingLists = new Dictionary<BuildingType, List<Building>>();
     public List<Building> currentBuildingList ;
@@ -80,134 +57,20 @@ public class BuildManager : MonoBehaviour
             buildingLists.Add((BuildingType)i, new List<Building>());
 
         //TODO: 目前的material_list直接参考id，后续应该改为引用
-
-        buildingLists[BuildingType.Dev].Add(new Building
+        string[] guids = AssetDatabase.FindAssets("t:Building", new[] { "Assets/Resources/BuildingData" });
+        foreach (string guid in guids)
         {
-            id = 0,
-            build_name = "草地",
-            texture = tempBuildingSprites[0],
-            type = BuildingType.Dev,
-            width = 1,
-            height = 1,
-            durability = -1,
-            can_build = true,
-            can_walk = true,
-            can_plant = true,
-            material_list = new List<KeyValuePair<int, int>>()
-        });
-        buildingLists[BuildingType.Dev].Add(new Building
-        {
-            id = 1,
-            build_name = "路径",
-            texture = tempBuildingSprites[1],
-            type = BuildingType.Dev,
-            width = 1,
-            height = 1,
-            durability = -1,
-            can_build = false,
-            can_walk = true,
-            can_plant = false,
-            material_list = new List<KeyValuePair<int, int>>()
-        });
-        buildingLists[BuildingType.Dev].Add(new Building
-        {
-            id = 2,
-            build_name = "水地",
-            texture = tempBuildingSprites[2],
-            type = BuildingType.Dev,
-            width = 1,
-            height = 1,
-            durability = -1,
-            can_build = false,
-            can_walk = false,
-            can_plant = false,
-            material_list = new List<KeyValuePair<int, int>>()
-        });
-        buildingLists[BuildingType.Dev].Add(new Building
-        {
-            id = 3,
-            build_name = "树木",
-            texture = tempBuildingSprites[3],
-            type = BuildingType.Dev,
-            width = 1,
-            height = 1,
-            durability = -1,
-            can_build = false,
-            can_walk = false,
-            can_plant = false,
-            material_list = new List<KeyValuePair<int, int>>()
-        });
-        buildingLists[BuildingType.Dev].Add(new Building
-        {
-            id = 4,
-            build_name = "石地",
-            texture = tempBuildingSprites[6],
-            type = BuildingType.Dev,
-            width = 1,
-            height = 1,
-            durability = -1,
-            can_build = true,
-            can_walk = true,
-            can_plant = false,
-            material_list = new List<KeyValuePair<int, int>>()
-        });
-
-        buildingLists[BuildingType.Wall].Add(new Building
-        {
-            id = 6,
-            build_name = "墙",
-            texture = tempBuildingSprites[4],
-            type = BuildingType.Wall,
-            width = 1,
-            height = 1,
-            durability = 100,
-            can_build = false,
-            can_walk = false,
-            can_plant = false,
-            material_list = new List<KeyValuePair<int, int>>{
-                new KeyValuePair<int, int>(ItemManager.Instance.GetItem("木材").id, 10)
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            Building building = AssetDatabase.LoadAssetAtPath<Building>(path);
+            if (building != null)
+            {
+                if (!buildingLists.ContainsKey(building.type)){
+                    Debug.LogWarning($"Building type {building.type} not found in buildingLists, adding it now.");
+                    buildingLists[building.type] = new List<Building>();
+                }
+                buildingLists[building.type].Add(building);
             }
-        });
-
-        buildingLists[BuildingType.Farm].Add(new Building
-        {
-            id = 5,
-            build_name = "农田",
-            texture = tempBuildingSprites[5],
-            type = BuildingType.Farm,
-            width = 1,
-            height = 1,
-            durability = -1,
-            can_build = false,
-            can_walk = true,
-            can_plant = true,
-            material_list = new List<KeyValuePair<int, int>>()
-        });
-
-        // foreach (var list in buildingLists.Values)
-        // {
-        //     foreach (var building in list)
-        //     {
-        //         var asset = ScriptableObject.CreateInstance<Building>();
-        //         asset.name = building.build_name;
-        //         asset.build_name = building.build_name;
-        //         asset.id = building.id;
-        //         asset.texture = building.texture;
-        //         asset.type = building.type;
-        //         asset.width = building.width;
-        //         asset.height = building.height;
-        //         asset.durability = building.durability;
-        //         asset.can_build = building.can_build;
-        //         asset.can_walk = building.can_walk;
-        //         asset.can_plant = building.can_plant;
-
-        //         string path = $"Assets/Resources/BuildingData/{building.build_name}.asset";
-        //         AssetDatabase.CreateAsset(asset, path);
-        //     }
-
-        // }
-        // AssetDatabase.SaveAssets();
-        // AssetDatabase.Refresh();
+        }
     }
 
     public Building GetBuilding(int id){
@@ -260,7 +123,7 @@ public class CurrencyItem : ItemManager.Item
     }
 }
 
-public class ChestBuilding : BuildManager.Building
+public class ChestBuilding : Building
 {
     // 箱子格子数量和每格最大堆叠数量
     public const int SlotCount = 27;
@@ -281,7 +144,7 @@ public class ChestBuilding : BuildManager.Building
         this.id = id; // 由外部传入
         this.build_name = "箱子";
         this.texture = null;
-        this.type = BuildManager.BuildingType.Dev;
+        this.type = BuildingType.Dev;
         this.width = 2;
         this.height = 2;
         this.durability = 10000;
@@ -371,7 +234,7 @@ public class ChestBuilding : BuildManager.Building
 
 #region "奇观建筑"
 // 疾风奇观：提升全体小人移动速度
-public class GaleWonderBuilding : BuildManager.Building
+public class GaleWonderBuilding : Building
 {
     public static bool IsBuilt = false;
     public const float MoveSpeedBuff = 1.5f;
@@ -380,7 +243,7 @@ public class GaleWonderBuilding : BuildManager.Building
         this.id = 101;
         this.build_name = "疾风奇观";
         this.texture = null; // 可指定专属Sprite
-        this.type = BuildManager.BuildingType.Dev;
+        this.type = BuildingType.Dev;
         this.width = 2;
         this.height = 2;
         this.durability = 99999;
@@ -411,7 +274,7 @@ public class GaleWonderBuilding : BuildManager.Building
 }
 
 // 勤工奇观：提升全体小人工作速度
-public class DiligenceWonderBuilding : BuildManager.Building
+public class DiligenceWonderBuilding : Building
 {
     public static bool IsBuilt = false;
     public const float WorkSpeedBuff = 1.5f;
@@ -420,7 +283,7 @@ public class DiligenceWonderBuilding : BuildManager.Building
         this.id = 102;
         this.build_name = "勤工奇观";
         this.texture = null;
-        this.type = BuildManager.BuildingType.Dev;
+        this.type = BuildingType.Dev;
         this.width = 2;
         this.height = 2;
         this.durability = 99999;
@@ -451,7 +314,7 @@ public class DiligenceWonderBuilding : BuildManager.Building
 }
 
 // 巨力奇观：提升全体小人运载容量
-public class MightWonderBuilding : BuildManager.Building
+public class MightWonderBuilding : Building
 {
     public static bool IsBuilt = false;
     public const float CapacityBuff = 1.5f;
@@ -460,7 +323,7 @@ public class MightWonderBuilding : BuildManager.Building
         this.id = 103;
         this.build_name = "巨力奇观";
         this.texture = null;
-        this.type = BuildManager.BuildingType.Dev;
+        this.type = BuildingType.Dev;
         this.width = 2;
         this.height = 2;
         this.durability = 99999;

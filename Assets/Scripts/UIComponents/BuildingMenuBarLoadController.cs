@@ -4,14 +4,14 @@ using UnityEngine;
 public class BuildingMenuBarLoadController : MonoBehaviour
 {
     public UIManager uiManager;
-    BuildManager.BuildingType buildingType;
+    BuildingType buildingType;
 
     /// <summary>
     /// 设置buildManager和buildingType
     /// </summary>
     /// <param name="buildManager">全局buildManager</param>
     /// <param name="type">BuildManager：enum BuildingType</param>
-    public void Init(UIManager uiManager,BuildManager.BuildingType type)
+    public void Init(UIManager uiManager,BuildingType type)
     {
         this.uiManager = uiManager;
         buildingType = type;

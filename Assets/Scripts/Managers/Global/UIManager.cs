@@ -51,7 +51,7 @@ public class UIManager : MonoBehaviour
     public Vector3 bar_anchor, square_anchor, instruct_anchor;
     public Vector3 bar_deltax, bar_deltay, square_deltax, square_deltay, instruct_deltax, instruct_deltay;
 
-    public GameObject[] buildingMenuBars = new GameObject[(int)BuildManager.BuildingType.Total];
+    public GameObject[] buildingMenuBars = new GameObject[(int)BuildingType.Total];
     public GameObject[] buildingMenuSquares;//最多一行放8个
 
     public GameObject[] instructMenuSquares;
@@ -124,10 +124,10 @@ public class UIManager : MonoBehaviour
 
         Vector3 current_anchor = bar_anchor - bar_deltay;
 
-        for (int i = 0; i < (int)BuildManager.BuildingType.Total; i++)
+        for (int i = 0; i < (int)BuildingType.Total; i++)
         {
             buildingMenuBars[i] = Instantiate(buildingMenuBar, buildingMenu);
-            buildingMenuBars[i].GetComponent<BuildingMenuBarLoadController>().Init(this, (BuildManager.BuildingType)i);
+            buildingMenuBars[i].GetComponent<BuildingMenuBarLoadController>().Init(this, (BuildingType)i);
 
             if (i % 2 == 0)
             {
@@ -139,7 +139,7 @@ public class UIManager : MonoBehaviour
                 buildingMenuBars[i].GetComponent<RectTransform>().localPosition = current_anchor + bar_deltax;
             }
 
-            buildingMenuBars[i].GetComponentInChildren<TextMeshProUGUI>().text = ((BuildManager.BuildingType)i).ToString();
+            buildingMenuBars[i].GetComponentInChildren<TextMeshProUGUI>().text = ((BuildingType)i).ToString();
         }
     }
     void InitInstructMenu()
@@ -209,7 +209,7 @@ public class UIManager : MonoBehaviour
 
     #region 设置描述文本
 
-    public void SetPanelTextBuild(BuildManager.Building building)
+    public void SetPanelTextBuild(Building building)
     {
         selectedObjectDescription.text = "建筑物名称: " + building.build_name + "\n" +
                                         "建筑物类型: " + building.type.ToString() + "\n" +
@@ -327,12 +327,12 @@ public class UIManager : MonoBehaviour
 
     #endregion
     #region BuildingMenu相关函数
-    public void LoadBuildingMenuSquares(BuildManager.BuildingType type)
+    public void LoadBuildingMenuSquares(BuildingType type)
     {
         //最多一行加载8个，如果超过8个时需要另行设计
         ClearBuildingMenuSquares();
 
-        List<BuildManager.Building> currentBuildingList = buildManager.LoadBuildingList(type);
+        List<Building> currentBuildingList = buildManager.LoadBuildingList(type);
         buildingMenuSquares = new GameObject[currentBuildingList.Count];
 
         Vector3 current_anchor = square_anchor - square_deltay;

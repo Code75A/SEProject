@@ -428,7 +428,7 @@ public class ItemInstanceManager : MonoBehaviour
     /// </summary>
     public ItemInstance MakeCropInstance(int crop_id, Vector3Int position)
     {
-        CropManager.Crop sample = CropManager.Instance.GetCrop(crop_id);
+        Crop sample = CropManager.Instance.GetCrop(crop_id);
         MapManager.MapData env_data = MapManager.Instance.GetMapData(position);
 
         if (sample == null)
@@ -459,7 +459,7 @@ public class ItemInstanceManager : MonoBehaviour
     /// </summary>
     public ItemInstance MakeBuildingInstance(int building_id, Vector3Int position)
     {
-        BuildManager.Building sample = BuildManager.Instance.GetBuilding(building_id);
+        Building sample = BuildManager.Instance.GetBuilding(building_id);
         if (sample == null)
         {
             UIManager.Instance.DebugTextAdd(
@@ -487,7 +487,7 @@ public class ItemInstanceManager : MonoBehaviour
     /// </summary>
     public ItemInstance MakePrintInstance(int building_id, Vector3Int position)
     {
-        BuildManager.Building sample = BuildManager.Instance.GetBuilding(building_id);
+        Building sample = BuildManager.Instance.GetBuilding(building_id);
         if (sample == null)
         {
             UIManager.Instance.DebugTextAdd(

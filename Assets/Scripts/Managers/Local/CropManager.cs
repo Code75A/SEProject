@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Xml.Serialization;
 using Unity.VisualScripting;
+using UnityEditor;
+using UnityEditor.VersionControl;
 using UnityEngine;
 
 public class CropManager : MonoBehaviour
@@ -24,66 +26,6 @@ public class CropManager : MonoBehaviour
     #endregion
     
     //=========================================Factor Part=======================================
-    #region 影响因素模块-class Factor的基本内容
-    public enum FactorType
-    {
-        Linear, LinearEnv, LinearDiffEnv, InRangeEnv, Zero, Total
-    }
-    public abstract class Factor
-    {
-        //public int id;
-        public FactorType type;
-        public abstract float GetImpacted(float origin);
-        public abstract float GetImpacted(float origin, float env_data);
-    }
-    public class LinearFactor : Factor
-    {
-        public float change_rate;
-        public override float GetImpacted(float origin) { return origin * change_rate; }
-        public override float GetImpacted(float origin, float env_data) {
-            UIManager.Instance.DebugTextAdd("<<Error>>LinearFactor.GetImpacted should not be called with expect_env.");
-            return origin;
-        }
-    }
-    public class ZeroFactor : Factor
-    {
-        public override float GetImpacted(float origin) { return 0.0f; }
-        public override float GetImpacted(float origin, float env_data) {
-            UIManager.Instance.DebugTextAdd("<<Error>>ZeroFactor.GetImpacted should not be called with expect_env.");
-            return origin;
-        }
-    }
-    public abstract class EnvFactor: Factor
-    {
-        public float standard_env;
-        public float up_limit;
-        public float down_limit;
-        public sealed override float GetImpacted(float origin) {
-            UIManager.Instance.DebugTextAdd("<<Warning>>EnvFactor.GetImpacted should be called with expect_env.");
-            return origin;
-        }
-    }
-    public class LinearEnvFactor : EnvFactor
-    {
-        public override float GetImpacted(float origin, float env_data) {
-            float use_env_data = Math.Clamp(env_data, down_limit, up_limit);
-            return origin * (1.0f + (use_env_data - standard_env) / (up_limit - down_limit));
-        }
-    }
-    public class LinearDiffEnvFactor : EnvFactor
-    {
-        public override float GetImpacted(float origin, float env_data) {
-            float use_env_data = Math.Clamp(env_data, down_limit, up_limit);
-            return origin * (1.0f - (Math.Abs(standard_env - use_env_data) / (up_limit - down_limit)));
-        }
-    }
-    public class InRangeEnvFactor : EnvFactor {
-        public override float GetImpacted(float origin, float env_data) {
-            if (env_data < down_limit || env_data > up_limit) return 0.0f; // Outside the range, no impact
-            else return origin;
-        }
-    }
-    #endregion
     #region 影响因素模块-动态growthPerFrame管理
     #region 0.变量部分
     // For growth per frame
@@ -101,12 +43,10 @@ public class CropManager : MonoBehaviour
     /// </summary>
     public void InitGrowthPerFrameDict() {
         // the globalBuffEnvFactor with a default value of change_rate = 1.0f, which means no change
-        globalBuffEnvFactor = new LinearFactor {
-            //id = -1, // -1 means global buff
-            type = FactorType.Linear,
-            change_rate = 1.0f // default no change
-        };
-        for (int i = 0; i < cropList.Count; i++) {
+        globalBuffEnvFactor = AssetDatabase.LoadAssetAtPath<LinearFactor>("Assets/Resources/FactorData/GlobalBuffEnvFactor.asset");
+        
+        for (int i = 0; i < cropList.Count; i++)
+        {
             // Initialize each crop's growthPerFrameDict with the standardGrowthPerFrame
             growthPerFrameDict.Add(cropList[i].id, standardGrowthPerFrame);
             // Initialize the pestDisasterEnvFactorDict with null
@@ -157,7 +97,8 @@ public class CropManager : MonoBehaviour
             return false;
         }
         // Create a new EnvFactor with the decrease_rate
-        LinearFactor env_factor = new LinearFactor { change_rate = decrease_rate };
+        LinearFactor env_factor = ScriptableObject.CreateInstance<LinearFactor>();
+        env_factor.change_rate = decrease_rate;
         // Register the EnvFactor to the pestDisasterEnvFactorDict
         if (pestDisasterEnvFactorDict.ContainsKey(crop_id))
             pestDisasterEnvFactorDict[crop_id] = env_factor;
@@ -262,20 +203,6 @@ public class CropManager : MonoBehaviour
     #endregion
 
     // =====================================Crop Part==========================================
-    public class Crop
-    {
-        public int id;
-        public int seed_id; // Seed ID, used for ItemInstanceManager
-        public string name;
-        public float lifetime;
-        public float best_fertility;
-        public FactorType fertility_factor_type = FactorType.LinearEnv;
-        public float best_humidity;
-        public FactorType humidity_factor_type = FactorType.LinearDiffEnv;
-        public float best_light;
-        public FactorType light_factor_type = FactorType.LinearDiffEnv;
-        public List<KeyValuePair<int, int>> harvest_list;
-    }
     public List<Crop> cropList = new List<Crop>();
     public Dictionary<int, Crop> cropDict = new Dictionary<int, Crop>();
     const int CropSpritesCount = 6;
@@ -314,36 +241,15 @@ public class CropManager : MonoBehaviour
     /// private: temporarily initialize the cropList with some default crops.
     /// </summary>
     void InitCropListData(){
-        cropList.Add(new Crop{id = 0, seed_id = 7, name="水稻", lifetime=10.0f, 
-            best_fertility = 1.0f, best_humidity = 0.0f, best_light = 1.0f,
-            harvest_list = new List<KeyValuePair<int,int> >{
-                new KeyValuePair<int, int>(ItemManager.Instance.GetItem("蓝莓",ItemManager.ItemType.Material).id ,10)
-            }});
-        cropList.Add(new Crop{id = 1, seed_id = 8, name="土豆", lifetime=5.0f, 
-            best_fertility = 0.5f, best_humidity = 0.0f, best_light = 1.0f,
-            harvest_list = new List<KeyValuePair<int,int> >{
-                new KeyValuePair<int, int>(ItemManager.Instance.GetItem("草莓",ItemManager.ItemType.Material).id ,10)
-            }});
-        cropList.Add(new Crop{id = 2, seed_id = 9, name="小麦", lifetime=10.0f, 
-            best_fertility = 0.8f, best_humidity = 0.0f, best_light = 1.0f,
-            harvest_list = new List<KeyValuePair<int,int> >{
-                new KeyValuePair<int, int>(ItemManager.Instance.GetItem("蓝莓",ItemManager.ItemType.Material).id ,10)
-            }});
-        cropList.Add(new Crop{id = 3, seed_id = 10, name="棉花", lifetime=10.0f, 
-            best_fertility = 1.0f, best_humidity = 0.0f, best_light = 1.0f,
-            harvest_list = new List<KeyValuePair<int,int> >{
-                new KeyValuePair<int, int>(ItemManager.Instance.GetItem("蓝莓",ItemManager.ItemType.Material).id ,10)
-            }});
-        cropList.Add(new Crop{id = 4, seed_id = 11, name="葡萄", lifetime=15.0f, 
-            best_fertility = 1.0f, best_humidity = 0.0f, best_light = 1.0f,
-            harvest_list = new List<KeyValuePair<int,int> >{
-                new KeyValuePair<int, int>(ItemManager.Instance.GetItem("蓝莓",ItemManager.ItemType.Material).id ,10)
-            }});
-        cropList.Add(new Crop{id = 5, seed_id = 12, name="树", lifetime=20.0f, 
-            best_fertility = 1.0f, best_humidity = 0.0f, best_light = 1.0f,
-            harvest_list = new List<KeyValuePair<int,int> >{
-                new KeyValuePair<int, int>(ItemManager.Instance.GetItem("木材",ItemManager.ItemType.Material).id ,10)
-            }});
+        string[] guids = AssetDatabase.FindAssets("t:Crop", new[] { "Assets/Resources/CropData" });
+        foreach (string guid in guids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            Crop crop = AssetDatabase.LoadAssetAtPath<Crop>(path);
+            if (crop != null){
+                cropList.Add(crop);
+            }
+        }
     }
     /// <summary>
     /// private, init cropDict with cropList
@@ -371,13 +277,16 @@ public class CropManager : MonoBehaviour
         EnvFactor env_factor = null;
         switch (factor_type) {
             case FactorType.LinearEnv:
-                env_factor = new LinearEnvFactor { standard_env = standard_env, up_limit = up_limit, down_limit = down_limit };
+                env_factor = ScriptableObject.CreateInstance<LinearEnvFactor>();
+                env_factor.standard_env = standard_env; env_factor.up_limit = up_limit; env_factor.down_limit = down_limit;
                 break;
             case FactorType.LinearDiffEnv:
-                env_factor = new LinearDiffEnvFactor { standard_env = standard_env, up_limit = up_limit, down_limit = down_limit };
+                env_factor = ScriptableObject.CreateInstance<LinearDiffEnvFactor>();
+                env_factor.standard_env = standard_env; env_factor.up_limit = up_limit; env_factor.down_limit = down_limit;
                 break;
             case FactorType.InRangeEnv:
-                env_factor = new InRangeEnvFactor { standard_env = standard_env, up_limit = up_limit, down_limit = down_limit };
+                env_factor = ScriptableObject.CreateInstance<InRangeEnvFactor>();
+                env_factor.standard_env = standard_env; env_factor.up_limit = up_limit; env_factor.down_limit = down_limit;
                 break;
             default:
                 Debug.LogError("CropManager.MakeEnvFactor: Invalid factor_type " + factor_type.ToString());
