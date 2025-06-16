@@ -45,7 +45,7 @@ public class MouseInteractManager : MonoBehaviour
 
     public GameObject selectingObject = null;
     #region StateBuilding
-    public BuildManager.Building currentBuilding = null;
+    public Building currentBuilding = null;
     public GameObject currentBuilding_preview;
     public SpriteRenderer currentBuilding_preview_spriteRenderer;
     #endregion
@@ -216,7 +216,7 @@ public class MouseInteractManager : MonoBehaviour
         }
     }
     protected class StateBuilding : MouseInteractState{
-        public StateBuilding(BuildManager.Building building)
+        public StateBuilding(Building building)
         {
             Instance.SetCurrentBuilding(building);
         }
@@ -493,7 +493,7 @@ public class MouseInteractManager : MonoBehaviour
         currentBuilding_preview.SetActive(false);
         currentBuilding = null;
     }
-    public void SetCurrentBuilding(BuildManager.Building building){
+    public void SetCurrentBuilding(Building building){
         currentBuilding_preview_spriteRenderer.sprite = building.texture;
         currentBuilding_preview.SetActive(true);
         currentBuilding = building;

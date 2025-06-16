@@ -14,265 +14,265 @@ using System.Linq; // 用于列表操作
 public class SLManager : MonoBehaviour
 {
     public static SLManager Instance;
-    #region "BuildManagerData"
-    [System.Serializable]
+    // #region "BuildManagerData"
+    // [System.Serializable]
     
-    public class BuildManagerData
-    {
-        public Dictionary<BuildManager.BuildingType, List<BuildingData>> buildingLists;
+    // public class BuildManagerData
+    // {
+    //     public Dictionary<BuildingType, List<BuildingData>> buildingLists;
 
-        [System.Serializable]
-        public class BuildingData
-        {
-            public int id;
-            public string name;
-            public string texturePath; // 存储纹理路径
-            public BuildManager.BuildingType type;
-            public int width, height;
-            public int durability;
-            public bool can_build;
-            public bool can_walk;
-            public bool can_plant;
-            public List<KeyValuePair<int, int>> material_list;
-        }
-    }
+    //     [System.Serializable]
+    //     public class BuildingData
+    //     {
+    //         public int id;
+    //         public string name;
+    //         public string texturePath; // 存储纹理路径
+    //         public BuildingType type;
+    //         public int width, height;
+    //         public int durability;
+    //         public bool can_build;
+    //         public bool can_walk;
+    //         public bool can_plant;
+    //         public List<KeyValuePair<int, int>> material_list;
+    //     }
+    // }
 
-    private string savePath => Path.Combine(Application.persistentDataPath, "BuildManagerData.json");
+    // private string savePath => Path.Combine(Application.persistentDataPath, "BuildManagerData.json");
 
-    // 保存 BuildManager 的静态数据
-    public void SaveBuildManager()
-    {
-        BuildManagerData data = new BuildManagerData
-        {
-            buildingLists = new Dictionary<BuildManager.BuildingType, List<BuildManagerData.BuildingData>>()
-        };
+    // // 保存 BuildManager 的静态数据
+    // public void SaveBuildManager()
+    // {
+    //     BuildManagerData data = new BuildManagerData
+    //     {
+    //         buildingLists = new Dictionary<BuildingType, List<BuildManagerData.BuildingData>>()
+    //     };
 
-        foreach (var kvp in BuildManager.Instance.buildingLists)
-        {
-            var buildingDataList = new List<BuildManagerData.BuildingData>();
-            foreach (var building in kvp.Value)
-            {
-                buildingDataList.Add(new BuildManagerData.BuildingData
-                {
-                    id = building.id,
-                    name = building.build_name,
-                    texturePath = building.texture != null ? building.texture.name : null, // 假设纹理名可用作路径
-                    type = building.type,
-                    width = building.width,
-                    height = building.height,
-                    durability = building.durability,
-                    can_build = building.can_build,
-                    can_walk = building.can_walk,
-                    can_plant = building.can_plant,
-                    material_list = building.material_list
-                });
-            }
-            data.buildingLists[kvp.Key] = buildingDataList;
-        }
+    //     foreach (var kvp in BuildManager.Instance.buildingLists)
+    //     {
+    //         var buildingDataList = new List<BuildManagerData.BuildingData>();
+    //         foreach (var building in kvp.Value)
+    //         {
+    //             buildingDataList.Add(new BuildManagerData.BuildingData
+    //             {
+    //                 id = building.id,
+    //                 name = building.build_name,
+    //                 texturePath = building.texture != null ? building.texture.name : null, // 假设纹理名可用作路径
+    //                 type = building.type,
+    //                 width = building.width,
+    //                 height = building.height,
+    //                 durability = building.durability,
+    //                 can_build = building.can_build,
+    //                 can_walk = building.can_walk,
+    //                 can_plant = building.can_plant,
+    //                 material_list = building.material_list
+    //             });
+    //         }
+    //         data.buildingLists[kvp.Key] = buildingDataList;
+    //     }
 
-        string json = JsonConvert.SerializeObject(data, Formatting.Indented);
-        File.WriteAllText(savePath, json);
-        Debug.Log($"BuildManager data saved to {savePath}");
-    }
+    //     string json = JsonConvert.SerializeObject(data, Formatting.Indented);
+    //     File.WriteAllText(savePath, json);
+    //     Debug.Log($"BuildManager data saved to {savePath}");
+    // }
 
-    // 加载 BuildManager 的静态数据
-    public void LoadBuildManager()
-    {
-        if (!File.Exists(savePath))
-        {
-            Debug.LogWarning("Save file not found!");
-            return;
-        }
+    // // 加载 BuildManager 的静态数据
+    // public void LoadBuildManager()
+    // {
+    //     if (!File.Exists(savePath))
+    //     {
+    //         Debug.LogWarning("Save file not found!");
+    //         return;
+    //     }
 
-        string json = File.ReadAllText(savePath);
-        BuildManagerData data = JsonConvert.DeserializeObject<BuildManagerData>(json);
+    //     string json = File.ReadAllText(savePath);
+    //     BuildManagerData data = JsonConvert.DeserializeObject<BuildManagerData>(json);
 
-        foreach (var kvp in data.buildingLists)
-        {
-            if (!BuildManager.Instance.buildingLists.ContainsKey(kvp.Key))
-                BuildManager.Instance.buildingLists[kvp.Key] = new List<BuildManager.Building>();
+    //     foreach (var kvp in data.buildingLists)
+    //     {
+    //         if (!BuildManager.Instance.buildingLists.ContainsKey(kvp.Key))
+    //             BuildManager.Instance.buildingLists[kvp.Key] = new List<Building>();
 
-            foreach (var buildingData in kvp.Value)
-            {
-                BuildManager.Instance.buildingLists[kvp.Key].Add(new BuildManager.Building
-                {
-                    id = buildingData.id,
-                    build_name = buildingData.name,
-                    texture = Resources.Load<Sprite>(buildingData.texturePath), // 假设纹理存储在 Resources 文件夹
-                    type = buildingData.type,
-                    width = buildingData.width,
-                    height = buildingData.height,
-                    durability = buildingData.durability,
-                    can_build = buildingData.can_build,
-                    can_walk = buildingData.can_walk,
-                    can_plant = buildingData.can_plant,
-                    material_list = buildingData.material_list
-                });
-            }
-        }
+    //         foreach (var buildingData in kvp.Value)
+    //         {
+    //             BuildManager.Instance.buildingLists[kvp.Key].Add(new Building
+    //             {
+    //                 id = buildingData.id,
+    //                 build_name = buildingData.name,
+    //                 texture = Resources.Load<Sprite>(buildingData.texturePath), // 假设纹理存储在 Resources 文件夹
+    //                 type = buildingData.type,
+    //                 width = buildingData.width,
+    //                 height = buildingData.height,
+    //                 durability = buildingData.durability,
+    //                 can_build = buildingData.can_build,
+    //                 can_walk = buildingData.can_walk,
+    //                 can_plant = buildingData.can_plant,
+    //                 material_list = buildingData.material_list
+    //             });
+    //         }
+    //     }
 
-        Debug.Log("BuildManager data loaded successfully.");
-    }
+    //     Debug.Log("BuildManager data loaded successfully.");
+    // }
 
-    // 测试保存和加载 BuildManager 数据的方法
-    public void TestSaveAndLoadBuildManagerData()
-    {
-        Debug.Log("TestSaveAndLoadBuildManagerData called.");
+    // // 测试保存和加载 BuildManager 数据的方法
+    // public void TestSaveAndLoadBuildManagerData()
+    // {
+    //     Debug.Log("TestSaveAndLoadBuildManagerData called.");
         
-        // 创建测试数据
-        BuildManager.Instance.buildingLists = new Dictionary<BuildManager.BuildingType, List<BuildManager.Building>>();
+    //     // 创建测试数据
+    //     BuildManager.Instance.buildingLists = new Dictionary<BuildingType, List<Building>>();
 
-        BuildManager.Instance.buildingLists[BuildManager.BuildingType.Dev] = new List<BuildManager.Building>
-        {
-            new BuildManager.Building
-            {
-                id = 1,
-                build_name = "Test Dev Building",
-                texture = null, // 假设没有纹理
-                type = BuildManager.BuildingType.Dev,
-                width = 5,
-                height = 5,
-                durability = 100,
-                can_build = true,
-                can_walk = false,
-                can_plant = false,
-                material_list = new List<KeyValuePair<int, int>> { new KeyValuePair<int, int>(1, 10) }
-            }
-        };
+    //     BuildManager.Instance.buildingLists[BuildingType.Dev] = new List<Building>
+    //     {
+    //         new Building
+    //         {
+    //             id = 1,
+    //             build_name = "Test Dev Building",
+    //             texture = null, // 假设没有纹理
+    //             type = BuildingType.Dev,
+    //             width = 5,
+    //             height = 5,
+    //             durability = 100,
+    //             can_build = true,
+    //             can_walk = false,
+    //             can_plant = false,
+    //             material_list = new List<KeyValuePair<int, int>> { new KeyValuePair<int, int>(1, 10) }
+    //         }
+    //     };
 
-        // 保存数据
-        SaveBuildManager();
+    //     // 保存数据
+    //     SaveBuildManager();
 
-        // 清空现有数据
-        BuildManager.Instance.buildingLists.Clear();
+    //     // 清空现有数据
+    //     BuildManager.Instance.buildingLists.Clear();
 
-        // 加载数据
-        LoadBuildManager();
-        Debug.Log("Data loaded from file.");
+    //     // 加载数据
+    //     LoadBuildManager();
+    //     Debug.Log("Data loaded from file.");
 
-        // 验证加载的数据
-        foreach (var kvp in BuildManager.Instance.buildingLists)
-        {
-            Debug.Log($"Building Type: {kvp.Key}");
-            foreach (var building in kvp.Value)
-            {
-                Debug.Log($"Building Name: {building.build_name}, ID: {building.id}, Durability: {building.durability}");
-            }
-        }
-    }
-    #endregion
+    //     // 验证加载的数据
+    //     foreach (var kvp in BuildManager.Instance.buildingLists)
+    //     {
+    //         Debug.Log($"Building Type: {kvp.Key}");
+    //         foreach (var building in kvp.Value)
+    //         {
+    //             Debug.Log($"Building Name: {building.build_name}, ID: {building.id}, Durability: {building.durability}");
+    //         }
+    //     }
+    // }
+    // #endregion
 
-    #region "CropManagerData"
-    [System.Serializable]
-    public class CropManagerData
-    {
-        public List<CropData> cropList;
+    // #region "CropManagerData"
+    // [System.Serializable]
+    // public class CropManagerData
+    // {
+    //     public List<CropData> cropList;
 
-        [System.Serializable]
-        public class CropData
-        {
-            public int id;
-            public string name;
-            public float lifetime;
-        }
-    }
+    //     [System.Serializable]
+    //     public class CropData
+    //     {
+    //         public int id;
+    //         public string name;
+    //         public float lifetime;
+    //     }
+    // }
 
-    private string cropSavePath => Path.Combine(Application.persistentDataPath, "CropManagerData.json");
+    // private string cropSavePath => Path.Combine(Application.persistentDataPath, "CropManagerData.json");
 
-    public void SaveCropManager()
-    {
-        if (CropManager.Instance == null)
-        {
-            Debug.LogError("CropManager.Instance is null. Cannot save data.");
-            return;
-        }
+    // public void SaveCropManager()
+    // {
+    //     if (CropManager.Instance == null)
+    //     {
+    //         Debug.LogError("CropManager.Instance is null. Cannot save data.");
+    //         return;
+    //     }
 
-        CropManagerData data = new CropManagerData
-        {
-            cropList = new List<CropManagerData.CropData>()
-        };
+    //     CropManagerData data = new CropManagerData
+    //     {
+    //         cropList = new List<CropManagerData.CropData>()
+    //     };
 
-        foreach (var crop in CropManager.Instance.cropList)
-        {
-            data.cropList.Add(new CropManagerData.CropData
-            {
-                id = crop.id,
-                name = crop.name,
-                lifetime = crop.lifetime
-            });
-        }
+    //     foreach (var crop in CropManager.Instance.cropList)
+    //     {
+    //         data.cropList.Add(new CropManagerData.CropData
+    //         {
+    //             id = crop.id,
+    //             name = crop.name,
+    //             lifetime = crop.lifetime
+    //         });
+    //     }
 
-        string json = JsonConvert.SerializeObject(data, Formatting.Indented);
-        File.WriteAllText(cropSavePath, json);
-        Debug.Log($"CropManager data saved to {cropSavePath}");
-    }
+    //     string json = JsonConvert.SerializeObject(data, Formatting.Indented);
+    //     File.WriteAllText(cropSavePath, json);
+    //     Debug.Log($"CropManager data saved to {cropSavePath}");
+    // }
 
-    // 加载 CropManager 的静态数据
-    public void LoadCropManager()
-    {
-        if (!File.Exists(cropSavePath))
-        {
-            Debug.LogWarning("CropManager save file not found!");
-            return;
-        }
+    // // 加载 CropManager 的静态数据
+    // public void LoadCropManager()
+    // {
+    //     if (!File.Exists(cropSavePath))
+    //     {
+    //         Debug.LogWarning("CropManager save file not found!");
+    //         return;
+    //     }
 
-        if (CropManager.Instance == null)
-        {
-            Debug.LogError("CropManager.Instance is null. Cannot load data.");
-            return;
-        }
+    //     if (CropManager.Instance == null)
+    //     {
+    //         Debug.LogError("CropManager.Instance is null. Cannot load data.");
+    //         return;
+    //     }
 
-        string json = File.ReadAllText(cropSavePath);
-        CropManagerData data = JsonConvert.DeserializeObject<CropManagerData>(json);
+    //     string json = File.ReadAllText(cropSavePath);
+    //     CropManagerData data = JsonConvert.DeserializeObject<CropManagerData>(json);
 
-        CropManager.Instance.cropList.Clear();
-        foreach (var cropData in data.cropList)
-        {
-            CropManager.Instance.cropList.Add(new CropManager.Crop
-            {
-                id = cropData.id,
-                name = cropData.name,
-                lifetime = cropData.lifetime
-            });
-        }
+    //     CropManager.Instance.cropList.Clear();
+    //     foreach (var cropData in data.cropList)
+    //     {
+    //         CropManager.Instance.cropList.Add(new CropManager.Crop
+    //         {
+    //             id = cropData.id,
+    //             name = cropData.name,
+    //             lifetime = cropData.lifetime
+    //         });
+    //     }
 
-        Debug.Log("CropManager data loaded successfully.");
-    }
+    //     Debug.Log("CropManager data loaded successfully.");
+    // }
 
-    // 测试保存和加载 CropManager 数据的方法
-    public void TestSaveAndLoadCropManagerData()
-    {
-        Debug.Log("TestSaveAndLoadCropManagerData called.");
+    // // 测试保存和加载 CropManager 数据的方法
+    // public void TestSaveAndLoadCropManagerData()
+    // {
+    //     Debug.Log("TestSaveAndLoadCropManagerData called.");
 
-        if (CropManager.Instance == null)
-        {
-            Debug.LogError("CropManager.Instance is null. Cannot test save and load.");
-            return;
-        }
+    //     if (CropManager.Instance == null)
+    //     {
+    //         Debug.LogError("CropManager.Instance is null. Cannot test save and load.");
+    //         return;
+    //     }
 
-        // 创建测试数据
-        CropManager.Instance.cropList = new List<CropManager.Crop>
-        {
-            new CropManager.Crop { id = 0, name = "测试作物1", lifetime = 10.0f },
-            new CropManager.Crop { id = 1, name = "测试作物2", lifetime = 5.0f }
-        };
+    //     // 创建测试数据
+    //     CropManager.Instance.cropList = new List<CropManager.Crop>
+    //     {
+    //         new CropManager.Crop { id = 0, name = "测试作物1", lifetime = 10.0f },
+    //         new CropManager.Crop { id = 1, name = "测试作物2", lifetime = 5.0f }
+    //     };
 
-        // 保存数据
-        SaveCropManager();
+    //     // 保存数据
+    //     SaveCropManager();
 
-        // 清空现有数据
-        CropManager.Instance.cropList.Clear();
+    //     // 清空现有数据
+    //     CropManager.Instance.cropList.Clear();
 
-        // 加载数据
-        LoadCropManager();
+    //     // 加载数据
+    //     LoadCropManager();
 
-        // 验证加载的数据
-        foreach (var crop in CropManager.Instance.cropList)
-        {
-            Debug.Log($"Crop Name: {crop.name}, ID: {crop.id}, Lifetime: {crop.lifetime}");
-        }
-    }
-    #endregion
+    //     // 验证加载的数据
+    //     foreach (var crop in CropManager.Instance.cropList)
+    //     {
+    //         Debug.Log($"Crop Name: {crop.name}, ID: {crop.id}, Lifetime: {crop.lifetime}");
+    //     }
+    // }
+    // #endregion
 
     #region "ItemManagerData"
     [System.Serializable]

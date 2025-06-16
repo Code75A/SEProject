@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06b49661d0318bf4cbd7d0ab07756de7, type: 3}
+  m_Name: "\u6C34\u7A3B"
+  m_EditorClassIdentifier: 
+  id: 0
+  seed_id: 7
+  crop_name: "\u6C34\u7A3B"
+  lifetime: 10
+  best_fertility: 1
+  fertility_factor_type: 1
+  best_humidity: 0
+  humidity_factor_type: 2
+  best_light: 1
+  light_factor_type: 2

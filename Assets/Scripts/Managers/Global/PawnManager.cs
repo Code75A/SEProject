@@ -575,9 +575,9 @@ public class PawnManager : MonoBehaviour{
         { TaskManager.TaskTypes.Plant, (pawn) => Instance.StartCoroutine(Instance.HandleBuildFarmTask(pawn)) }
     };
 
-    Dictionary<BuildManager.BuildingType, Action<Pawn>> buildTaskHandler = new Dictionary<BuildManager.BuildingType, Action<Pawn>>{
-        { BuildManager.BuildingType.Farm, (pawn) => Instance.StartCoroutine(Instance.HandleBuildFarmTask(pawn)) },
-        { BuildManager.BuildingType.Wall, (pawn) => Instance.StartCoroutine(Instance.HandleBuildTask(pawn)) }
+    Dictionary<BuildingType, Action<Pawn>> buildTaskHandler = new Dictionary<BuildingType, Action<Pawn>>{
+        { BuildingType.Farm, (pawn) => Instance.StartCoroutine(Instance.HandleBuildFarmTask(pawn)) },
+        { BuildingType.Wall, (pawn) => Instance.StartCoroutine(Instance.HandleBuildTask(pawn)) }
     };
 
     public void HandleTask(Pawn pawn){
@@ -591,7 +591,7 @@ public class PawnManager : MonoBehaviour{
 
         pawn.isOnTask = true;
         if(task.type == TaskManager.TaskTypes.Build){
-            BuildManager.BuildingType buildingType = BuildManager.Instance.GetBuildingType(task.id);
+            BuildingType buildingType = BuildManager.Instance.GetBuildingType(task.id);
             Debug.Log($"建筑类型: {buildingType}");
 
             if (buildTaskHandler.ContainsKey(buildingType))
@@ -962,7 +962,7 @@ public class PawnManager : MonoBehaviour{
             yield break;
         }
         int buildingId = task.id;
-        BuildManager.Building building = BuildManager.Instance.GetBuilding(buildingId);
+        Building building = BuildManager.Instance.GetBuilding(buildingId);
         Debug.Log($"获取到的建筑: {building}");
         ItemInstanceManager.Instance.DestroyItem(mapData.item, ItemInstanceManager.DestroyMode.RemainNone);
         MapManager.Instance.SetTileBuild(mapData, building);
