@@ -922,6 +922,7 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  - {fileID: 0}
   buildingMenuSquares: []
   instructMenuSquares: []
   tempInstructSprites:
@@ -1009,6 +1010,7 @@ MonoBehaviour:
   itemInstanceManager: {fileID: 1740071165}
   pawn_instructs: 0000000001000000
   selectingObject: {fileID: 0}
+  currentBuilding: {fileID: 0}
   currentBuilding_preview: {fileID: 1444871361}
   currentBuilding_preview_spriteRenderer: {fileID: 1444871363}
   preSelectedPawn: {fileID: 0}
@@ -2168,6 +2170,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d2a641501872564fa26d14f186971a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  globalBuffEnvFactor: {fileID: 0}
+  cropList: []
   CropSprites:
   - {fileID: -313223371, guid: 560abfdbdf7c8424fbfaa7153286a74a, type: 3}
   - {fileID: -489098988, guid: 560abfdbdf7c8424fbfaa7153286a74a, type: 3}
@@ -2205,6 +2209,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98c884facd8960448abd18bf0ca7b8d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentBuildingList: []
+  currentBuilding: {fileID: 0}
   currentBuilding_preview: {fileID: 1444871361}
   currentBuilding_preview_spriteRenderer: {fileID: 1444871363}
   tempBuildingSprites:
@@ -2236,6 +2242,7 @@ MonoBehaviour:
   balance: 4000
   goodsDetail: {fileID: 5042379120151352370, guid: 384bee69543a08f43a27f5759bde5cc5, type: 3}
   trader_sprite: {fileID: 21300000, guid: 07526c0ec7e12d5458eb54da923467d7, type: 3}
+  trader: {fileID: 0}
   isTraderActive: 0
   inTraderPanel: 0
 --- !u!1 &1022533043

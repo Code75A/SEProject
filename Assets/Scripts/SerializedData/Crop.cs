@@ -15,5 +15,13 @@ public class Crop : ScriptableObject
     public FactorType humidity_factor_type = FactorType.LinearDiffEnv;
     public float best_light;
     public FactorType light_factor_type = FactorType.LinearDiffEnv;
-    public List<KeyValuePair<int, int>> harvest_list;
+
+    public List<IntPair> harvest_statistics;
+    public List<KeyValuePair<int, int>> harvest_list = new List<KeyValuePair<int, int>>();
+
+    public void InitHarvestList()
+    {
+        foreach (var pair in harvest_statistics)
+            harvest_list.Add(new KeyValuePair<int, int>(pair.Key, pair.Value));
+    }
 }

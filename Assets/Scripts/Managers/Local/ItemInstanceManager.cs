@@ -797,12 +797,10 @@ public class ItemInstanceManager : MonoBehaviour
     public void Test()
     {
         //动态载入部分ItemInstance供测试
-        #region (1)CropInstance收割和生长接口自测试 【由于会导致脚本调用顺序成环暂且停用 原因：用到MapManager】
-        Debug.Log("spawning some crop instance.");
-
-        CropInstance tmp1 = (CropInstance)SpawnItem(new Vector3Int(30, 30, 0), 0, ItemInstanceType.CropInstance);
-        CropInstance tmp2 = (CropInstance)SpawnItem(new Vector3Int(30, 31, 0), 1, ItemInstanceType.CropInstance);
-        CropInstance tmp3 = (CropInstance)SpawnItem(new Vector3Int(30, 32, 0), 2, ItemInstanceType.CropInstance);
+        #region (1)CropInstance收割和生长接口自测试 【由于会导致脚本调用顺序成环,转移到MapManager 原因：用到MapManager】
+        // CropInstance tmp1 = (CropInstance)SpawnItem(new Vector3Int(30, 30, 0), 0, ItemInstanceType.CropInstance);
+        // CropInstance tmp2 = (CropInstance)SpawnItem(new Vector3Int(30, 31, 0), 1, ItemInstanceType.CropInstance);
+        // CropInstance tmp3 = (CropInstance)SpawnItem(new Vector3Int(30, 32, 0), 2, ItemInstanceType.CropInstance);
 
         // HarvestCrop(tmp1);
         // HarvestCrop(tmp2);

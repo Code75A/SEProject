@@ -400,6 +400,16 @@ public class MapManager : MonoBehaviour
         GenerateMapData();
         GenerateMapTiles();
         GenerateBoolVectors();
+
+        #region (1)CropInstance收割和生长接口自测试 【由于会导致脚本调用顺序成环,转移到MapManager 原因：用到MapManager】
+        Debug.Log("spawning some crop instance.");
+        ItemInstanceManager.CropInstance tmp1 = (ItemInstanceManager.CropInstance)ItemInstanceManager.Instance.SpawnItem(new Vector3Int(30, 30, 0), 0, ItemInstanceManager.ItemInstanceType.CropInstance);
+        ItemInstanceManager.CropInstance tmp2 = (ItemInstanceManager.CropInstance)ItemInstanceManager.Instance.SpawnItem(new Vector3Int(30, 31, 0), 1, ItemInstanceManager.ItemInstanceType.CropInstance);
+        ItemInstanceManager.CropInstance tmp3 = (ItemInstanceManager.CropInstance)ItemInstanceManager.Instance.SpawnItem(new Vector3Int(30, 32, 0), 2, ItemInstanceManager.ItemInstanceType.CropInstance);
+        // ItemInstanceManager.Instance.HarvestCrop(tmp1);
+        // ItemInstanceManager.Instance.HarvestCrop(tmp2);
+        // ItemInstanceManager.Instance.HarvestCrop(tmp3);
+        #endregion
     }
 
     #endregion
