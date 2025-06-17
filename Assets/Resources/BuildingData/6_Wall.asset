@@ -22,3 +22,6 @@ MonoBehaviour:
   can_build: 0
   can_walk: 0
   can_plant: 0
+  material_statistics:
+  - Key: 5
+    Value: 5

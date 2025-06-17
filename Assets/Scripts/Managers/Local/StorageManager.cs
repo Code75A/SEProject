@@ -21,12 +21,12 @@ public class StorageManager : MonoBehaviour
     }
 
     // 获取所有箱子引用（每次调用时动态获取，保证数据最新）
-    public List<ChestBuilding> GetAllChests()
+    public List<StorageBuilding> GetAllChests()
     {
-        List<ChestBuilding> chests = new List<ChestBuilding>();
+        List<StorageBuilding> chests = new List<StorageBuilding>();
         foreach (var building in BuildManager.Instance.currentBuildingList)
         {
-            if (building is ChestBuilding chest)
+            if (building is StorageBuilding chest)
             {
                 chests.Add(chest);
             }

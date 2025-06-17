@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 468326099f52f224283073f0ee68d1c9, type: 3}
   m_Name: GlobalBuffEnvFactor
-  m_EditorClassIdentifier: Assembly-CSharp::LinearFactor
+  m_EditorClassIdentifier: 
   type: 0
-  change_rate: 1
+  change_rate: 0

@@ -43,7 +43,7 @@ public class CropManager : MonoBehaviour
     /// </summary>
     public void InitGrowthPerFrameDict() {
         // the globalBuffEnvFactor with a default value of change_rate = 1.0f, which means no change
-        globalBuffEnvFactor = AssetDatabase.LoadAssetAtPath<LinearFactor>("Assets/Resources/FactorData/GlobalBuffEnvFactor.asset");
+        globalBuffEnvFactor = Resources.Load<LinearFactor>("FactorData/GlobalBuffEnvFactor");
         
         for (int i = 0; i < cropList.Count; i++)
         {
@@ -247,6 +247,7 @@ public class CropManager : MonoBehaviour
             string path = AssetDatabase.GUIDToAssetPath(guid);
             Crop crop = AssetDatabase.LoadAssetAtPath<Crop>(path);
             if (crop != null){
+                crop.InitHarvestList();
                 cropList.Add(crop);
             }
         }
