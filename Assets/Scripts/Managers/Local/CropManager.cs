@@ -70,7 +70,7 @@ public class CropManager : MonoBehaviour
                     crop_growth_per_frame = pestDisasterEnvFactorDict[crop.id].GetImpacted(crop_growth_per_frame);
                 }
                 growthPerFrameDict[crop.id] = crop_growth_per_frame;
-                Debug.Log("Crop: " + crop.id.ToString() + " growthPerFrame: " + crop_growth_per_frame.ToString());
+                //Debug.Log("Crop: " + crop.id.ToString() + " growthPerFrame: " + crop_growth_per_frame.ToString());
             }
         }
         else{
@@ -79,7 +79,7 @@ public class CropManager : MonoBehaviour
                 crop_growth_per_frame = pestDisasterEnvFactorDict[crop_id].GetImpacted(crop_growth_per_frame);
             }
             growthPerFrameDict[crop_id] = crop_growth_per_frame;
-            Debug.Log("Crop: " + crop_id.ToString() + " growthPerFrame: " + crop_growth_per_frame.ToString());
+            //Debug.Log("Crop: " + crop_id.ToString() + " growthPerFrame: " + crop_growth_per_frame.ToString());
         }
         return;
     }
@@ -194,7 +194,7 @@ public class CropManager : MonoBehaviour
         grow_speed *= lightFactorDict[crop_id].GetImpacted(1.0f, env_data.light);
         //Debug.Log("grow_speed: " + grow_speed.ToString());
 
-        Debug.Log("Crop: " + crop_id.ToString() + " grow speed rate: " + grow_speed.ToString());
+        //Debug.Log("Crop: " + crop_id.ToString() + " grow speed rate: " + grow_speed.ToString());
 
         return cropList[crop_id].lifetime / grow_speed;
     }

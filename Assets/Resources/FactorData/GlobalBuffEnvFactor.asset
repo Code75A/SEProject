@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: GlobalBuffEnvFactor
   m_EditorClassIdentifier: 
   type: 0
-  change_rate: 0
+  change_rate: 1

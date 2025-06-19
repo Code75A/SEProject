@@ -13,16 +13,20 @@ public class MouseInteractManager : MonoBehaviour
     public ItemInstanceManager itemInstanceManager = ItemInstanceManager.Instance;
 
     public enum InstructTypes{
-        move, grow, total
+        move, grow, Harvest, Mine, total
     }
     Dictionary<InstructTypes, string> InstructNameCastTable = new Dictionary<InstructTypes, string>(){
         {InstructTypes.move,"移动"},
         {InstructTypes.grow,"种植"},
+        {InstructTypes.Harvest,"收割"},
+        {InstructTypes.Mine,"采掘"},
         {InstructTypes.total,"边界错误"}
     };
     Dictionary<InstructTypes, Action<Vector3Int>> InstructDirector = new Dictionary<InstructTypes, Action<Vector3Int>>(){
         {InstructTypes.move, (pos) => Instance.ApplyInstructMove(pos)},
-        {InstructTypes.grow, (pos) => Instance.ApplyInstructGrow(pos)}
+        {InstructTypes.grow, (pos) => Instance.ApplyInstructGrow(pos)},
+        {InstructTypes.Harvest, (pos) => Instance.ApplyInstructHarvest(pos)},
+        ///{InstructTypes.Mine, (pos) => Instance.ApplyInstructMine(pos)}
     };
 
     public List<InstructTypes> pawn_instructs = new List<InstructTypes>()
@@ -281,18 +285,18 @@ public class MouseInteractManager : MonoBehaviour
     }
     void Start(){
         //UNHEALTHY
-        const float ORE_SPAWN_LINE = 0.85f;
-        for (int x = 0; x < 64; x++)
-        {
-            for (int y = 0; y < 64; y++)
-            {
-                if (mapManager.landformDatas[x, y] > ORE_SPAWN_LINE)
-                {
-                    ItemInstanceManager.Instance.SpawnItem(new Vector3Int(x, y, 0), 16, ItemInstanceManager.ItemInstanceType.ResourceInstance);
-                    mapManager.mapDatas[x, y].can_build = false;
-                }
-            }
-        }
+        // const float ORE_SPAWN_LINE = 0.85f;
+        // for (int x = 0; x < 64; x++)
+        // {
+        //     for (int y = 0; y < 64; y++)
+        //     {
+        //         if (mapManager.landformDatas[x, y] > ORE_SPAWN_LINE)
+        //         {
+        //             ItemInstanceManager.Instance.SpawnItem(new Vector3Int(x, y, 0), 16, ItemInstanceManager.ItemInstanceType.ResourceInstance);
+        //             mapManager.mapDatas[x, y].can_build = false;
+        //         }
+        //     }
+        // }
     }
 
     int GetSortingLayerOrder(Collider2D col){
@@ -518,12 +522,29 @@ public class MouseInteractManager : MonoBehaviour
         
     }
     public void ApplyInstructGrow(Vector3Int pos) {
-        
+        //TODO: Grow指令
     }
+    public void ApplyInstructHarvest(Vector3Int pos) {
+        if (selectingPawn != null){
+            pawnController.HarvestAtPositionByPlayer(pos);
+        }
+        else{
+            Debug.LogError("When ApplyInstructHarvest, selectingPawn is Null");
+        }
+    }
+    // public void ApplyInstructMine(Vector3Int pos) {
+    //     if (selectingPawn != null){
+    //         pawnController.MineByPlayer(pos);
+    //     }
+    //     else{
+    //         Debug.LogError("When ApplyInstructMine, selectingPawn is Null");
+    //     }
+    // }
     #endregion
     #region 自检
 
-    private bool PawnStateAvailable() {
+    private bool PawnStateAvailable()
+    {
         if (selectingPawn == null)
         {
             Debug.LogError("Error: 存在无主selectingPawn为null");
