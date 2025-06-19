@@ -728,7 +728,7 @@ public class ItemInstanceManager : MonoBehaviour
             grow_per_frame = ((CropInstance)it).growth_per_frame;
             if (grow >= life) continue;
 
-            ((CropInstance)it).growth += grow_per_frame;
+            ((CropInstance)it).growth += grow_per_frame*TimeManager.Instance.timeScale;
 
             stage = (int)(3 * (grow / life));
             new_stage = (int)(3 * ((grow + grow_per_frame) / life));
