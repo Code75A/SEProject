@@ -360,11 +360,15 @@ public class PawnManager : MonoBehaviour {
         {
             realtransportamount = itemInstance.amount;
         }
-        if (pawn.instantCapacity > realtransportamount)
+        Debug.Log($"实际运输数量: {realtransportamount}");
+        Debug.Log($"小人当前运载容量: {pawn.instantCapacity}");
+
+        if (realtransportamount > itemInstance.amount)
         {
+            Debug.Log("In the first case");
             //销毁instance
             pawn.materialId = itemInstance.GetModelId();
-            pawn.materialAmount = itemInstance.GetAmount();
+            pawn.materialAmount = itemInstance.GetAmount();//需要确保一次运输只能运输同一种物品
             pawn.instantCapacity -= itemInstance.GetAmount(); //运载容量减少
             //pawn.materialType = itemInstance.type;(默认为material)
             ItemInstanceManager.Instance.DestroyItem(itemInstance);
@@ -374,11 +378,13 @@ public class PawnManager : MonoBehaviour {
 
         else
         {
+            Debug.Log("In the second case");
             //不必销毁instance，改动数值
             pawn.materialId = itemInstance.GetModelId();
-            itemInstance.SetAmount(itemInstance.GetAmount() - pawn.instantCapacity);
-            pawn.materialAmount = pawn.instantCapacity;
-            pawn.instantCapacity = 0; //运载容量清空
+            itemInstance.SetAmount(itemInstance.GetAmount() - realtransportamount);
+            pawn.materialAmount = realtransportamount;
+            pawn.instantCapacity = pawn.capacity - realtransportamount; //运载容量减少
+            Debug.Log($"Pawn ID: {pawn.id} 装载物品 ID: {itemInstance.item_id} 数量: {itemInstance.amount}");
         }
         return true;
     }
