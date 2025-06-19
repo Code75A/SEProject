@@ -165,6 +165,7 @@ public class MapManager : MonoBehaviour
         {BuildingType.Dev, (data, building) => Instance.SetTileDev(data, building)},
         {BuildingType.Wall, (data, building) => Instance.AddBuildTask(data, building)},
         {BuildingType.Farm, (data, building) => Instance.AddBuildTask(data, building)},
+        {BuildingType.Storage, (data, building) => Instance.AddBuildTask(data, building)},
     };
 
     //或许有必要分开？

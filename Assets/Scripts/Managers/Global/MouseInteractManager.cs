@@ -30,7 +30,7 @@ public class MouseInteractManager : MonoBehaviour
     };
 
     public List<InstructTypes> pawn_instructs = new List<InstructTypes>()
-    {InstructTypes.move,InstructTypes.grow};
+    {InstructTypes.move,InstructTypes.grow,InstructTypes.Harvest};
 
     #region 状态缓存
     protected MouseInteractState currentState = new StateNull();
