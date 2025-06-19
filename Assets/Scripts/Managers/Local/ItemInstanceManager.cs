@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Linq;
 using System.Linq.Expressions;
 using TMPro;
 using Unity.Collections.LowLevel.Unsafe;
@@ -632,7 +633,7 @@ public class ItemInstanceManager : MonoBehaviour
             // 不产生任何遗留物
         }
         else if (mode == DestroyMode.RemainAll) {
-            List<KeyValuePair<int, int>> sample = CropManager.Instance.GetCrop(aim_ins.GetModelId()).harvest_list;
+            List<KeyValuePair<int, int>> sample = CropManager.Instance.GetCrop(aim_ins.GetModelId()).harvest_list.ToList();
             int set_res = MapManager.Instance.SetMaterial(aim_ins.position, sample);
             UIManager.Instance.DebugTextAdd("[Log]From mapManager get set-material-result: " + set_res + ". ");
         }
@@ -681,7 +682,7 @@ public class ItemInstanceManager : MonoBehaviour
         }
         else if(mode == DestroyMode.RemainAll) {
             // 直接将建筑所需材料全部掉落
-            int set_res = MapManager.Instance.SetMaterial(aim_ins.position, ((BuildingInstance)aim_ins).material_list);
+            int set_res = MapManager.Instance.SetMaterial(aim_ins.position, ((BuildingInstance)aim_ins).material_list.ToList());
             UIManager.Instance.DebugTextAdd("[Log]From mapManager get set-material-result: " + set_res + ". ");
         }
         else if (mode == DestroyMode.RemainWithRate) {
