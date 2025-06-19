@@ -241,7 +241,7 @@ public class UIManager : MonoBehaviour
 { typeof(ItemInstanceManager.PrintInstance),        instance => {   ItemInstanceManager.PrintInstance print_instance = instance as ItemInstanceManager.PrintInstance;
                                                                     string tmp = "当前进度: \n";
                                                                     foreach(var pair in print_instance.material_list){
-                                                                        tmp += ItemManager.Instance.GetItem(pair.Key).name + ": " +
+                                                                        tmp += ItemManager.Instance.GetItem(pair.Key, type:ItemManager.ItemType.Material).name + ": " +
                                                                                 pair.Value.current + "/" + pair.Value.need + "\n";}
                                                                     return tmp;}},
 { typeof(ItemInstanceManager.ResourceInstance),     instance =>{    return "耐久: " + (instance as ItemInstanceManager.ResourceInstance).durability.ToString(); }}

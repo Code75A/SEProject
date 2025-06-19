@@ -26,7 +26,7 @@ public class MapManager : MonoBehaviour
         grass, path, water, tree, rock, farm, total
     }
     public enum landformTypes{
-        waterland, grassland, rockland, total
+        waterland, grassland, treegrassland, rockland, total
     }
         #endregion
 
@@ -102,9 +102,11 @@ public class MapManager : MonoBehaviour
     public float min_value = 21474836;
     public float max_value = -21474836;
 
+    [System.Serializable]
     class LandformRange
     {
-        public LandformRange(float min, float max, landformTypes type){
+        public LandformRange(float min, float max, landformTypes type)
+        {
             min_value = min;
             max_value = max;
             landform_type = type;
@@ -115,6 +117,7 @@ public class MapManager : MonoBehaviour
 
         public bool InRange(float index) { return index < max_value && index >= min_value; }
     }
+    [SerializeField]
     LandformRange[] Landforms = new LandformRange[(int)landformTypes.total];
 
         #endregion
@@ -128,18 +131,20 @@ public class MapManager : MonoBehaviour
     public TileBase[] tiles = new TileBase[(int)tileTypes.total];
     public float[,] landformDatas = new float[MAP_SIZE, MAP_SIZE];
     public MapData[,] mapDatas = new MapData[MAP_SIZE, MAP_SIZE];
-        #endregion
+    #endregion
 
     #endregion
 
-    void SetWalkableState(Vector3Int pos, bool can_walk){
-        if(!IsInBoard(pos)) return;
+    void SetWalkableState(Vector3Int pos, bool can_walk)
+    {
+        if (!IsInBoard(pos)) return;
 
         walkVectors[pos.x, pos.y] = can_walk;
         mapDatas[pos.x, pos.y].can_walk = can_walk;
     }
-    void SetWalkableState(MapData mapData, bool can_walk){
-        int x = mapData.position.x;int y = mapData.position.y;
+    void SetWalkableState(MapData mapData, bool can_walk)
+    {
+        int x = mapData.position.x; int y = mapData.position.y;
 
         walkVectors[x, y] = can_walk;
         mapDatas[x, y].can_walk = can_walk;
@@ -225,10 +230,9 @@ public class MapManager : MonoBehaviour
         data.has_print = true;
         data.has_item = true;
 
-        SetWalkableState(data, true);//临时
-
-        data.can_build = false;
-        data.can_plant = false;
+        SetWalkableState(data, building.can_walk);
+        data.can_build = building.can_build;
+        data.can_plant = building.can_plant;
 
         data.item = ItemInstanceManager.Instance.SpawnItem(data.position, building.id, ItemInstanceManager.ItemInstanceType.BuildingInstance);
     }
@@ -291,8 +295,10 @@ public class MapManager : MonoBehaviour
     public void GenerateMapTiles()
     {
         // 生成地图瓦片
-        for (int x = 0; x < MAP_SIZE; x++){
-            for (int y = 0; y < MAP_SIZE; y++){
+        for (int x = 0; x < MAP_SIZE; x++)
+        {
+            for (int y = 0; y < MAP_SIZE; y++)
+            {
                 LandformDataNormalize(x, y);
 
                 foreach (LandformRange landform in Landforms)
@@ -322,6 +328,19 @@ public class MapManager : MonoBehaviour
                                 SetTileDev(mapDatas[x, y], BuildManager.Instance.GetBuilding(0));
                                 landTilemap.SetTile(new Vector3Int(x, y, 0), mapDatas[x, y].texture);
                                 break;
+                            case landformTypes.treegrassland:
+                                mapDatas[x, y].type = tileTypes.grass;
+                                mapDatas[x, y].texture = tiles[(int)tileTypes.grass];
+                                mapDatas[x, y].position = new Vector3Int(x, y, 0);
+
+                                mapDatas[x, y].has_pawn = false;
+
+                                SetTileDev(mapDatas[x, y], BuildManager.Instance.GetBuilding(0));
+                                landTilemap.SetTile(new Vector3Int(x, y, 0), mapDatas[x, y].texture);
+
+                                mapDatas[x, y].item = ItemInstanceManager.Instance.SpawnItem(mapDatas[x, y].position, 5, ItemInstanceManager.ItemInstanceType.CropInstance);
+                                mapDatas[x, y].has_item = true;
+                                break;
                             case landformTypes.rockland:
                                 mapDatas[x, y].type = tileTypes.rock;
                                 mapDatas[x, y].texture = tiles[(int)tileTypes.rock];
@@ -341,12 +360,14 @@ public class MapManager : MonoBehaviour
                     }
                 }
 
-                
+
             }
         }
-        
-        for (int x = 30; x < 35; x++){
-            for (int y = 30; y < 35; y++){
+        //提供测试用的草地
+        for (int x = 30; x < 35; x++)
+        {
+            for (int y = 30; y < 35; y++)
+            {
                 mapDatas[x, y].type = tileTypes.grass;
                 mapDatas[x, y].texture = tiles[(int)tileTypes.grass];
                 mapDatas[x, y].position = new Vector3Int(x, y, 0);
@@ -355,6 +376,12 @@ public class MapManager : MonoBehaviour
 
                 SetTileDev(mapDatas[x, y], BuildManager.Instance.GetBuilding(0));
                 landTilemap.SetTile(new Vector3Int(x, y, 0), mapDatas[x, y].texture);
+                if (mapDatas[x, y].item != null)
+                {
+                    ItemInstanceManager.Instance.DestroyItem(mapDatas[x, y].item, ItemInstanceManager.DestroyMode.RemainNone);
+                    mapDatas[x, y].has_item = false;
+                    mapDatas[x, y].item = null;
+                }
             }
         }
 
@@ -370,9 +397,21 @@ public class MapManager : MonoBehaviour
             data.can_plant = building.can_plant;
 
             data.item = ItemInstanceManager.Instance.SpawnItem(data.position, building.id, ItemInstanceManager.ItemInstanceType.BuildingInstance);
-            Debug.Log(data.item.id + "商人生成");
+            //Debug.Log(data.item.id + "商人生成");
         }
         
+        const float ORE_SPAWN_LINE = 0.85f;
+        for (int x = 0; x < 64; x++)
+        {
+            for (int y = 0; y < 64; y++)
+            {
+                if (landformDatas[x, y] > ORE_SPAWN_LINE)
+                {
+                    ItemInstanceManager.Instance.SpawnItem(new Vector3Int(x, y, 0), 16, ItemInstanceManager.ItemInstanceType.ResourceInstance);
+                    mapDatas[x, y].can_build = false;
+                }
+            }
+        }
     }
     public void GenerateBoolVectors(){
         for (int x = 0; x < MAP_SIZE; x++){
@@ -393,9 +432,9 @@ public class MapManager : MonoBehaviour
 
     void Start()
     {
-        Landforms[(int)landformTypes.waterland] = new LandformRange(0f, 0.1f, landformTypes.waterland);
-        Landforms[(int)landformTypes.grassland] = new LandformRange(0.1f, 0.7f, landformTypes.grassland);
-        Landforms[(int)landformTypes.rockland] = new LandformRange(0.7f, 1.1f, landformTypes.rockland);
+        // Landforms[(int)landformTypes.waterland] = new LandformRange(0f, 0.1f, landformTypes.waterland);
+        // Landforms[(int)landformTypes.grassland] = new LandformRange(0.1f, 0.7f, landformTypes.grassland);
+        // Landforms[(int)landformTypes.rockland] = new LandformRange(0.7f, 1.1f, landformTypes.rockland);
 
         GenerateMapData();
         GenerateMapTiles();
@@ -670,9 +709,17 @@ public class MapManager : MonoBehaviour
         return mapDatas[pos.x, pos.y].has_item;
     }
     
+    public bool HasCropAt(Vector3Int pos){
+        if(!IsInBoard(pos)) return false;
+        if(!mapDatas[pos.x, pos.y].has_item) return false;
+        if(mapDatas[pos.x, pos.y].item is ItemInstanceManager.CropInstance) return true;
+        return false;
+    }
     //获取某个地格的所有MapData信息
-    public MapData GetMapData(Vector3Int pos){
-        if(!IsInBoard(pos)) {
+    public MapData GetMapData(Vector3Int pos)
+    {
+        if (!IsInBoard(pos))
+        {
             Debug.Log("Error: GetMapData越界");
             return null;
         }

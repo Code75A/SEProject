@@ -979,7 +979,7 @@ public class ItemInstanceManager : MonoBehaviour
         {
             foreach (var itemInstance in itemList)
             {
-                if (itemInstance.item_id == item_id)
+                if (itemInstance.item_id == item_id && itemInstance.type == ItemInstanceType.MaterialInstance)
                 {
                     float distance = Vector3Int.Distance(currentPosition, itemInstance.position);
                     if (distance < minDistance && distance <= searchRadius)
