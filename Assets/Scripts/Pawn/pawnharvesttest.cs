@@ -129,6 +129,44 @@ public class pawnharvesttest : MonoBehaviour
     //         woodData.has_item = true;
     //     }
     // }
+
+    public System.Collections.IEnumerator test_pawnload()
+    {
+        // 1. 获取一个空闲 Pawn，如果没有就创建一个
+        PawnManager.Pawn testPawn = PawnManager.Instance.GetAvailablePawn();
+        if (testPawn == null)
+        {
+            PawnManager.Instance.CreatePawn(new Vector3Int(10, 10, 0));
+            testPawn = PawnManager.Instance.GetAvailablePawn();
+        }
+
+        // 2. 确保 Pawn 没有携带任何物品
+        testPawn.materialId = 0; // 
+        testPawn.materialAmount = 0;
+        testPawn.instantCapacity -= 0;
+
+        //创建10单位的木材实例
+        //在20，20位置上生成
+        ItemInstanceManager.Instance.SpawnItem(new Vector3Int(20, 20, 0), 5, ItemInstanceManager.ItemInstanceType.MaterialInstance, 10);
+
+        // 3. 调用 PawnUnload
+        MapManager.MapData beginData = MapManager.Instance.GetMapData(new Vector3Int(20, 20, 0));
+        if (beginData != null && beginData.has_item &&
+            beginData.item is ItemInstanceManager.MaterialInstance loadItem)
+        {
+            bool loadSuccess = PawnManager.Instance.PawnLoad(testPawn, loadItem, 5, new Vector3Int(20, 20, 0));
+            Debug.Log($"测试装载物品：{testPawn.materialId}，数量：{testPawn.materialAmount}");
+            if (!loadSuccess)
+            {
+                Debug.LogWarning("测试装载物品失败！");
+                yield break;
+            }
+            Debug.Log("测试装载物品成功！");
+        }
+        //int unloadSuccess = PawnManager.Instance.PawnUnload(testPawn, 5);
+
+        
+    }
     void Start()
     {
         
@@ -152,7 +190,8 @@ public class pawnharvesttest : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.J))
         {
             //TestPawnUnload();
-            TestTransportTask();
+            //TestTransportTask();
+            StartCoroutine(test_pawnload());
         }
         
     }
