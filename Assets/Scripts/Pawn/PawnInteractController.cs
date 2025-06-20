@@ -49,11 +49,6 @@ public class PawnInteractController : MonoBehaviour
 
     }
 
-    private bool PawnCanMoveTo(Vector3Int targetCellPos)
-    {
-        return MapManager.Instance.IsWalkable(targetCellPos) &&
-        !MapManager.Instance.HasPawnAt(targetCellPos) && !MapManager.Instance.WillHasPawnAt(targetCellPos);
-    }
 
     // 仅移动，不设置任务
     public void MovePawnToPosition(Vector3Int targetCellPos, PawnManager.Pawn targetPawn)
@@ -65,16 +60,8 @@ public class PawnInteractController : MonoBehaviour
         }
         Debug.LogWarning($"尝试移动Pawn到位置: {targetCellPos}");
         // 检查目标位置是否可通行
-        if (!PawnCanMoveTo(targetCellPos))
+        if (!MapManager.Instance.PawnCanMoveTo(targetCellPos))
         {
-            if (!MapManager.Instance.IsWalkable(targetCellPos))
-            {
-                Debug.LogWarning("目标位置不可通行1");
-            }
-            if (MapManager.Instance.HasPawnAt(targetCellPos))
-            {
-                Debug.LogWarning("目标位置不可通行2");
-            }
             Debug.LogWarning($"目标位置不可通行: {targetPosition}");
             Debug.LogWarning(MapManager.Instance.GetMapData(targetCellPos));
 
@@ -84,7 +71,7 @@ public class PawnInteractController : MonoBehaviour
         Debug.Log($"开始移动Pawn到位置: {targetCellPos}");
         // 设置移动参数
         isMoving = true;
-        this.targetCellPos = targetCellPos;
+        //this.targetCellPos = targetCellPos;
         targetPosition = landTilemap.GetCellCenterWorld(targetCellPos);
 
     }
@@ -93,7 +80,7 @@ public class PawnInteractController : MonoBehaviour
     public void MovePawnToPositionByPlayer(Vector3Int onMouseCellPos)
     {
         // 判断目标格子是否可以通行并且没有Pawn
-        if (PawnCanMoveTo(onMouseCellPos))
+        if (MapManager.Instance.PawnCanMoveTo(onMouseCellPos))
         {
             isMoving = true;
 

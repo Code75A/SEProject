@@ -690,9 +690,15 @@ public class MapManager : MonoBehaviour
 
         return true;
     }
+    public bool PawnCanMoveTo(Vector3Int targetCellPos)
+    {
+        return Instance.IsWalkable(targetCellPos) &&
+        !Instance.HasPawnAt(targetCellPos) && !Instance.WillHasPawnAt(targetCellPos);
+    }
 
-    public bool IsWalkable(Vector3Int pos){
-        if(!IsInBoard(pos)) return false;
+    public bool IsWalkable(Vector3Int pos)
+    {
+        if (!IsInBoard(pos)) return false;
         return mapDatas[pos.x, pos.y].can_walk;
     }
     public bool IsPlantable(Vector3Int pos){
