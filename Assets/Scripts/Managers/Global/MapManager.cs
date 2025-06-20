@@ -28,7 +28,7 @@ public class MapManager : MonoBehaviour
     public enum landformTypes{
         waterland, grassland, treegrassland, rockland, total
     }
-        #endregion
+    #endregion
 
     public class MapData
     {
@@ -36,10 +36,15 @@ public class MapManager : MonoBehaviour
         public TileBase texture;
         public tileTypes type;
 
+        #region 信号位
+        //是否被instance占用
         public bool has_print = false;
         public bool has_building = false;
         public bool has_item = false; public ItemInstanceManager.ItemInstance item = null;
-        public bool has_pawn = false; //是否有pawn,用于pawn移动判定
+        //是否有pawn,用于pawn移动判定
+        public bool has_pawn = false;
+        public bool will_has_pawn = false;
+
         //assert: has_print/has_building -> has_item
         //assert: has_item -> item != null
 
@@ -48,12 +53,15 @@ public class MapManager : MonoBehaviour
         public bool can_build = true;
         public bool can_plant = true;
         //TODO: 拓展为List<bool> cans + enum canTypes{walk,build,plant}
+        #endregion
 
+        #region 交互参数
         public float fertility = 1.0f;
         public float humidity = 0.0f;
         public float light = 1.0f;
 
         public float walk_speed = 1.0f;
+        #endregion
     }
 
     public void SetMapDataItem(ItemInstanceManager.ItemInstance item, Vector3Int pos){
@@ -151,27 +159,26 @@ public class MapManager : MonoBehaviour
     }
     public void SetPawnState(Vector3Int pos, bool hasPawn){
         if(!IsInBoard(pos)) return;
-
         mapDatas[pos.x, pos.y].has_pawn = hasPawn;
     }
+    public void SetWillPawnState(Vector3Int pos, bool willHasPawn){
+        if(!IsInBoard(pos)) return;
+        mapDatas[pos.x, pos.y].will_has_pawn = willHasPawn;
+    }
 
+    //建造任务完成->更新地图数据
     Dictionary<BuildingType, Action<MapData, Building>> buildSetActions = new Dictionary<BuildingType, Action<MapData, Building>>{
         {BuildingType.Dev, (data, building) => Instance.SetTileDev(data, building)},
         {BuildingType.Wall, (data, building) => Instance.SetTilePrint(data, building)},
         {BuildingType.Farm, (data, building) => Instance.SetTileFarm(data, building)}
     };
-
+    //玩家指令->添加建造任务
     Dictionary<BuildingType, Action<MapData, Building>> buildTaskActions = new Dictionary<BuildingType, Action<MapData, Building>>{
         {BuildingType.Dev, (data, building) => Instance.SetTileDev(data, building)},
         {BuildingType.Wall, (data, building) => Instance.AddBuildTask(data, building)},
         {BuildingType.Farm, (data, building) => Instance.AddBuildTask(data, building)},
         {BuildingType.Storage, (data, building) => Instance.AddBuildTask(data, building)},
     };
-
-    //或许有必要分开？
-    // void AddWallBuildTask(MapData data, Building building){
-    //     TaskManager.Instance.AddTask(data.position, TaskManager.TaskTypes.Build, building.id, 1);
-    // }
 
     public void SethasitemState(MapData mapData, bool hasItem){
         int x = mapData.position.x;int y = mapData.position.y;
@@ -665,7 +672,6 @@ public class MapManager : MonoBehaviour
     #endregion
 
     #region 判定接口
-
     public bool IsInBoard(Vector3Int pos){
         if(pos.x >= 0 && pos.x < MAP_SIZE && pos.y >= 0 && pos.y < MAP_SIZE)
             return pos.x >= 0 && pos.x < MAP_SIZE && pos.y >= 0 && pos.y < MAP_SIZE;
@@ -685,38 +691,36 @@ public class MapManager : MonoBehaviour
         return true;
     }
 
-    //当玩家指定移动至某地块时，获取该地块的可通行情况
     public bool IsWalkable(Vector3Int pos){
         if(!IsInBoard(pos)) return false;
         return mapDatas[pos.x, pos.y].can_walk;
     }
-
-    //获取该地块的可种植情况
     public bool IsPlantable(Vector3Int pos){
         if(!IsInBoard(pos)) return false;
         return mapDatas[pos.x, pos.y].can_plant;
     }
-    
-    //检测某个格子上是否有pawn
     public bool HasPawnAt(Vector3Int pos)
     {
         if (!IsInBoard(pos)) return false;
         return mapDatas[pos.x, pos.y].has_pawn;
     }
-    
-    //检测某个格子上是否有item
-    public bool HasItemAt(Vector3Int pos){
-        if(!IsInBoard(pos)) return false;
+    public bool WillHasPawnAt(Vector3Int pos)
+    {
+        if (!IsInBoard(pos)) return false;
+        return mapDatas[pos.x, pos.y].will_has_pawn;
+    }
+    public bool HasItemAt(Vector3Int pos)
+    {
+        if (!IsInBoard(pos)) return false;
         return mapDatas[pos.x, pos.y].has_item;
     }
-    
     public bool HasCropAt(Vector3Int pos){
-        if(!IsInBoard(pos)) return false;
-        if(!mapDatas[pos.x, pos.y].has_item) return false;
+        if(!HasItemAt(pos)) return false;
         if(mapDatas[pos.x, pos.y].item is ItemInstanceManager.CropInstance) return true;
         return false;
     }
     //获取某个地格的所有MapData信息
+
     public MapData GetMapData(Vector3Int pos)
     {
         if (!IsInBoard(pos))
@@ -726,18 +730,15 @@ public class MapManager : MonoBehaviour
         }
         return mapDatas[pos.x, pos.y];
     }
-
     //获取世界坐标对应的格子坐标
     public Vector3Int GetCellPosFromWorld(Vector3 worldPos){
         return landTilemap.WorldToCell(worldPos);
     }
-    
     //获取某个地块的移速
     public float GetWalkSpeed(Vector3Int pos){
         if(!IsInBoard(pos)) return 1.0f;
         return mapDatas[pos.x, pos.y].walk_speed;
     }
-
     public GameObject GetItem(Vector3Int pos){
         if(!IsInBoard(pos)) return null;
         if(!mapDatas[pos.x, pos.y].has_item) return null;
