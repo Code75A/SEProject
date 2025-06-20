@@ -878,6 +878,22 @@ MonoBehaviour:
   lac: 0.075
   min_value: 21474836
   max_value: -21474836
+  Landforms:
+  - min_value: 0
+    max_value: 0.1
+    landform_type: 0
+  - min_value: 0.1
+    max_value: 0.45
+    landform_type: 1
+  - min_value: 0.45
+    max_value: 0.47
+    landform_type: 2
+  - min_value: 0.47
+    max_value: 0.7
+    landform_type: 1
+  - min_value: 0.7
+    max_value: 1.1
+    landform_type: 3
   tiles:
   - {fileID: 11400000, guid: 71ab64d189f5f6b4eb53951a06cb4df8, type: 2}
   - {fileID: 11400000, guid: be1ff62663cfad1499dfae2cb810519c, type: 2}
@@ -927,6 +943,7 @@ MonoBehaviour:
   tempInstructSprites:
   - {fileID: 21300000, guid: 6d0f42a0634ca064ba6d5aa81298d2bb, type: 3}
   - {fileID: 21300000, guid: cfb1780aec38d9a42a2571c2af1552a2, type: 3}
+  - {fileID: 21300000, guid: 3961f901846cd13448d597edd0e30d38, type: 3}
   selectedObjectPanel: {fileID: 34132920}
   selectedObjectDescription: {fileID: 1621828767}
   traderMenuPanel: {fileID: 1918892860}
@@ -2377,10 +2394,10 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  - {fileID: 21300000, guid: 6aae60870a060f54a99efac47114fd50, type: 3}
+  - {fileID: 21300000, guid: 6aae60870a060f54a99efac47114fd50, type: 3}
   - {fileID: 1175674559, guid: 824fcbf5fa6a8214fa68bee50e97c5fb, type: 3}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 148024008, guid: 824fcbf5fa6a8214fa68bee50e97c5fb, type: 3}
 --- !u!114 &988757800
 MonoBehaviour:
   m_ObjectHideFlags: 0
