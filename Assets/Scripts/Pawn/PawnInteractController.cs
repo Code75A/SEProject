@@ -63,10 +63,18 @@ public class PawnInteractController : MonoBehaviour
             Debug.LogWarning("目标Pawn为空，无法移动！");
             return;
         }
+        Debug.LogWarning($"尝试移动Pawn到位置: {targetCellPos}");
         // 检查目标位置是否可通行
         if (!PawnCanMoveTo(targetCellPos))
         {
-
+            if (!MapManager.Instance.IsWalkable(targetCellPos))
+            {
+                Debug.LogWarning("目标位置不可通行1");
+            }
+            if (MapManager.Instance.HasPawnAt(targetCellPos))
+            {
+                Debug.LogWarning("目标位置不可通行2");
+            }
             Debug.LogWarning($"目标位置不可通行: {targetPosition}");
             Debug.LogWarning(MapManager.Instance.GetMapData(targetCellPos));
 
