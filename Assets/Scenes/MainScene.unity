@@ -1024,7 +1024,7 @@ MonoBehaviour:
   mapManager: {fileID: 398816333}
   pawnManager: {fileID: 398816330}
   itemInstanceManager: {fileID: 1740071165}
-  pawn_instructs: 0000000001000000
+  pawn_instructs: 000000000100000002000000
   selectingObject: {fileID: 0}
   currentBuilding: {fileID: 0}
   currentBuilding_preview: {fileID: 1444871361}
