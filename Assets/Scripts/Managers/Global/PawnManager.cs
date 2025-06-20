@@ -681,7 +681,7 @@ public class PawnManager : MonoBehaviour {
             MapManager.Instance.SetPawnState(controller.fromCellPos, false);
         }
 
-        MapManager.Instance.SetPawnState(task.target_position, true);
+        MapManager.Instance.SetWillPawnState(task.target_position, true);
     }
     //todo:目前当小人建造无法找到材料时会发生循环卡死，需要退出程序进入待分配任务列表
     //todo:问题排查，存在建墙小人分配问题
@@ -1012,7 +1012,13 @@ public class PawnManager : MonoBehaviour {
             PawnInteractController controller = pawn.Instance.GetComponent<PawnInteractController>();
             if (controller != null) {
                 Debug.Log($"Pawn ID: {pawn.id} 到达目标位置: {targetCellPos}");
-                MapManager.Instance.SetPawnState(targetCellPos, true);
+                if (MapManager.Instance.WillHasPawnAt(targetCellPos))
+                {
+                    MapManager.Instance.SetPawnState(targetCellPos, true);
+                    MapManager.Instance.SetWillPawnState(targetCellPos, false);
+                }
+                else
+                    Debug.LogWarning($"will_has_pawn状态不同步！");
 
                 controller.fromCellPos = targetCellPos;
             }
