@@ -2,6 +2,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
+//TODO: 将之函数化
+//if (pawn.handlingTask != null)
+// if (pawn.handlingTask.type != TaskManager.TaskTypes.Move)
+//  //TODO 处理其它目前正在处理的任务（返还给taskManger）
+// else
+//  MapManager.Instance.SetWillPawnState(pawn.handlingTask.target_position, false);
+
 public class PawnInteractController : MonoBehaviour
 {
     public PawnManager.Pawn pawn;
@@ -41,31 +48,7 @@ public class PawnInteractController : MonoBehaviour
         }
 
     }
-    // 移动函数
-    //传入目标世界坐标移动到指定位置
-    //todo:移动过程中不可通行区域判定，地块速度影响等
-    // public void MovePawnToPosition(Vector3 targetWorldPos,PawnManager.Pawn targetpawn)
-    // {
 
-    //     // 转换世界坐标到格子坐标
-    //     //Vector3Int targetCellPos = MapManager.Instance.GetCellPosFromWorld(targetWorldPos);
-
-    //     // 检查目标位置是否可通行
-    //     if (!MapManager.Instance.IsWalkable(targetCellPos) || 
-    //         MapManager.Instance.HasPawnAt(targetCellPos))
-    //     {
-    //         Debug.LogWarning($"目标位置不可通行: {targetWorldPos}");
-    //         return;
-    //     }
-
-    //     // 设置移动参数
-    //     targetPosition = targetWorldPos;
-    //     targetPosition.z = 0; // 确保Z坐标为0
-    //     //targetCellPos = MapManager.Instance.GetCellPosFromWorld(targetPosition);
-    //     isMoving = true;
-
-    //     Debug.Log($"开始移动Pawn到位置: {targetPosition}");
-    // }
 
     // 仅移动，不设置任务
     public void MovePawnToPosition(Vector3Int targetCellPos, PawnManager.Pawn targetPawn)
@@ -77,17 +60,8 @@ public class PawnInteractController : MonoBehaviour
         }
         Debug.LogWarning($"尝试移动Pawn到位置: {targetCellPos}");
         // 检查目标位置是否可通行
-        if (!MapManager.Instance.IsWalkable(targetCellPos) ||
-            MapManager.Instance.HasPawnAt(targetCellPos))
+        if (!MapManager.Instance.PawnCanMoveTo(targetCellPos))
         {
-            if (!MapManager.Instance.IsWalkable(targetCellPos))
-            {
-                Debug.LogWarning("目标位置不可通行1");
-            }
-            if (MapManager.Instance.HasPawnAt(targetCellPos))
-            {
-                Debug.LogWarning("目标位置不可通行2");
-            }
             Debug.LogWarning($"目标位置不可通行: {targetPosition}");
             Debug.LogWarning(MapManager.Instance.GetMapData(targetCellPos));
 
@@ -97,14 +71,16 @@ public class PawnInteractController : MonoBehaviour
         Debug.Log($"开始移动Pawn到位置: {targetCellPos}");
         // 设置移动参数
         isMoving = true;
-        this.targetCellPos = targetCellPos;
+        //this.targetCellPos = targetCellPos;
         targetPosition = landTilemap.GetCellCenterWorld(targetCellPos);
 
     }
+    //移动且
+    #region 由玩家指派任务
     public void MovePawnToPositionByPlayer(Vector3Int onMouseCellPos)
     {
         // 判断目标格子是否可以通行并且没有Pawn
-        if (MapManager.Instance.IsWalkable(onMouseCellPos) && !MapManager.Instance.HasPawnAt(onMouseCellPos))
+        if (MapManager.Instance.PawnCanMoveTo(onMouseCellPos))
         {
             isMoving = true;
 
@@ -118,7 +94,7 @@ public class PawnInteractController : MonoBehaviour
                     }
                     else
                     {
-                        MapManager.Instance.SetPawnState(pawn.handlingTask.target_position, false);
+                        MapManager.Instance.SetWillPawnState(pawn.handlingTask.target_position, false);
                     }
                 }
 
@@ -151,15 +127,17 @@ public class PawnInteractController : MonoBehaviour
     {
         if (MapManager.Instance.IsPlantable(onMouseCellPos) && !MapManager.Instance.HasItemAt(onMouseCellPos))
         {
-            if (pawn != null){
-                if (pawn.handlingTask != null){
+            if (pawn != null)
+            {
+                if (pawn.handlingTask != null)
+                {
                     if (pawn.handlingTask.type != TaskManager.TaskTypes.Move)
                     {
                         //TODO 处理其它目前正在处理的任务（返还给taskManger）
                     }
                     else
                     {
-                        MapManager.Instance.SetPawnState(pawn.handlingTask.target_position, false);
+                        MapManager.Instance.SetWillPawnState(pawn.handlingTask.target_position, false);
                     }
                 }
 
@@ -194,7 +172,7 @@ public class PawnInteractController : MonoBehaviour
                             }
                             else
                             {
-                                MapManager.Instance.SetPawnState(pawn.handlingTask.target_position, false);
+                                MapManager.Instance.SetWillPawnState(pawn.handlingTask.target_position, false);
                             }
                         }
                         Debug.Log($"add");
@@ -211,6 +189,5 @@ public class PawnInteractController : MonoBehaviour
             Debug.Log("目标位置不可收获或没有作物！");
         }
     }
-
-
+    #endregion
 }
