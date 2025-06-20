@@ -692,6 +692,10 @@ public class MapManager : MonoBehaviour
     }
     public bool PawnCanMoveTo(Vector3Int targetCellPos)
     {
+        if(!IsWalkable(targetCellPos)) Debug.Log("Error: 因为not walkable");
+        if(HasPawnAt(targetCellPos)) Debug.Log("Error: 因为has pawn");
+        if(WillHasPawnAt(targetCellPos)) Debug.Log("Error: 因为will has pawn");
+        
         return Instance.IsWalkable(targetCellPos) &&
         !Instance.HasPawnAt(targetCellPos) && !Instance.WillHasPawnAt(targetCellPos);
     }
