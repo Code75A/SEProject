@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class Debb : MonoBehaviour
+public class DebugTextShowcase : MonoBehaviour
 {
     // Start is called before the first frame update
     public TextMeshPro text;
