@@ -635,7 +635,8 @@ public class PawnManager : MonoBehaviour {
             //{  TaskManager.TaskTypes.Build, (pawn) => Instance.HandleBuildTask(pawn) },
             { TaskManager.TaskTypes.Transport, (pawn) => Instance.StartCoroutine(Instance.HandleTransportTask(pawn, pawn.handlingTask as TaskManager.TransportTask)) },
             { TaskManager.TaskTypes.BuildingTransport, (pawn) => Instance.StartCoroutine(Instance.HandleToPrintInstanceTransportTask(pawn, pawn.handlingTask as TaskManager.TransportTask)) },
-            { TaskManager.TaskTypes.Plant, (pawn) => Instance.StartCoroutine(Instance.HandleBuildFarmTask(pawn)) }
+            { TaskManager.TaskTypes.PlantOnly, (pawn) => Instance.StartCoroutine(Instance.HandlePlantOnlyTask(pawn)) },
+            { TaskManager.TaskTypes.PlantALL, (pawn) => Instance.StartCoroutine(Instance.HandlePlantALLTask(pawn)) }
     };
 
     Dictionary<BuildingType, Action<Pawn>> buildTaskHandler = new Dictionary<BuildingType, Action<Pawn>>{
@@ -739,7 +740,6 @@ public class PawnManager : MonoBehaviour {
             while (!requirement.Equals(new KeyValuePair<int, int>(-1, -1)))
             {
                 // 1. 获取最近的材料位置(相对于建造位置)
-
                 int requireId = requirement.Key;
                 int requireAmount = requirement.Value;
                 Vector3Int pos = ItemInstanceManager.Instance.FindNearestItemPosition(requireId, buildPosition);
@@ -979,17 +979,74 @@ public class PawnManager : MonoBehaviour {
         // }
     }
 
-    //种植，给出种子id
-    public System.Collections.IEnumerator HandlePlantTask(Pawn pawn, int plantseedid, List<Vector3Int> positions)
+    //区域种植，给出种子id
+    public System.Collections.IEnumerator HandlePlantALLTask(Pawn pawn)
     {
         TaskManager.Task task = pawn.handlingTask;
+
+
+        if (task == null)
+        {
+            Debug.LogWarning("Pawn 没有任务，无法执行任务！");
+            yield break;
+        }
+        int plantseedid = task.id; // 获取种子ID
+        List<Vector3Int> positions = new List<Vector3Int>();
+        if (pawn.handlingTask.type == TaskManager.TaskTypes.PlantALL)
+        {
+            if (pawn.handlingTask is TaskManager.PlantALLTask plantAllTask)
+            {
+                positions = plantAllTask.Plant_positions;
+            }
+        }
+
+        //需要种子总数，以及种植位置1
+        int seed_amount = positions.Count;
+        Vector3Int first_plant_pos = positions[0];
+
+        PawnInteractController controller = pawn.Instance.GetComponent<PawnInteractController>();
+        if (controller == null)
+        {
+            Debug.LogWarning("PawnInteractController 未挂载在 Pawn 实例上！");
+            yield break;
+        }
+        // 1. 搜索种子位置，没找到就报错
+        PawnUnload(pawn); // 确保小人没有携带物品
+        while (pawn.materialAmount < seed_amount)
+        {
+            int instant_seed_need = seed_amount - pawn.materialAmount;
+            yield return StartCoroutine(Pawnmovetoload(pawn, first_plant_pos, instant_seed_need, plantseedid));
+        }
+
+        // 2. 创建种植任务list
+        CreatePlantTaskList(pawn, positions, plantseedid);
+        while (pawn.PawntaskList.Count > 0)
+        {
+            // 3. 执行种植任务
+            TaskManager.Task plantTask = pawn.PawntaskList[0];
+            pawn.handlingTask = plantTask;
+            Debug.Log($"开始执行种植任务: {plantTask.type}，ID: {plantTask.task_id}");
+            //执行
+            HandleTask(pawn);
+            //yield return StartCoroutine(ResolveTask(pawn));
+            pawn.PawntaskList.RemoveAt(0); // 移除已完成的任务
+        }
+
+        ResolveTask(pawn); // 任务完成，重置状态
+    }
+
+    //单独的种植任务处理函数，主要用于种植单个位置的作物
+    public System.Collections.IEnumerator HandlePlantOnlyTask(Pawn pawn)
+    {
+        TaskManager.Task task = pawn.handlingTask;
+        int plantseedid = task.id; // 获取种子ID
+        Vector3Int position = task.target_position;
         if (task == null)
         {
             Debug.LogWarning("Pawn 没有任务，无法执行任务！");
             yield break;
         }
 
-        // 1. 搜索种子位置，没找到就报错
         PawnInteractController controller = pawn.Instance.GetComponent<PawnInteractController>();
         if (controller == null)
         {
@@ -997,21 +1054,9 @@ public class PawnManager : MonoBehaviour {
             yield break;
         }
 
-        Vector3Int pos = ItemInstanceManager.Instance.FindNearestItemPosition(plantseedid, task.target_position);
-        if (pos == Vector3Int.zero)
-        {
-            //Debug.LogWarning("未找到种子位置，无法执行种植任务！");
-            pawn.isOnTask = false;
-            TaskManager.AddInavailableTask(pawn.handlingTask);
-            pawn.handlingTask = null; // 清除当前任务
-            yield break;
-        }
-
-        int amount = positions.Count;
-
         TaskManager.Task Transporttaskstart = pawn.handlingTask;
         pawn.handlingTask = new TaskManager.Task(
-            position: pos,
+            position: position,
             type: TaskManager.TaskTypes.Move,
             task_id: -1
         );
@@ -1024,6 +1069,18 @@ public class PawnManager : MonoBehaviour {
         pawn.isOnTask = true;
         pawn.handlingTask = Transporttaskstart;
 
+        Debug.Log("Pawn到达种植位置，开始种植任务...");
+        ItemInstanceManager.Instance.PlantSeed(
+            seedId: plantseedid,
+            position: position
+        );
+        pawn.materialAmount -= 1;
+    }
+
+    //support:装载
+    //仅为支持函数，并不作为单独的任务使用
+    public System.Collections.IEnumerator PawnloadAtPos(Pawn pawn, Vector3Int pos, int amount)
+    {
         MapManager.MapData beginData = MapManager.Instance.GetMapData(pos);
         Debug.LogWarning($"beginData: {beginData} beginData.has_item: {beginData.has_item} beginData.item: {beginData.item}");
         if (beginData != null && beginData.has_item &&
@@ -1042,13 +1099,68 @@ public class PawnManager : MonoBehaviour {
             //Debug.LogWarning("物品位置不正确或物品类型不匹配，无法装载！");
             yield break;
         }
-
-        // 2. 移动到目标位置（种植位置）
-
-
     }
 
+    //support:移动后装载
+    //也仅为支持函数，并不作为单独的任务使用
+    public System.Collections.IEnumerator Pawnmovetoload(Pawn pawn, Vector3Int pos, int amount,int plantseedid)
+    {
+        Vector3Int firstpos = ItemInstanceManager.Instance.FindNearestItemPosition(plantseedid, pos);
+        if (firstpos == Vector3Int.zero)
+        {
+            //Debug.LogWarning("未找到种子位置，无法执行种植任务！");
+            //后续专门写一个失败处理函数
+            pawn.isOnTask = false;
+            TaskManager.AddInavailableTask(pawn.handlingTask);
+            pawn.handlingTask = null; // 清除当前任务
+            yield break;
+        }
+        PawnInteractController controller = pawn.Instance.GetComponent<PawnInteractController>();
+        if (controller == null)
+        {
+            Debug.LogWarning("PawnInteractController 未挂载在 Pawn 实例上！");
+            yield break;
+        }
+        TaskManager.Task Transporttaskstart = pawn.handlingTask;
+        pawn.handlingTask = new TaskManager.Task(
+            position: firstpos,
+            type: TaskManager.TaskTypes.Move,
+            task_id: -1
+        );
+        yield return StartCoroutine(HandleMoveTask(pawn));
+        yield return new WaitUntil(() => !controller.isMoving); // 等待移动任务完成
+        // yield return new WaitUntil(() =>
+        //     Vector3.Distance(MapManager.Instance.GetCellPosFromWorld(pawn.Instance.transform.position), task.beginPosition) < 0.1f
+        // );//distance wait
 
+        pawn.isOnTask = true;
+        pawn.handlingTask = Transporttaskstart;
+        yield return StartCoroutine(PawnloadAtPos(pawn, firstpos, amount));
+    }
+
+    //support:pawn plant_tasklist create
+    public void CreatePlantTaskList(Pawn pawn, List<Vector3Int> positions, int seedId)
+    {
+        if (pawn == null)
+        {
+            Debug.LogWarning("Pawn 为空，无法创建种植任务列表！");
+            return;
+        }
+
+        foreach (var pos in positions)
+        {
+            int newTaskId = TaskManager.Instance.TaskIdUpdate();
+            TaskManager.Task plantTask = new TaskManager.Task(
+                position: pos,
+                type: TaskManager.TaskTypes.PlantOnly,
+                task_id: newTaskId,
+                id: seedId,
+                amount: 1
+            );
+            pawn.PawntaskList.Add(plantTask);
+            Debug.Log($"添加种植任务：位置 {pos}, 任务 ID: {newTaskId}");
+        }
+    }
     //任务结束时进行的更新
     Dictionary<TaskManager.TaskTypes, Action<Pawn>> taskResolver = new Dictionary<TaskManager.TaskTypes, Action<Pawn>>
     {

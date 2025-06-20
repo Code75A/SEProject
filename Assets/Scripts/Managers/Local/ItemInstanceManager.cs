@@ -1029,22 +1029,16 @@ public class ItemInstanceManager : MonoBehaviour
         return true;
     }
     /// <summary>
-    /// 种植Plant并将使用的seed的数量-1
+    /// 种植Plant但不会将使用的seed的数量-1
     /// </summary>
-    public bool PlantSeed(MaterialInstance seed, Vector3Int position){
+    public bool PlantSeed(int seedId, Vector3Int position){
         // Check
-        if (seed.GetAmount() <= 0) {
-            UIManager.Instance.DebugTextAdd("<<Error>> Planting but the MaterialInstance `seed` with amount below 0!");
-            return false;
+        ItemManager.Material seed = (ItemManager.Material)ItemManager.Instance.GetItem(seedId, ItemManager.ItemType.Material);
+        if (!(seed.can_plant_crop == -1))
+        {
+            SpawnItem(position, seedId, ItemInstanceType.CropInstance);
+            Debug.Log("Planting seed: " + seedId + " at position: " + position);
         }
-        ItemManager.Material seed_sample = (ItemManager.Material)ItemManager.Instance.GetItem(seed.GetModelId(), ItemManager.ItemType.Material);
-        //if (seed_sample is null) return false;
-        int crop_id = seed_sample.GetPlantCropId();
-        if (crop_id == -1) return false;
-
-        // Plant
-        SpawnItem(position, crop_id, ItemInstanceType.CropInstance);
-        seed.SetAmount(seed.GetAmount() - 1);
         return true;
     }
     #endregion
