@@ -533,11 +533,34 @@ public class PawnManager : MonoBehaviour {
         );
         // AddPawnTask(pawn, Transporttaskstart);
         // HandleTask(pawn);
-        yield return StartCoroutine(HandleMoveTask(pawn));
-        yield return new WaitUntil(() => !controller.isMoving); // 等待移动任务完成
-        // yield return new WaitUntil(() =>
-        //     Vector3.Distance(MapManager.Instance.GetCellPosFromWorld(pawn.Instance.transform.position), task.beginPosition) < 0.1f
-        // );//distance wait
+        // yield return StartCoroutine(HandleMoveTask(pawn));
+        // yield return new WaitUntil(() => !controller.isMoving); // 等待移动任务完成
+
+
+        // yield return new WaitUntil(() => {
+        //      var data = MapManager.Instance.GetMapData(task.beginPosition);
+        //     if (data.has_pawn)
+        //     {
+        //         Debug.LogWarning($"Pawn ID {pawn.id} 已经在位置 {task.beginPosition}");
+        //     }
+        //     return data.has_pawn;
+        // }); // 等待 Pawn 到达
+
+        Debug.LogWarning($"开始移动 Pawn ID {pawn.id} 到位置 {task.beginPosition}");
+        StartCoroutine(HandleMoveTask(pawn));
+
+        yield return new WaitUntil(() =>
+        {
+            float distance = Vector3.Distance(
+                MapManager.Instance.GetCellPosFromWorld(pawn.Instance.transform.position),
+                task.beginPosition
+            );
+            if (distance < 0.1f)
+            {
+                Debug.LogWarning($"Pawn ID {pawn.id} 已经在位置 {task.beginPosition}");
+            }
+            return distance < 0.1f; // 当距离小于某个阈值时认为到达
+        });
 
         pawn.isOnTask = true;
         //yield return StartCoroutine(ResolveMoveTask(pawn)); 
@@ -608,7 +631,7 @@ public class PawnManager : MonoBehaviour {
         //任务开始时进行的更新
         Dictionary<TaskManager.TaskTypes, Action<Pawn>> taskHandler = new Dictionary<TaskManager.TaskTypes, Action<Pawn>>{
             { TaskManager.TaskTypes.Move, (pawn) => Instance.StartCoroutine(Instance.HandleMoveTask(pawn))},
-            { TaskManager.TaskTypes.Harvest, (pawn) => Instance.HandleHarvestTask(pawn) },
+            { TaskManager.TaskTypes.Harvest, (pawn) => Instance.StartCoroutine(Instance.HandleHarvestTask(pawn))},
             //{  TaskManager.TaskTypes.Build, (pawn) => Instance.HandleBuildTask(pawn) },
             { TaskManager.TaskTypes.Transport, (pawn) => Instance.StartCoroutine(Instance.HandleTransportTask(pawn, pawn.handlingTask as TaskManager.TransportTask)) },
             { TaskManager.TaskTypes.BuildingTransport, (pawn) => Instance.StartCoroutine(Instance.HandleToPrintInstanceTransportTask(pawn, pawn.handlingTask as TaskManager.TransportTask)) },
@@ -863,8 +886,8 @@ public class PawnManager : MonoBehaviour {
         TaskManager.Task Transporttaskstart = pawn.handlingTask;
         pawn.handlingTask = new TaskManager.Task(
             position: task.target_position,
-            type : TaskManager.TaskTypes.Move,
-            task_id : -1
+            type: TaskManager.TaskTypes.Move,
+            task_id: -1
         );
         yield return StartCoroutine(HandleMoveTask(pawn));
         yield return new WaitUntil(() => !controller.isMoving); // 等待移动任务完成
@@ -939,8 +962,9 @@ public class PawnManager : MonoBehaviour {
             //     yield break;
             // }
         }
-        pawn.isOnTask = false; // 任务完成，重置状态
-        pawn.handlingTask = null; // 清除当前任务
+        //pawn.isOnTask = false; // 任务完成，重置状态
+        //pawn.handlingTask = null; // 清除当前任务
+        ResolveTask(pawn);
 
         // MapManager.MapData cropData = MapManager.Instance.GetMapData(cropPosition.Value);
         // if (cropData != null && !cropData.has_item){
@@ -955,13 +979,82 @@ public class PawnManager : MonoBehaviour {
         // }
     }
 
+    //种植，给出种子id
+    public System.Collections.IEnumerator HandlePlantTask(Pawn pawn, int plantseedid, List<Vector3Int> positions)
+    {
+        TaskManager.Task task = pawn.handlingTask;
+        if (task == null)
+        {
+            Debug.LogWarning("Pawn 没有任务，无法执行任务！");
+            yield break;
+        }
+
+        // 1. 搜索种子位置，没找到就报错
+        PawnInteractController controller = pawn.Instance.GetComponent<PawnInteractController>();
+        if (controller == null)
+        {
+            Debug.LogWarning("PawnInteractController 未挂载在 Pawn 实例上！");
+            yield break;
+        }
+
+        Vector3Int pos = ItemInstanceManager.Instance.FindNearestItemPosition(plantseedid, task.target_position);
+        if (pos == Vector3Int.zero)
+        {
+            //Debug.LogWarning("未找到种子位置，无法执行种植任务！");
+            pawn.isOnTask = false;
+            TaskManager.AddInavailableTask(pawn.handlingTask);
+            pawn.handlingTask = null; // 清除当前任务
+            yield break;
+        }
+
+        int amount = positions.Count;
+
+        TaskManager.Task Transporttaskstart = pawn.handlingTask;
+        pawn.handlingTask = new TaskManager.Task(
+            position: pos,
+            type: TaskManager.TaskTypes.Move,
+            task_id: -1
+        );
+        yield return StartCoroutine(HandleMoveTask(pawn));
+        yield return new WaitUntil(() => !controller.isMoving); // 等待移动任务完成
+        // yield return new WaitUntil(() =>
+        //     Vector3.Distance(MapManager.Instance.GetCellPosFromWorld(pawn.Instance.transform.position), task.beginPosition) < 0.1f
+        // );//distance wait
+
+        pawn.isOnTask = true;
+        pawn.handlingTask = Transporttaskstart;
+
+        MapManager.MapData beginData = MapManager.Instance.GetMapData(pos);
+        Debug.LogWarning($"beginData: {beginData} beginData.has_item: {beginData.has_item} beginData.item: {beginData.item}");
+        if (beginData != null && beginData.has_item &&
+            beginData.item is ItemInstanceManager.MaterialInstance loadItem)
+        {
+            bool loadSuccess = PawnLoad(pawn, loadItem, amount, pos);
+            if (!loadSuccess)
+            {
+                //Debug.LogWarning("装载物品失败！");
+                yield break;
+            }
+            //Debug.Log("装载物品成功！");
+        }
+        else
+        {
+            //Debug.LogWarning("物品位置不正确或物品类型不匹配，无法装载！");
+            yield break;
+        }
+
+        // 2. 移动到目标位置（种植位置）
+
+
+    }
+
 
     //任务结束时进行的更新
     Dictionary<TaskManager.TaskTypes, Action<Pawn>> taskResolver = new Dictionary<TaskManager.TaskTypes, Action<Pawn>>
     {
         { TaskManager.TaskTypes.Move, (pawn) => Instance.StartCoroutine(Instance.ResolveMoveTask(pawn))},
         { TaskManager.TaskTypes.Build, (pawn) => Instance.StartCoroutine(Instance.ResolveBuildTask(pawn)) },
-        { TaskManager.TaskTypes.Harvest, (pawn) => Instance.HandleHarvestTask(pawn)}
+        //{ TaskManager.TaskTypes.Harvest, (pawn) => Instance.HandleHarvestTask(pawn)}
     };
 
     public void ResolveTask(Pawn pawn) {
@@ -991,7 +1084,6 @@ public class PawnManager : MonoBehaviour {
         }
         else
         {
-
             pawn.isOnTask = false;
         }
     }
