@@ -15,7 +15,8 @@ public class TaskManager : MonoBehaviour
     {
         Move,
         Build,
-        Plant,
+        PlantALL,//调用种植任务时使用
+        PlantOnly,//种植任务自己使用
         Harvest,
         Transport,//单纯运输任务，不涉及蓝图交互、箱子交互等内容
         BuildingTransport, // 建造运输任务,需要与蓝图进行交互
@@ -60,6 +61,16 @@ public class TaskManager : MonoBehaviour
             //this.materialType = materialType;
         }
 
+    }
+
+    public class PlantALLTask : Task
+    {
+        public List<Vector3Int> Plant_positions; // 完成此任务的地点列表，可能是多个地块
+        public PlantALLTask(Vector3Int position, TaskTypes type, int task_id, List<Vector3Int> plant_positions)
+            : base(position, type, task_id)
+        {
+            this.Plant_positions = plant_positions;
+        }
     }
 
     // public class BuildingTask : Task{
