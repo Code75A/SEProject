@@ -28,7 +28,7 @@ public class TimeManager : MonoBehaviour{
     private void OnDayChanged()
     {
         // TODO: 在此处进行当天数变化时对应的处理，比如刷新事件、更新界面等
-        EventManager.Instance.DailyEventUpdate(); // 更新事件
+        //EventManager.Instance.DailyEventUpdate(); // 更新事件
     }
 
     // 每次季节变化时需要执行的操作，留作扩展

@@ -1,7 +1,5 @@
-using System.Numerics;
-using Unity.VisualScripting;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.Tilemaps;
 
 public class PawnInteractController : MonoBehaviour
@@ -88,6 +86,7 @@ public class PawnInteractController : MonoBehaviour
             return;
         }
 
+        Debug.Log($"开始移动Pawn到位置: {targetCellPos}");
         // 设置移动参数
         isMoving = true;
         this.targetCellPos = targetCellPos;
@@ -115,7 +114,22 @@ public class PawnInteractController : MonoBehaviour
                     }
                 }
 
-                pawn.handlingTask = new TaskManager.Task(onMouseCellPos, TaskManager.TaskTypes.Move, 0, -1, -1);
+                List<Vector3Int> path = MapManager.Instance.FindPath(fromCellPos, onMouseCellPos);
+                if (path.Count > 0)
+                {
+                    pawn.handlingTask = new TaskManager.Task(path[0], TaskManager.TaskTypes.Move, 0, -1, -1);
+                    if (path.Count > 1)
+                    {
+                        for (int i = 1; i < path.Count; i++)
+                            PawnManager.Instance.AddPawnTask(pawn, new TaskManager.Task(path[i], TaskManager.TaskTypes.Move, 0, -1, -1));
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning("无法找到路径，目标位置不可达");
+                }
+
+
 
                 PawnManager.Instance.HandleTask(pawn);
             }
@@ -151,7 +165,44 @@ public class PawnInteractController : MonoBehaviour
             Debug.Log("目标位置不可种植或已被占用！");
         }
     }
-
+    public void HarvestAtPositionByPlayer(Vector3Int onMouseCellPos)
+    {
+        if (MapManager.Instance.HasItemAt(onMouseCellPos))
+        {
+            if (pawn != null)
+            {
+                if (MapManager.Instance.HasCropAt(onMouseCellPos))
+                {
+                    Debug.Log($"has");
+                    ItemInstanceManager.CropInstance cropInstance = MapManager.Instance.GetMapData(onMouseCellPos).item as ItemInstanceManager.CropInstance;
+                    if (cropInstance.IsMature())
+                    {
+                        Debug.Log($"mature");
+                        if (pawn.handlingTask != null)
+                        {
+                            if (pawn.handlingTask.type != TaskManager.TaskTypes.Move)
+                            {
+                                //TODO 处理其它目前正在处理的任务（返还给taskManger）
+                            }
+                            else
+                            {
+                                MapManager.Instance.SetPawnState(pawn.handlingTask.target_position, false);
+                            }
+                        }
+                        Debug.Log($"add");
+                        TaskManager.Instance.AddTask(onMouseCellPos, TaskManager.TaskTypes.Harvest);
+                        //pawn.handlingTask = new TaskManager.Task(onMouseCellPos, TaskManager.TaskTypes.Harvest, task_id: 0, id: cropInstance.GetModelId());
+                        //StartCoroutine(PawnManager.Instance.HandleHarvestTask(pawn));
+                        //PawnManager.Instance.HandleTask(pawn);
+                    }
+                }
+            }
+        }
+        else
+        {
+            Debug.Log("目标位置不可收获或没有作物！");
+        }
+    }
 
 
 }

@@ -64,7 +64,7 @@ public class TraderManager : MonoBehaviour
             this.can_plant = false;
             this.material_list = new List<KeyValuePair<int, int>>();
 
-            Debug.Log("TraderBuilding 初始化完成");
+            //Debug.Log("TraderBuilding 初始化完成");
         }
         //public bool BuyItem(ItemManager.Item item){}
     }
