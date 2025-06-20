@@ -283,7 +283,8 @@ public class PawnManager : MonoBehaviour {
     }
     #endregion
 
-        public void AddPawnTask(Pawn pawn, TaskManager.Task task) {
+    #region  TaskList操作函数
+    public void AddPawnTask(Pawn pawn, TaskManager.Task task) {
         if (task != null) {
             if (pawn != null)
             {
@@ -314,6 +315,28 @@ public class PawnManager : MonoBehaviour {
             Debug.Log("Error：ClearPawnTaskList时 Pawn 为空");
         }
     }
+    public int PawnTaskListCount(Pawn pawn) {
+        if (pawn != null) {
+            return pawn.PawntaskList.Count;
+        }
+        else {
+            Debug.Log("Error：PawnTaskCount时 Pawn 为空");
+            return 0;
+        }
+    }
+    public TaskManager.Task GetPawnTaskAt(Pawn pawn, int index) {
+        if (pawn != null) {
+            if(index < 0 || index >= pawn.PawntaskList.Count) {
+                Debug.LogWarning($"GetPawnTaskAt: 任务 ID {index} 超出范围，返回 null");
+                return null;
+            }
+            return pawn.PawntaskList[index];
+        }
+        else {
+            Debug.Log("Error：GetPawnTask时 Pawn 为空");
+            return null;
+        }
+    }
     //todo:task中三种任务的处理逻辑
 
     //todo:工作时间计算函数：与当前power，任务难度、进度有关
@@ -340,9 +363,11 @@ public class PawnManager : MonoBehaviour {
     //1.移动到任务地点
     //2.调用工作时间计算函数，计算工作时间，进入“收割动画”
     //3.工作完成，创建物品，结束任务
+    #endregion
 
     //工作时间计算
-    private float GetWorkTime(Pawn pawn, TaskManager.Task task) {
+    private float GetWorkTime(Pawn pawn, TaskManager.Task task)
+    {
         int TotalProcess = task.tasklevel * 100;
         float time = TotalProcess / pawn.workSpeed;
         return time; //仅为简易实现，后续数值及算法有待调整
@@ -687,25 +712,18 @@ public class PawnManager : MonoBehaviour {
         }
         TaskManager.Task task = pawn.handlingTask;
 
-        Vector3Int currentCellPos = MapManager.Instance.GetCellPosFromWorld(pawn.Instance.transform.position);
-
-        //TODO：
-        //MapManager.Instance.SetPawnState(false);
-
-        //提前预定了目标位置被占用但是在任务取消时在PawnInteractController注意需要取消占用（类似锁）
         PawnInteractController controller = pawn.Instance.GetComponent<PawnInteractController>();
 
-        controller.MovePawnToPosition(task.target_position, pawn);
-        Debug.Log($"Pawn ID: {pawn.id} 正在移动到目标位置: {task.target_position}");
-
-        Debug.Log(controller.fromCellPos);
-        Debug.Log(currentCellPos);
-
+        Vector3Int currentCellPos = MapManager.Instance.GetCellPosFromWorld(pawn.Instance.transform.position);
         if (controller.fromCellPos == currentCellPos) {
             MapManager.Instance.SetPawnState(controller.fromCellPos, false);
         }
 
-        MapManager.Instance.SetWillPawnState(task.target_position, true);
+        yield return StartCoroutine(controller.MovePawnToPosition(task.target_position, pawn));
+        //Debug.Log("Pawn Once Move Finished");
+        controller.moveFinished = false;
+
+        ResolveTask(pawn);
     }
     //todo:目前当小人建造无法找到材料时会发生循环卡死，需要退出程序进入待分配任务列表
     //todo:问题排查，存在建墙小人分配问题
@@ -1214,19 +1232,22 @@ public class PawnManager : MonoBehaviour {
 
         if (MapManager.Instance.IsWalkable(targetCellPos)) {
             PawnInteractController controller = pawn.Instance.GetComponent<PawnInteractController>();
-            if (controller != null) {
+            if (controller != null)
+            {
                 Debug.Log($"Pawn ID: {pawn.id} 到达目标位置: {targetCellPos}");
-                if (MapManager.Instance.WillHasPawnAt(targetCellPos))
+
+                MapManager.Instance.SetPawnState(targetCellPos, true);
+                controller.fromCellPos = targetCellPos;
+
+                if (targetCellPos == controller.targetCellPos)
                 {
-                    MapManager.Instance.SetPawnState(targetCellPos, true);
+                    controller.isSegMoving = false;
                     MapManager.Instance.SetWillPawnState(targetCellPos, false);
                 }
-                else
-                    Debug.LogWarning($"will_has_pawn状态不同步！");
-
-                controller.fromCellPos = targetCellPos;
+                    
             }
-            else {
+            else
+            {
                 Debug.LogWarning("PawnInteractController 未挂载在 Pawn 实例上！");
             }
         }

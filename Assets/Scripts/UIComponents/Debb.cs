@@ -12,7 +12,8 @@ public class Debb : MonoBehaviour
         text.text = "";
         foreach (var pawn in PawnManager.Instance.pawns)
         {
-            text.text += pawn.id + " " + pawn.isOnTask + "\n";
+            text.text += pawn.id + " " + pawn.isOnTask +" " + pawn.Instance.GetComponent<PawnInteractController>().moveFinished + "\n";
+
         }
     }
 }

@@ -731,7 +731,7 @@ public class SLManager : MonoBehaviour
         TaskManager.Instance.availableTaskList = new List<TaskManager.Task>
         {
             new TaskManager.Task(new Vector3Int(0, 0, 0), TaskManager.TaskTypes.Build, 1, 101, 5, -1),
-            new TaskManager.Task(new Vector3Int(1, 1, 1), TaskManager.TaskTypes.Plant, 2, 102, 10, -1)
+            new TaskManager.Task(new Vector3Int(1, 1, 1), TaskManager.TaskTypes.PlantALL, 2, 102, 10, -1)
         };
 
         TaskManager.Instance.inavailableTaskList = new List<TaskManager.Task>
@@ -990,7 +990,7 @@ public class SLManager : MonoBehaviour
                 },
                 PawntaskList = new List<TaskManager.Task>
                 {
-                    new TaskManager.Task(new Vector3Int(2, 2, 2), TaskManager.TaskTypes.Plant, 2, 102, 10, -1)
+                    new TaskManager.Task(new Vector3Int(2, 2, 2), TaskManager.TaskTypes.PlantALL, 2, 102, 10, -1)
                 }
             }
         };

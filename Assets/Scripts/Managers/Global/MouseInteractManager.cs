@@ -453,8 +453,7 @@ public class MouseInteractManager : MonoBehaviour
 
                 if (Instance.PawnStateAvailable())
                 {
-                    if (MapManager.Instance.IsWalkable(onMouseCellPos) &&
-                    !MapManager.Instance.HasPawnAt(onMouseCellPos) && !MapManager.Instance.WillHasPawnAt(onMouseCellPos))
+                    if (MapManager.Instance.PawnCanMoveTo(onMouseCellPos))
                     {
                         (currentState as StatePawn).MoveByPlayer();
                     }
