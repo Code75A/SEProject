@@ -11,10 +11,11 @@ public class TaskManager : MonoBehaviour
     //private int dev_current_id = 0; // 当前任务id-临时
 
 
-    public enum TaskTypes{
+    public enum TaskTypes
+    {
         Move,
-        Build, 
-        Plant, 
+        Build,
+        Plant,
         Harvest,
         Transport,//单纯运输任务，不涉及蓝图交互、箱子交互等内容
         BuildingTransport, // 建造运输任务,需要与蓝图进行交互
@@ -30,7 +31,8 @@ public class TaskManager : MonoBehaviour
 
     //对于收割类型任务，materialid 用来表示待收割物品类型，materialamount暂定没有作用，通过待收割物品类型与掉落物的映射确定掉落物
     //注意收割物品和掉落物映射的维护
-    public class Task{
+    public class Task
+    {
         public Vector3Int target_position; // 完成此任务的地点
 
         public TaskTypes type; // 任务类型
@@ -48,7 +50,8 @@ public class TaskManager : MonoBehaviour
 
         public int tasklevel = 0; //任务等级，表示任务的难度和复杂程度
 
-        public Task(Vector3Int position,TaskTypes type,int task_id,int id = 0,int amount = 0 ,int materialType = -1){
+        public Task(Vector3Int position, TaskTypes type, int task_id, int id = 0, int amount = 0, int materialType = -1)
+        {
             this.target_position = position;
             this.type = type;
             this.task_id = task_id;
@@ -103,7 +106,7 @@ public class TaskManager : MonoBehaviour
             this.beginPosition = beginPosition;
         }
     }
-    
+
     // 创建一个简易的 TransportTask
     public TransportTask CreateTransportTask(Vector3Int beginPos, Vector3Int endPos, int itemId, int amount = 1)
     {
@@ -132,31 +135,38 @@ public class TaskManager : MonoBehaviour
 
 
     //todo:添加任务时自动为任务分配id的taskid生成器
-    public int TaskIdUpdate() {
+    public int TaskIdUpdate()
+    {
         // 创建一个 HashSet 来存储所有已使用的任务 ID
         HashSet<int> usedIds = new HashSet<int>();
 
         // 遍历 TaskManager 中的任务列表，收集所有任务的 ID
-        foreach (var task in availableTaskList) {
+        foreach (var task in availableTaskList)
+        {
             usedIds.Add(task.id);
         }
-        foreach (var task in inavailableTaskList) {
+        foreach (var task in inavailableTaskList)
+        {
             usedIds.Add(task.id);
         }
 
         // 遍历 PawnManager 中的任务列表，收集所有任务的 ID
-        foreach (var pawn in PawnManager.Instance.pawns) {
-            if (pawn.handlingTask != null) {
+        foreach (var pawn in PawnManager.Instance.pawns)
+        {
+            if (pawn.handlingTask != null)
+            {
                 usedIds.Add(pawn.handlingTask.id);
             }
-            foreach (var task in pawn.PawntaskList) {
+            foreach (var task in pawn.PawntaskList)
+            {
                 usedIds.Add(task.id);
             }
         }
 
         // 找到未被使用的最小正整数 ID
         int newId = 1;
-        while (usedIds.Contains(newId)) {
+        while (usedIds.Contains(newId))
+        {
             newId++;
         }
 
@@ -167,26 +177,32 @@ public class TaskManager : MonoBehaviour
 
     private const int MAX_TASKS_PER_FRAME = 5; // 每帧检测任务上限
 
-    void Awake(){
-        if (Instance == null){
+    void Awake()
+    {
+        if (Instance == null)
+        {
             Instance = this;
         }
-        else{
+        else
+        {
             Destroy(gameObject);
         }
     }
-    
+
     // Start is called before the first frame update
-    void Start(){
+    void Start()
+    {
         pawnManager = FindObjectOfType<PawnManager>(); // 获取 PawnManager 实例
     }
 
     // Update is called once per frame
-    void Update() {
+    void Update()
+    {
         // 检测并分配 availableTaskList 中的任务
 
-        for (int i = 0; i < MAX_TASKS_PER_FRAME; i++) {
-            if(availableTaskList.Count == 0) break; // 防止 availableTaskList 为空时的异常
+        for (int i = 0; i < MAX_TASKS_PER_FRAME; i++)
+        {
+            if (availableTaskList.Count == 0) break; // 防止 availableTaskList 为空时的异常
             Task task = availableTaskList[0];
             PawnManager.Pawn availablePawn = pawnManager.GetAvailablePawn();
             if (availablePawn != null)
@@ -200,14 +216,15 @@ public class TaskManager : MonoBehaviour
             }
             else
             {
-                inavailableTaskList.Add(task);
-                availableTaskList.RemoveAt(0);
+                //inavailableTaskList.Add(task);
+                //availableTaskList.RemoveAt(0);
             }
         }
 
         // 检测并处理 inavailableTaskList 中的任务
-        for (int i = 0; i < MAX_TASKS_PER_FRAME; i++) {
-            if(inavailableTaskList.Count == 0) break; // 防止 inavailableTaskList 为空时的异常
+        for (int i = 0; i < MAX_TASKS_PER_FRAME; i++)
+        {
+            if (inavailableTaskList.Count == 0) break; // 防止 inavailableTaskList 为空时的异常
             Task task = inavailableTaskList[0];
             PawnManager.Pawn availablePawn = pawnManager.GetAvailablePawn();
             if (availablePawn != null)
@@ -229,9 +246,10 @@ public class TaskManager : MonoBehaviour
 
     // 添加任务到任务列表中
     // 将materialId改为id，materialAmount改为amount，方便后续扩展 --cjh
-    public void AddTask(Vector3Int pos, TaskTypes type, int id = 0, int amount = 0) {
+    public void AddTask(Vector3Int pos, TaskTypes type, int id = 0, int amount = 0)
+    {
         int newTaskId = TaskIdUpdate(); // 需要实现ID生成器
-        
+
         Task newTask = new Task(
             position: pos,
             type: type,
@@ -241,7 +259,13 @@ public class TaskManager : MonoBehaviour
             materialType: -1 // 默认为-1，表示不需要材料或材料类型未知
         );
         Debug.Log($"添加任务: {newTask.type}，ID: {newTask.task_id}，位置: {newTask.target_position}，材料ID: {newTask.id}，数量: {newTask.amount}");
-        
+
         availableTaskList.Add(newTask);
+    }
+    
+    //添加失败的任务
+    public void AddInavailableTask(Task task)
+    {
+        inavailableTaskList.Add(task);
     }
 }
