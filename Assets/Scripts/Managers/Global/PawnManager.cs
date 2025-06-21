@@ -474,7 +474,7 @@ public class PawnManager : MonoBehaviour {
         );
         //AddPawnTask(pawn, Transporttaskstart);
         //HandleTask(pawn);
-        yield return StartCoroutine(HandleMoveTask(pawn));
+        StartCoroutine(HandleMoveTask(pawn));
         //yield return StartCoroutine(ResolveMoveTask(pawn)); 
         yield return new WaitUntil(() => !controller.isMoving); // 等待移动任务完成
         pawn.isOnTask = true;
@@ -513,7 +513,7 @@ public class PawnManager : MonoBehaviour {
 
         //AddPawnTask(pawn, Transporttaskend);
         //HandleTask(pawn);
-        yield return StartCoroutine(HandleMoveTask(pawn));
+        StartCoroutine(HandleMoveTask(pawn));
         //yield return StartCoroutine(ResolveMoveTask(pawn)); 
         yield return new WaitUntil(() => !controller.isMoving); // 等待移动任务完成
         pawn.isOnTask = true;
@@ -623,15 +623,32 @@ public class PawnManager : MonoBehaviour {
 
         TaskManager.Task Transporttaskend = pawn.handlingTask;
         pawn.handlingTask = new TaskManager.Task(
-            position: task.target_position + new Vector3Int(0, -1, 0),
-            type : TaskManager.TaskTypes.Move,
-            task_id : -1
+             position: task.target_position + new Vector3Int(0, -1, 0),
+             type : TaskManager.TaskTypes.Move,
+             task_id : -1
         );
-        //AddPawnTask(pawn, Transporttaskend);
-        //HandleTask(pawn);
-        yield return StartCoroutine(HandleMoveTask(pawn));
+        // //AddPawnTask(pawn, Transporttaskend);
+        // //HandleTask(pawn);
+        StartCoroutine(HandleMoveTask(pawn));
+        Debug.LogWarning("1");
         yield return new WaitUntil(() => !controller.isMoving); // 等待移动任务完成
-        //yield return StartCoroutine(ResolveMoveTask(pawn)); 
+        // //yield return StartCoroutine(ResolveMoveTask(pawn)); 
+
+
+        // StartCoroutine(HandleMoveTask(pawn));
+
+        // yield return new WaitUntil(() =>
+        // {
+        //     float distance = Vector3.Distance(
+        //         MapManager.Instance.GetCellPosFromWorld(pawn.Instance.transform.position),
+        //         task.beginPosition
+        //     );
+        //     if (distance < 0.1f)
+        //     {
+        //         Debug.LogWarning($"Pawn ID {pawn.id} 已经在位置 {task.beginPosition}");
+        //     }
+        //     return distance < 0.1f; // 当距离小于某个阈值时认为到达
+        // });
         pawn.isOnTask = true;
         pawn.handlingTask = Transporttaskend;
         Debug.Log("printinstance拆分移动任务完成end");
@@ -641,6 +658,7 @@ public class PawnManager : MonoBehaviour {
         MapManager.MapData targetData = MapManager.Instance.GetMapData(task.target_position);
         if (targetData != null && targetData.item is ItemInstanceManager.PrintInstance printInstance)
         {
+            Debug.LogWarning($"开始卸载物品 ID: {pawn.materialId} 数量: {pawn.materialAmount} 到蓝图位置: {task.target_position}");
             printInstance.PushProgress(pawn.materialId, pawn.materialAmount);
             pawn.materialId = 0;
             pawn.materialAmount = 0;
@@ -907,7 +925,7 @@ public class PawnManager : MonoBehaviour {
             type: TaskManager.TaskTypes.Move,
             task_id: -1
         );
-        yield return StartCoroutine(HandleMoveTask(pawn));
+        StartCoroutine(HandleMoveTask(pawn));
         yield return new WaitUntil(() => !controller.isMoving); // 等待移动任务完成
         // yield return new WaitUntil(() =>
         //     Vector3.Distance(MapManager.Instance.GetCellPosFromWorld(pawn.Instance.transform.position), task.beginPosition) < 0.1f
@@ -1000,9 +1018,8 @@ public class PawnManager : MonoBehaviour {
     //区域种植，给出种子id
     public System.Collections.IEnumerator HandlePlantALLTask(Pawn pawn)
     {
+        Debug.Log("HandlePlantALLTask开始");
         TaskManager.Task task = pawn.handlingTask;
-
-
         if (task == null)
         {
             Debug.LogWarning("Pawn 没有任务，无法执行任务！");
@@ -1017,6 +1034,7 @@ public class PawnManager : MonoBehaviour {
                 positions = plantAllTask.Plant_positions;
             }
         }
+        Debug.Log($"开始处理种植任务，种子ID: {plantseedid}，种植位置数量: {positions.Count}");
 
         //需要种子总数，以及种植位置1
         int seed_amount = positions.Count;
@@ -1030,6 +1048,7 @@ public class PawnManager : MonoBehaviour {
         }
         // 1. 搜索种子位置，没找到就报错
         PawnUnload(pawn); // 确保小人没有携带物品
+
         while (pawn.materialAmount < seed_amount)
         {
             int instant_seed_need = seed_amount - pawn.materialAmount;
@@ -1078,7 +1097,7 @@ public class PawnManager : MonoBehaviour {
             type: TaskManager.TaskTypes.Move,
             task_id: -1
         );
-        yield return StartCoroutine(HandleMoveTask(pawn));
+        StartCoroutine(HandleMoveTask(pawn));
         yield return new WaitUntil(() => !controller.isMoving); // 等待移动任务完成
         // yield return new WaitUntil(() =>
         //     Vector3.Distance(MapManager.Instance.GetCellPosFromWorld(pawn.Instance.transform.position), task.beginPosition) < 0.1f
@@ -1145,7 +1164,7 @@ public class PawnManager : MonoBehaviour {
             type: TaskManager.TaskTypes.Move,
             task_id: -1
         );
-        yield return StartCoroutine(HandleMoveTask(pawn));
+        StartCoroutine(HandleMoveTask(pawn));
         yield return new WaitUntil(() => !controller.isMoving); // 等待移动任务完成
         // yield return new WaitUntil(() =>
         //     Vector3.Distance(MapManager.Instance.GetCellPosFromWorld(pawn.Instance.transform.position), task.beginPosition) < 0.1f
@@ -1159,6 +1178,7 @@ public class PawnManager : MonoBehaviour {
     //support:pawn plant_tasklist create
     public void CreatePlantTaskList(Pawn pawn, List<Vector3Int> positions, int seedId)
     {
+        Debug.Log("CreatePlantTaskList开始");
         if (pawn == null)
         {
             Debug.LogWarning("Pawn 为空，无法创建种植任务列表！");

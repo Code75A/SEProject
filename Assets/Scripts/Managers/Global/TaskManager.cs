@@ -66,8 +66,8 @@ public class TaskManager : MonoBehaviour
     public class PlantALLTask : Task
     {
         public List<Vector3Int> Plant_positions; // 完成此任务的地点列表，可能是多个地块
-        public PlantALLTask(Vector3Int position, TaskTypes type, int task_id, List<Vector3Int> plant_positions)
-            : base(position, type, task_id)
+        public PlantALLTask(Vector3Int position, TaskTypes type, int task_id, int id, List<Vector3Int> plant_positions)
+        : base(position, type, task_id, id) // 调用基类构造函数，传递 id
         {
             this.Plant_positions = plant_positions;
         }
@@ -220,6 +220,7 @@ public class TaskManager : MonoBehaviour
             {
                 availablePawn.isOnTask = true;
                 availablePawn.handlingTask = task;
+                Debug.Log($"task type : {task.type}");
                 availableTaskList.RemoveAt(0);
 
                 PawnManager.Instance.HandleTask(availablePawn);
