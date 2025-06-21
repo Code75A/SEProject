@@ -1,18 +1,7 @@
-using System;
-using System.Collections;
+
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Linq;
-using System.Linq.Expressions;
 using TMPro;
-using Unity.Collections.LowLevel.Unsafe;
-using Unity.PlasticSCM.Editor.WebApi;
-using Unity.VisualScripting;
-using UnityEditor;
-using UnityEditor.SceneManagement;
-using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.VersionControl;
-using UnityEditorInternal.Profiling.Memory.Experimental;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -214,6 +203,7 @@ public class ItemInstanceManager : MonoBehaviour
         public float real_lifetime;
         public float growth_per_frame;
         public List<KeyValuePair<int, int>> harvest_list; // 指向模板的收获列表
+        //TODO: 增加Dictionary
         //--------------------------------public------------------------------------
         public bool IsMature() { return growth >= real_lifetime; }
     }
@@ -302,8 +292,12 @@ public class ItemInstanceManager : MonoBehaviour
             return requirements;
         }
     }
-    public class ResourceInstance : ItemInstance{
+    public class ResourceInstance : ItemInstance
+    {
         public int durability;
+        public List<KeyValuePair<int, int>> resource_list = new List<KeyValuePair<int, int>>()
+        {new KeyValuePair<int, int>(6,50) }; // 指向模板的资源列表
+        //TODO: 增加Dictionary
     }
     #endregion
 
@@ -707,6 +701,41 @@ public class ItemInstanceManager : MonoBehaviour
         }
         return;
     }
+    public void ClearResourceInstance(ItemInstance aim_ins, DestroyMode mode, float remain_rate){
+        // Safety check
+        if (aim_ins.type != ItemInstanceType.ResourceInstance){
+            UIManager.Instance.DebugTextAdd(
+                "<<Error>>Clearing ResourceInstance FAILED: the iteminstance_id " + aim_ins.id + " is not a ResourceInstance. "
+            );
+            return;
+        }
+        // 1.如果是RemainNone模式，则不产生任何遗留物
+        if (mode == DestroyMode.RemainNone) {
+            // 不产生任何遗留物
+        }
+        else if (mode == DestroyMode.RemainAll) {
+            // 直接将资源掉落
+            int set_res = MapManager.Instance.SetMaterial(aim_ins.position, ((ResourceInstance)aim_ins).resource_list.ToList());
+            UIManager.Instance.DebugTextAdd("[Log]From mapManager get set-resource-result: " + set_res + ". ");
+        }
+        else if (mode == DestroyMode.RemainWithRate) {
+            // 按照remain_rate比例掉落资源
+            List<KeyValuePair<int, int>> temp = new List<KeyValuePair<int, int>>();
+            foreach (KeyValuePair<int, int> it in ((ResourceInstance)aim_ins).resource_list) {
+                int item_id = it.Key;
+                int amount = (int)System.Math.Truncate((double)(it.Value * remain_rate));
+                if (amount > 0)
+                    temp.Add(new KeyValuePair<int, int>(item_id, amount));
+            }
+            int set_res = MapManager.Instance.SetMaterial(aim_ins.position, temp);
+            UIManager.Instance.DebugTextAdd("[Log]From mapManager get set-resource-result: " + set_res + ". ");
+        }
+        else {
+            UIManager.Instance.DebugTextAdd(
+                "<<Warning>>ClearResourceInstance has not implement with DestroyMode: " + mode.ToString() + ". "
+            );
+        }
+    }
     #endregion
 
     #endregion
@@ -731,10 +760,10 @@ public class ItemInstanceManager : MonoBehaviour
             grow_per_frame = ((CropInstance)it).growth_per_frame;
             if (grow >= life) continue;
 
-            ((CropInstance)it).growth += grow_per_frame*TimeManager.Instance.timeScale;
+            ((CropInstance)it).growth += grow_per_frame * TimeManager.Instance.timeScale;
 
             stage = (int)(3 * (grow / life));
-            new_stage = (int)(3 * ((grow + grow_per_frame*TimeManager.Instance.timeScale) / life));
+            new_stage = (int)(3 * ((grow + grow_per_frame * TimeManager.Instance.timeScale) / life));
             if (new_stage > stage)
             {
                 if (new_stage < 0 || new_stage > 3)
@@ -935,7 +964,7 @@ public class ItemInstanceManager : MonoBehaviour
                 ClearPrintInstance(aim_ins, destroy_mode, remain_rate);
                 break;
             case ItemInstanceType.ResourceInstance:
-            
+                ClearResourceInstance(aim_ins, destroy_mode, remain_rate);
                 break;
             default:
                 UIManager.Instance.DebugTextAdd(
