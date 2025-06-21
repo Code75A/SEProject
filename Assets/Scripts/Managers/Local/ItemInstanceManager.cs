@@ -197,13 +197,13 @@ public class ItemInstanceManager : MonoBehaviour
         }
         public void SetAmount(int new_amount)
         {
+            StorageManager.Instance.AddItem(item_id, new_amount-amount);
+        
             amount = new_amount;
             string old_text = GetText();
             string[] strArray = old_text.Split('|');
             string new_text = strArray[0] + "|" + new_amount.ToString();
             SetText(new_text);
-
-            StorageManager.Instance.AddItem(item_id, new_amount-amount);
 
             return;
         }
