@@ -105,7 +105,7 @@ public class ItemManager : MonoBehaviour
                         {PawnManager.Pawn.EnhanceType.Speed,10},
                         {PawnManager.Pawn.EnhanceType.Power,100}}});
         itemLists[ItemType.Tool].Add(
-            new Tool{id=14, name="手推车", type=ItemType.Tool, texture=tempItemSprites[14], max_durability=100, 
+            new Tool{id=17, name="手推车", type=ItemType.Tool, texture=tempItemSprites[14], max_durability=100, 
                     enhancements=new Dictionary<PawnManager.Pawn.EnhanceType, int>{
                         {PawnManager.Pawn.EnhanceType.capacity,100}, 
                         {PawnManager.Pawn.EnhanceType.Speed,0},
@@ -122,7 +122,7 @@ public class ItemManager : MonoBehaviour
         itemLists[ItemType.Material].Add(
             new Material{id=13, name="金币", type=ItemType.Material, texture=tempItemSprites[13], can_plant_crop=-1});
         itemLists[ItemType.Material].Add(
-            new Material{id=14, name="土豆", type=ItemType.Material, texture=tempItemSprites[14], can_plant_crop=-1});
+            new Material{id=14, name="土豆", type=ItemType.Material, texture=tempItemSprites[15], can_plant_crop=-1});
 
         itemLists[ItemType.Material].Add(
             new Material{id=7, name="稻种", type=ItemType.Material, texture=tempItemSprites[7], can_plant_crop=0});

@@ -197,11 +197,14 @@ public class ItemInstanceManager : MonoBehaviour
         }
         public void SetAmount(int new_amount)
         {
+            StorageManager.Instance.AddItem(item_id, new_amount-amount);
+        
             amount = new_amount;
             string old_text = GetText();
             string[] strArray = old_text.Split('|');
             string new_text = strArray[0] + "|" + new_amount.ToString();
             SetText(new_text);
+
             return;
         }
     }
@@ -731,7 +734,7 @@ public class ItemInstanceManager : MonoBehaviour
             ((CropInstance)it).growth += grow_per_frame*TimeManager.Instance.timeScale;
 
             stage = (int)(3 * (grow / life));
-            new_stage = (int)(3 * ((grow + grow_per_frame) / life));
+            new_stage = (int)(3 * ((grow + grow_per_frame*TimeManager.Instance.timeScale) / life));
             if (new_stage > stage)
             {
                 if (new_stage < 0 || new_stage > 3)
@@ -854,6 +857,8 @@ public class ItemInstanceManager : MonoBehaviour
                 break;
             case ItemInstanceType.MaterialInstance:
                 new_ins = MakeMaterialInstance(sample_id, position, amount);
+                if(new_ins != null)
+                    StorageManager.Instance.AddItem(new_ins.item_id, amount);
                 break;
             case ItemInstanceType.CropInstance:
                 new_ins = MakeCropInstance(sample_id, position);
@@ -885,6 +890,7 @@ public class ItemInstanceManager : MonoBehaviour
             // 设置到地图数据中
             MapManager.Instance.SetMapDataItem(new_ins, position);
         }
+        else Debug.LogError("SpawnItem failed: new_ins is null.");
         return new_ins;
     }
 

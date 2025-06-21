@@ -33,11 +33,15 @@ public class UIManager : MonoBehaviour
     [Header("菜单prefabs")]
     public Transform buildingMenu;
     public Transform instructMenu;
+    public Transform storageMenu;
+    #region Bar/Square
     public GameObject buildingMenuBar;
     public GameObject buildingMenuSquare;
     public GameObject instructMenuSquare;
+    public GameObject storageMenuBar;
+    #endregion
 
-    //建造菜单UI定位相关参数
+    #region UI定位参数
     //DeltaX/Y = Width/Height * Scale
     //BuildMenuBar
     const float BAR_ANCHOR_X = -1136f, BAR_ANCHOR_Y = -673.9189f, BAR_DELTAX = 288f, BAR_DELTAY = 92.16f; //scale = 144f
@@ -45,16 +49,24 @@ public class UIManager : MonoBehaviour
     const float SQUARE_ANCHOR_X = -521f, SQUARE_ANCHOR_Y = -609.408f, SQUARE_DELTAX = 221.184f, SQUARE_DELTAY = 221.184f; //scale = 10.8f
     //InstructMenuSquare
     const float INSTRUCT_ANCHOR_X = -1200f, INSTRUCT_ANCHOR_Y = -66f, INSTRUCT_DELTAX = 115f, INSTRUCT_DELTAY = 115f; //scale =5.4f
+    const float STORAGE_ANCHOR_X = -1107.072f, STORAGE_ANCHOR_Y = 642f, STORAGE_DELTAY = -100f; //scale =144f
     const int MAX_BUILD_SQUARE_PER_LINE = 8;
     const int MAX_INSTRUCT_SQUARE_PER_LINE = 6;
+    const int MAX_STORAGE_BAR = 12;
 
     public Vector3 bar_anchor, square_anchor, instruct_anchor;
     public Vector3 bar_deltax, bar_deltay, square_deltax, square_deltay, instruct_deltax, instruct_deltay;
+
+    public Vector3 storage_anchor, storage_deltay;
+    #endregion
 
     public GameObject[] buildingMenuBars = new GameObject[(int)BuildingType.Total];
     public GameObject[] buildingMenuSquares;//最多一行放8个
 
     public GameObject[] instructMenuSquares;
+
+    public GameObject[] storageMenuBars = new GameObject[MAX_STORAGE_BAR];
+    private int storageMenuBarCount = 0;
 
     public Sprite[] tempInstructSprites = new Sprite[(int)MouseInteractManager.InstructTypes.total];
 
@@ -86,6 +98,7 @@ public class UIManager : MonoBehaviour
         InitDebugPanel();
         InitBuildingMenu();
         InitInstructMenu();
+        InitStorageMenu();
         HideSelectedObjectPanel();
     }
 
@@ -146,6 +159,11 @@ public class UIManager : MonoBehaviour
     {
         instruct_anchor = new Vector3(INSTRUCT_ANCHOR_X, INSTRUCT_ANCHOR_Y, 0);
         instruct_deltax = new Vector3(INSTRUCT_DELTAX, 0, 0); instruct_deltay = new Vector3(0, INSTRUCT_DELTAY, 0);
+    }
+    void InitStorageMenu()
+    {
+        storage_anchor = new Vector3(STORAGE_ANCHOR_X, STORAGE_ANCHOR_Y, 0);
+        storage_deltay = new Vector3(0, STORAGE_DELTAY, 0);
     }
     #endregion
 
@@ -385,5 +403,38 @@ public class UIManager : MonoBehaviour
                 buildingSquare.SetActive(false);
         }
     }
+    #endregion
+    #region StorageMenu相关函数
+    public StorageMenuBarLoadController AddOneStorageMenuBar(int itemId, int amount)
+    {
+        if (storageMenuBarCount >= MAX_STORAGE_BAR)
+        {
+            Debug.LogWarning("Storage Menu Bar count exceeded maximum limit. Cannot add more bars.");
+            return null;
+        }
+        storageMenuBars[storageMenuBarCount] = Instantiate(storageMenuBar, storageMenu);
+        storageMenuBars[storageMenuBarCount].transform.localPosition = storage_anchor + storage_deltay * storageMenuBarCount;
+
+        StorageMenuBarLoadController barController = storageMenuBars[storageMenuBarCount].GetComponent<StorageMenuBarLoadController>();
+
+        ItemManager.Item item = ItemManager.Instance.GetItem(itemId, ItemManager.ItemType.Material);
+        barController.Init(item.texture, amount.ToString());
+
+        storageMenuBarCount++;
+
+        return barController;
+    }
+    public void ClearStorageMenuBar()
+    {
+        foreach (GameObject bar in storageMenuBars)
+        {
+            if (bar != null)
+            {
+                Destroy(bar);
+            }
+        }
+        storageMenuBarCount = 0;
+    }
+
     #endregion
 }
