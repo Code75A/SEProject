@@ -960,9 +960,13 @@ public class PawnManager : MonoBehaviour {
                 Debug.LogWarning("目标物品是 CropInstance调用 HarvestCrop");
                 ItemInstanceManager.Instance.HarvestCrop(cropInstance);
             }
+            else if (mapData.item is ItemInstanceManager.ResourceInstance resourceInstance)
+            {
+                ItemInstanceManager.Instance.HarvestResource(resourceInstance);
+            }
             else
             {
-                Debug.LogWarning("目标物品不是 CropInstance，无法调用 HarvestCrop！");
+                Debug.LogWarning("目标物品不是 可收割物品，无法调用 HarvestCrop！");
             }
 
             // ItemInstanceManager.MaterialInstance newCrop = ItemInstanceManager.Instance.SpawnItem(
@@ -1065,10 +1069,12 @@ public class PawnManager : MonoBehaviour {
             Debug.Log($"开始执行种植任务: {plantTask.type}，ID: {plantTask.task_id}");
             //执行
             HandleTask(pawn);
+            pawn.isOnTask = true; // 设置小人正在执行任务状态
             //yield return StartCoroutine(ResolveTask(pawn));
             pawn.PawntaskList.RemoveAt(0); // 移除已完成的任务
         }
-
+        pawn.isOnTask = false;
+        pawn.handlingTask = null; // 清除当前任务
         ResolveTask(pawn); // 任务完成，重置状态
     }
 
@@ -1112,6 +1118,8 @@ public class PawnManager : MonoBehaviour {
             position: position
         );
         pawn.materialAmount -= 1;
+        pawn.isOnTask = false;
+        pawn.handlingTask = null;
     }
 
     //support:装载

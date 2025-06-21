@@ -729,6 +729,11 @@ public class MapManager : MonoBehaviour
         if(mapDatas[pos.x, pos.y].item is ItemInstanceManager.CropInstance) return true;
         return false;
     }
+    public bool HasMineAt(Vector3Int pos){
+        if(!HasItemAt(pos)) return false;
+        if(mapDatas[pos.x, pos.y].item is ItemInstanceManager.ResourceInstance) return true;
+        return false;
+    }
     //获取某个地格的所有MapData信息
 
     public MapData GetMapData(Vector3Int pos)

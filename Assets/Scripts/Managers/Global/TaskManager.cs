@@ -241,17 +241,17 @@ public class TaskManager : MonoBehaviour
             PawnManager.Pawn availablePawn = pawnManager.GetAvailablePawn();
             if (availablePawn != null)
             {
-                availablePawn.isOnTask = true;
-                availablePawn.handlingTask = task;
-                inavailableTaskList.RemoveAt(0);
+                // availablePawn.isOnTask = true;
+                // availablePawn.handlingTask = task;
+                // inavailableTaskList.RemoveAt(0);
 
-                PawnManager.Instance.HandleTask(availablePawn);
+                // PawnManager.Instance.HandleTask(availablePawn);
                 //PawnManager.Instance.StartCoroutine(PawnManager.Instance.HandleTask(availablePawn));
             }
             else
             {
-                inavailableTaskList.Add(task); // 将任务移到列表尾部
-                inavailableTaskList.RemoveAt(0); // 移除列表首部的任务                
+                // inavailableTaskList.Add(task); // 将任务移到列表尾部
+                // inavailableTaskList.RemoveAt(0); // 移除列表首部的任务                
             }
         }
     }
