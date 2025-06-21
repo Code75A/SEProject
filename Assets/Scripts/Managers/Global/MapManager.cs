@@ -71,8 +71,8 @@ public class MapManager : MonoBehaviour
             //Debug.Log("Error: SetMapDataItem传入的物品类型错误！");
             mapDatas[x, y].item = item;
             mapDatas[x, y].has_item = true;
-            Debug.Log("SetMapDataItem: " + item.id + " at " + pos);
-            Debug.Log(item.id);
+            // Debug.Log("SetMapDataItem: " + item.id + " at " + pos);
+            // Debug.Log(item.id);
             return;
         }
         else
@@ -216,7 +216,7 @@ public class MapManager : MonoBehaviour
         if(data.item != null){
             ItemInstanceManager.ItemInstance to_destroy = data.item;
             data.item = null;
-            ItemInstanceManager.Instance.DestroyItem(to_destroy, ItemInstanceManager.DestroyMode.RemainAll);
+            ItemInstanceManager.Instance.DestroyItem(to_destroy, ItemInstanceManager.DestroyMode.RemainNone);
         }
 
         landTilemap.SetTile(data.position, data.texture);

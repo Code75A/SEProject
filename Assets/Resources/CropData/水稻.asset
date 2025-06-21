@@ -22,3 +22,6 @@ MonoBehaviour:
   humidity_factor_type: 2
   best_light: 1
   light_factor_type: 2
+  harvest_statistics:
+  - Key: 7
+    Value: 100
