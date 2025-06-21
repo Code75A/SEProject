@@ -11,13 +11,13 @@ using UnityEngine.Assertions;
 public class PawnManager : MonoBehaviour {
     #region 成员变量
 
-        #region 常量
-        public const float MOVESPEED = 4.0f; // 移动速度
+    #region 常量
+    public const float MOVESPEED = 4.0f; // 移动速度
     public const float WORKSPEED = 1.0f; // 工作速度 
     public const int CAPACITY = 50; // 运载容量
     #endregion
 
-        public static PawnManager Instance{ get; private set; } // 单例模式，确保全局唯一
+    public static PawnManager Instance{ get; private set; } // 单例模式，确保全局唯一
     public TaskManager TaskManager => TaskManager.Instance; // 通过属性访问 TaskManager 实例
     public ItemManager ItemManager => ItemManager.Instance; // 引用唯一的 ItemManager 对象
 
@@ -36,7 +36,7 @@ public class PawnManager : MonoBehaviour {
 
         #region 生命周期方法
 
-        private void Start() {
+    private void Start() {
         CreatePawn(new Vector3Int(32, 32));
         CreatePawn(new Vector3Int(32, 31));
         CreatePawn(new Vector3Int(32, 33));
@@ -1069,6 +1069,7 @@ public class PawnManager : MonoBehaviour {
             Debug.Log($"开始执行种植任务: {plantTask.type}，ID: {plantTask.task_id}");
             //执行
             HandleTask(pawn);
+            yield return new WaitUntil(() => !pawn.isOnTask); // 等待任务完成
             pawn.isOnTask = true; // 设置小人正在执行任务状态
             //yield return StartCoroutine(ResolveTask(pawn));
             pawn.PawntaskList.RemoveAt(0); // 移除已完成的任务
@@ -1104,7 +1105,19 @@ public class PawnManager : MonoBehaviour {
             task_id: -1
         );
         StartCoroutine(HandleMoveTask(pawn));
-        yield return new WaitUntil(() => !controller.isMoving); // 等待移动任务完成
+        //yield return new WaitUntil(() => !controller.isMoving); // 等待移动任务完成
+        yield return new WaitUntil(() =>
+        {
+            float distance = Vector3.Distance(
+                MapManager.Instance.GetCellPosFromWorld(pawn.Instance.transform.position),
+                position
+            );
+            if (distance < 0.1f)
+            {
+                Debug.LogWarning($"Pawn ID {pawn.id} 已经在位置 {position}");
+            }
+            return distance < 0.1f; // 当距离小于某个阈值时认为到达
+        });
         // yield return new WaitUntil(() =>
         //     Vector3.Distance(MapManager.Instance.GetCellPosFromWorld(pawn.Instance.transform.position), task.beginPosition) < 0.1f
         // );//distance wait
