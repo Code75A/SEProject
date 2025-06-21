@@ -10,11 +10,11 @@ public class TimeManager : MonoBehaviour{
     public float gameTime { get; private set; } = 0f; // 游戏内时间
     public float timeScale = 1f; // 时间倍率
 
-    private int currentDay = 0;
+    public int currentDay = 0;
     public enum Seasons { Spring, Summer, Fall, Winter }
 
     //暂定春季开始，后续可能可以让玩家自行设定初始季节
-    private Seasons currentSeason = Seasons.Spring;
+    public Seasons currentSeason = Seasons.Spring;
     
     public int GetCurrentDay() {
         return currentDay; // 获取当前天数
