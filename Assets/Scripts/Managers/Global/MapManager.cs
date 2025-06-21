@@ -71,6 +71,8 @@ public class MapManager : MonoBehaviour
             //Debug.Log("Error: SetMapDataItem传入的物品类型错误！");
             mapDatas[x, y].item = item;
             mapDatas[x, y].has_item = true;
+            Debug.Log("SetMapDataItem: " + item.id + " at " + pos);
+            Debug.Log(item.id);
             return;
         }
         else
