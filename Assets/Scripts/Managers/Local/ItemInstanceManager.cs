@@ -1034,9 +1034,10 @@ public class ItemInstanceManager : MonoBehaviour
     public bool PlantSeed(int seedId, Vector3Int position){
         // Check
         ItemManager.Material seed = (ItemManager.Material)ItemManager.Instance.GetItem(seedId, ItemManager.ItemType.Material);
-        if (!(seed.can_plant_crop == -1))
+        int cropid = seed.can_plant_crop;
+        if (!(cropid == -1))
         {
-            SpawnItem(position, seedId, ItemInstanceType.CropInstance);
+            SpawnItem(position, cropid, ItemInstanceType.CropInstance);
             Debug.Log("Planting seed: " + seedId + " at position: " + position);
         }
         return true;
