@@ -164,8 +164,39 @@ public class pawnharvesttest : MonoBehaviour
             Debug.Log("测试装载物品成功！");
         }
         //int unloadSuccess = PawnManager.Instance.PawnUnload(testPawn, 5);
+    }
+    //测试函数，针对HandlePlantALLTask
+    public void TestHandlePlantAllTask()
+    {
+        // 1. 在 (30, 30) 处生成5颗稻种 (id=7)，示例可自行根据需要更换种子ID
+        Vector3Int seedPos = new Vector3Int(30, 30, 0);
+        int seedId = 7; // 稻种的ID
+        ItemInstanceManager.Instance.SpawnItem(seedPos, seedId, ItemInstanceManager.ItemInstanceType.MaterialInstance, 5);
 
-        
+        // 2. 构造四个需要种植的地址
+        List<Vector3Int> plantPositions = new List<Vector3Int>
+        {
+            new Vector3Int(36, 30, 0),
+            new Vector3Int(37, 30, 0),
+            new Vector3Int(38, 30, 0),
+            new Vector3Int(39, 30, 0),
+        };
+
+        // 3. 创建一个 PlantALLTask
+        TaskManager.PlantALLTask plantAllTask = new TaskManager.PlantALLTask(
+            position: plantPositions[0], // 任务本身的参考坐标，可写成任意
+            type: TaskManager.TaskTypes.PlantALL,
+            task_id: TaskManager.Instance.TaskIdUpdate(),
+            id: seedId,
+            plant_positions: plantPositions
+        );
+        //TaskManager.Instance.availableTaskList.Add(plantAllTask);
+        PawnManager.Pawn availablePawn = PawnManager.Instance.GetAvailablePawn();
+        availablePawn.handlingTask = plantAllTask;
+        StartCoroutine(PawnManager.Instance.HandlePlantALLTask(availablePawn));
+
+        // 6. 验证结果：可自行在此处加入断言或输出日志
+        // ...
     }
     void Start()
     {
@@ -191,7 +222,8 @@ public class pawnharvesttest : MonoBehaviour
         {
             //TestPawnUnload();
             //TestTransportTask();
-            StartCoroutine(test_pawnload());
+            //StartCoroutine(test_pawnload());
+            TestHandlePlantAllTask();
         }
         
     }
