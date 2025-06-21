@@ -26,7 +26,7 @@ public class MouseInteractManager : MonoBehaviour
         {InstructTypes.move, (pos) => Instance.ApplyInstructMove(pos)},
         {InstructTypes.grow, (pos) => Instance.ApplyInstructGrow(pos)},
         {InstructTypes.Harvest, (pos) => Instance.ApplyInstructHarvest(pos)},
-        ///{InstructTypes.Mine, (pos) => Instance.ApplyInstructMine(pos)}
+        {InstructTypes.Mine, (pos) => Instance.ApplyInstructMine(pos)}
     };
 
     public List<InstructTypes> pawn_instructs = new List<InstructTypes>()
@@ -530,6 +530,14 @@ public class MouseInteractManager : MonoBehaviour
         }
         else{
             Debug.LogError("When ApplyInstructHarvest, selectingPawn is Null");
+        }
+    }
+    public void ApplyInstructMine(Vector3Int pos) {
+        if (selectingPawn != null){
+            pawnController.HarvestAtPositionByPlayer(pos);
+        }
+        else{
+            Debug.LogError("When ApplyInstructMine, selectingPawn is Null");
         }
     }
     // public void ApplyInstructMine(Vector3Int pos) {

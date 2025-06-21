@@ -929,6 +929,7 @@ public class ItemInstanceManager : MonoBehaviour
                 ClearPrintInstance(aim_ins, destroy_mode, remain_rate);
                 break;
             case ItemInstanceType.ResourceInstance:
+            
                 break;
             default:
                 UIManager.Instance.DebugTextAdd(
@@ -1024,7 +1025,14 @@ public class ItemInstanceManager : MonoBehaviour
         // }
         //return false;
     }
-    public bool RuinCrop(CropInstance crop_ins) {
+
+    public bool HarvestResource(ResourceInstance resourceInstance) {
+        Debug.Log("Harvesting Resource: " + resourceInstance.id);
+        DestroyItem(resourceInstance, DestroyMode.RemainAll);
+        return true;
+    }
+    public bool RuinCrop(CropInstance crop_ins)
+    {
         DestroyItem(crop_ins, DestroyMode.RemainNone);
         return true;
     }

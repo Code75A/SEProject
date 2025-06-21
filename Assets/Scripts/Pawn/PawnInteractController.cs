@@ -21,7 +21,7 @@ public class PawnInteractController : MonoBehaviour
     public Vector3Int fromCellPos;
     public Vector3Int targetCellPos; // 目标格子位置
     private Vector3Int currentTargetCellPos;
-    
+
 
     public Tilemap landTilemap;
     public GameObject content;
@@ -76,7 +76,7 @@ public class PawnInteractController : MonoBehaviour
         isMoving = true;
         currentTargetCellPos = targetCellPos;
         targetPosition = landTilemap.GetCellCenterWorld(currentTargetCellPos);
-        
+
         yield return new WaitUntil(() => moveFinished == true);
         moveFinished = false;
 
@@ -107,9 +107,9 @@ public class PawnInteractController : MonoBehaviour
 
                 //if (isSegMoving)
                 //{
-                    MapManager.Instance.SetWillPawnState(targetCellPos, false);
-                    PawnManager.Instance.ClearPawnTaskList(pawn);
-                    isSegMoving = false;
+                MapManager.Instance.SetWillPawnState(targetCellPos, false);
+                PawnManager.Instance.ClearPawnTaskList(pawn);
+                isSegMoving = false;
                 //}
                 //else MapManager.Instance.SetWillPawnState(targetCellPos, false);
 
@@ -200,6 +200,19 @@ public class PawnInteractController : MonoBehaviour
                         //StartCoroutine(PawnManager.Instance.HandleHarvestTask(pawn));
                         //PawnManager.Instance.HandleTask(pawn);
                     }
+                }
+                else if (MapManager.Instance.HasMineAt(onMouseCellPos))
+                {
+                    Debug.Log("目标位置有矿物");
+                    ItemInstanceManager.ResourceInstance resourceInstance = MapManager.Instance.GetMapData(onMouseCellPos).item as ItemInstanceManager.ResourceInstance;
+                    if (resourceInstance != null)
+                    {
+                        TaskManager.Instance.AddTask(onMouseCellPos, TaskManager.TaskTypes.Harvest);
+                    }
+                }
+                else
+                {
+                    Debug.Log("目标位置没有可收获的物品！");
                 }
             }
         }
