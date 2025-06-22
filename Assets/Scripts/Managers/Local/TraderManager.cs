@@ -192,7 +192,40 @@ public class TraderManager : MonoBehaviour
             Debug.Log("交易成功，扣除金币：" + currentTotalPrice);
         }
         
-        
+    }
+    public void DeleteMoneyitem(int amount)
+    {
+        while (amount > 0)
+        {
+            Vector3Int pos = ItemInstanceManager.Instance.FindNearestItemPosition(13, MapManager.Instance.TRADER_POS);
+            if (pos != Vector3Int.zero)
+            {
+                MapManager.MapData targetData = MapManager.Instance.GetMapData(pos);
+                if (targetData != null && targetData.has_item && targetData.item is ItemInstanceManager.MaterialInstance moneyInstance)
+                {
+                    int pos_amount = moneyInstance.GetAmount();
+                    if (pos_amount <= amount)
+                    {
+                        // 删除整个金币实例
+                        ItemInstanceManager.Instance.DestroyItem(moneyInstance, ItemInstanceManager.DestroyMode.RemainNone);
+                        amount -= pos_amount;
+                        //Debug.Log("删除金币实例，数量：" + pos_amount);
+                    }
+                    else
+                    {
+                        // 减少金币数量
+                        moneyInstance.SetAmount(pos_amount - amount);
+                        amount = 0;
+                        Debug.Log("finish");
+                    }
+                }
+            }
+            else
+            {
+                Debug.LogWarning("没有足够的金币可以删除");
+                break;
+            }
+        }
     }
 
     public void DailyRefresh()
