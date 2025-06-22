@@ -144,31 +144,36 @@ public class PawnInteractController : MonoBehaviour
     }
     public void GrowCropInPositionByPlayer(List<Vector3Int> onMouseCellPos)
     {
-        if (MapManager.Instance.IsPlantable(onMouseCellPos[0]) && !MapManager.Instance.HasItemAt(onMouseCellPos[0]))
-        {
-            if (pawn != null)
+        // foreach (Vector3Int pos in onMouseCellPos)
+        // {
+            if (MapManager.Instance.IsPlantable(onMouseCellPos[0]) && !MapManager.Instance.HasItemAt(onMouseCellPos[0]))
             {
-                if (pawn.handlingTask != null)
+                if (pawn != null)
                 {
-                    if (pawn.handlingTask.type != TaskManager.TaskTypes.Move)
+                    if (pawn.handlingTask != null)
                     {
-                        //TODO 处理其它目前正在处理的任务（返还给taskManger）
+                        if (pawn.handlingTask.type != TaskManager.TaskTypes.Move)
+                        {
+                            //TODO 处理其它目前正在处理的任务（返还给taskManger）
+                        }
+                        else
+                        {
+                            //MapManager.Instance.SetWillPawnState(pawn.handlingTask.target_position, false);
+                        }
                     }
-                    else
-                    {
-                        //MapManager.Instance.SetWillPawnState(pawn.handlingTask.target_position, false);
-                    }
+
+                    int crop_id = 9;
+                    pawn.handlingTask = new TaskManager.PlantALLTask(onMouseCellPos[0], TaskManager.TaskTypes.PlantALL, 0, crop_id, onMouseCellPos);
+
+                    PawnManager.Instance.HandleTask(pawn);
                 }
-
-                pawn.handlingTask = new TaskManager.PlantALLTask(onMouseCellPos[0], TaskManager.TaskTypes.PlantALL, 0, -1, onMouseCellPos);
-
-                PawnManager.Instance.HandleTask(pawn);
             }
-        }
-        else
-        {
-            Debug.Log("目标位置不可种植或已被占用！");
-        }
+            else
+            {
+                Debug.Log("目标位置不可种植或已被占用！");
+            }
+        //}
+        
     }
     public void HarvestAtPositionByPlayer(Vector3Int onMouseCellPos)
     {
@@ -221,7 +226,6 @@ public class PawnInteractController : MonoBehaviour
             Debug.Log("目标位置不可收获或没有作物！");
         }
     }
-
     public void GetToolAtPositionByPlayer(Vector3Int onMouseCellPos)
     {
         if (MapManager.Instance.HasItemAt(onMouseCellPos))

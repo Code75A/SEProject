@@ -176,10 +176,10 @@ public class pawnharvesttest : MonoBehaviour
         // 2. 构造四个需要种植的地址
         List<Vector3Int> plantPositions = new List<Vector3Int>
         {
-            new Vector3Int(20, 20, 0),
-            new Vector3Int(37, 36, 0),
-            new Vector3Int(38, 38, 0),
-            new Vector3Int(20, 40, 0),
+            new Vector3Int(31, 30, 0),
+            new Vector3Int(32, 30, 0),
+            new Vector3Int(33, 30, 0),
+            new Vector3Int(34, 30, 0),
         };
 
         // 3. 创建一个 PlantALLTask
@@ -251,8 +251,8 @@ public class pawnharvesttest : MonoBehaviour
             //TestPawnUnload();
             //TestTransportTask();
             //StartCoroutine(test_pawnload());
-            //TestHandlePlantAllTask();
-            TestHandleGetToolTask();
+            TestHandlePlantAllTask();
+            //TestHandleGetToolTask();
         }
         
     }

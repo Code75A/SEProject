@@ -1128,7 +1128,7 @@ public class PawnManager : MonoBehaviour {
             yield break;
         }
         // 1. 搜索种子位置，没找到就报错
-        PawnUnload(pawn); // 确保小人没有携带物品
+        //PawnUnload(pawn); // 确保小人没有携带物品
 
         while (pawn.materialAmount < seed_amount)
         {
@@ -1154,6 +1154,7 @@ public class PawnManager : MonoBehaviour {
         pawn.isOnTask = false;
         pawn.handlingTask = null; // 清除当前任务
         ResolveTask(pawn); // 任务完成，重置状态
+        //yield break;
     }
 
     //单独的种植任务处理函数，主要用于种植单个位置的作物
