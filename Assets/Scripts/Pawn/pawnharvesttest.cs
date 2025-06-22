@@ -198,6 +198,34 @@ public class pawnharvesttest : MonoBehaviour
         // 6. 验证结果：可自行在此处加入断言或输出日志
         // ...
     }
+    public void TestHandleGetToolTask()
+    {
+        // 在 (25, 25) 位置生成一把斧头（id=2）
+        Vector3Int axePos = new Vector3Int(25, 25, 0);
+        int axeId = 2; 
+        ItemInstanceManager.Instance.SpawnItem(axePos, axeId, ItemInstanceManager.ItemInstanceType.ToolInstance, 1);
+
+        // 获取一个空闲 Pawn，如果没有就创建一个
+        PawnManager.Pawn testPawn = PawnManager.Instance.GetAvailablePawn();
+        if (testPawn == null)
+        {
+            PawnManager.Instance.CreatePawn(new Vector3Int(24, 25, 0));
+            testPawn = PawnManager.Instance.GetAvailablePawn();
+        }
+
+        // 创建“GetTool”任务并分配给该 Pawn
+        TaskManager.Task getToolTask = new TaskManager.Task(
+            position: axePos,
+            type: TaskManager.TaskTypes.GetTool,
+            task_id: TaskManager.Instance.TaskIdUpdate()
+        );
+        testPawn.handlingTask = getToolTask;
+
+        // 启动 HandleGetToolTask 协程
+        StartCoroutine(PawnManager.Instance.HandleGetToolTask(testPawn));
+
+        Debug.Log("已生成斧头并分配 HandleGetToolTask 给 Pawn，开始测试小人拿取工具。");
+    }
     void Start()
     {
         
@@ -223,7 +251,8 @@ public class pawnharvesttest : MonoBehaviour
             //TestPawnUnload();
             //TestTransportTask();
             //StartCoroutine(test_pawnload());
-            TestHandlePlantAllTask();
+            //TestHandlePlantAllTask();
+            TestHandleGetToolTask();
         }
         
     }
