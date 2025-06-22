@@ -9,22 +9,23 @@ public class BuildManager : MonoBehaviour
     public static BuildManager Instance { get; private set; }
 
     public Dictionary<BuildingType, List<Building>> buildingLists = new Dictionary<BuildingType, List<Building>>();
-    public List<Building> currentBuildingList ;
+    public List<Building> currentBuildingList;
 
     //TODO: REMOVE
     public Building currentBuilding = null;
     public GameObject currentBuilding_preview;
     public SpriteRenderer currentBuilding_preview_spriteRenderer;
     //REMOVE/
-    
+
 
     const int tempBuildingSpritesCount = 7;
     public Sprite[] tempBuildingSprites = new Sprite[tempBuildingSpritesCount];
     public Sprite printSprite;
 
     //单例模式
-    void Awake(){
-        if(Instance == null)
+    void Awake()
+    {
+        if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
@@ -37,7 +38,7 @@ public class BuildManager : MonoBehaviour
     void Start()
     {
         InitBuildingListsData();
-        if(currentBuilding_preview!=null)
+        if (currentBuilding_preview != null)
             currentBuilding_preview_spriteRenderer = currentBuilding_preview.GetComponent<SpriteRenderer>();
         else
             Debug.LogError("Error：请把Managers下的currentBuilding_preview拖到Stage-BuildManager脚本上！");
@@ -89,26 +90,30 @@ public class BuildManager : MonoBehaviour
 #endif
     }
 
-    public Building GetBuilding(int id){
+    public Building GetBuilding(int id)
+    {
         //TODO:CACHE
         if (id == TraderManager.TRADER_ID)
             return TraderManager.Instance.trader;
-        
+
         foreach (var list in buildingLists.Values)
+        {
+            foreach (var building in list)
             {
-                foreach (var building in list)
-                {
-                    if (building.id == id)
-                        return building;
-                }
+                if (building.id == id)
+                    return building;
             }
+        }
         return null;
     }
 
-    public BuildingType GetBuildingType(int id){
-        foreach(var list in buildingLists.Values){
-            foreach(var building in list){
-                if(building.id == id)
+    public BuildingType GetBuildingType(int id)
+    {
+        foreach (var list in buildingLists.Values)
+        {
+            foreach (var building in list)
+            {
+                if (building.id == id)
                     return building.type;
             }
         }
@@ -118,14 +123,16 @@ public class BuildManager : MonoBehaviour
     /// 将type类型的建筑列表加载到currentBuildingList，返回值该List传递回uiManager
     /// </summary>
     /// <param name="type">需加载的建筑类型</param>
-    public List<Building> LoadBuildingList(BuildingType type){
+    public List<Building> LoadBuildingList(BuildingType type)
+    {
         currentBuildingList = buildingLists[type];
         return currentBuildingList;
     }
 
-    
+
 }
 
+//暂未实装，需要扩展框架结构才能容纳
 #region "奇观建筑"
 // 疾风奇观：提升全体小人移动速度
 public class GaleWonderBuilding : Building

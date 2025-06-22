@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+//Crop受fertility、humidity、light等环境因素影响
+//具体影响的变动公式见Factor及其子类定义
+
 [CreateAssetMenu(menuName = "Concrete/Crop")]
 public class Crop : ScriptableObject
 {
