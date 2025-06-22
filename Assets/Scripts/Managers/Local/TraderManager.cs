@@ -182,13 +182,15 @@ public class TraderManager : MonoBehaviour
         {
             // 扣除玩家余额
             StorageManager.Instance.AddItem(ItemManager.Instance.GetItem("金币", ItemManager.ItemType.Material).id, -currentTotalPrice);
+            DeleteMoneyitem(currentTotalPrice);
+
             foreach (var goodsContent in currentTradeOptions)
             {
                 if (goodsContent.current_total > 0)
                     tradeMaterialList.Add(new KeyValuePair<int, int>(goodsContent.item_id, goodsContent.current_total));
             }
             MapManager.Instance.SetMaterial(MapManager.Instance.TRADER_POS, tradeMaterialList);
-
+            
             Debug.Log("交易成功，扣除金币：" + currentTotalPrice);
         }
         
