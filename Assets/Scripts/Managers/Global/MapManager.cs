@@ -736,6 +736,14 @@ public class MapManager : MonoBehaviour
         if(mapDatas[pos.x, pos.y].item is ItemInstanceManager.ResourceInstance) return true;
         return false;
     }
+
+    // 判定某个地格是否有工具
+    public bool HasToolAt(Vector3Int pos)
+    {
+        if (!IsInBoard(pos)) return false;
+        return mapDatas[pos.x, pos.y].has_item && mapDatas[pos.x, pos.y].item is ItemInstanceManager.ToolInstance;
+    }
+
     //获取某个地格的所有MapData信息
 
     public MapData GetMapData(Vector3Int pos)
