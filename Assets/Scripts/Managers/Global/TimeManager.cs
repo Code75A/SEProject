@@ -5,9 +5,9 @@ using TMPro;
 public class TimeManager : MonoBehaviour{
 
     const float SECONDS_PER_GAMEDAY = 300f;
-    public static TimeManager Instance { get; private set; }   //单例模式，确保只有一个timemanager
-    public float realityTime { get; private set; } = 0f; // 现实时间
-    public float gameTime { get; private set; } = 0f; // 游戏内时间
+    public static TimeManager Instance { get;  set; }   //单例模式，确保只有一个timemanager
+    public float realityTime { get;  set; } = 0f; // 现实时间
+    public float gameTime { get;  set; } = 0f; // 游戏内时间
     public float timeScale = 1f; // 时间倍率
 
     public int currentDay = 0;
