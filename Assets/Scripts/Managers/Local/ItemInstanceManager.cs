@@ -75,6 +75,9 @@ public class ItemInstanceManager : MonoBehaviour
     //public class CropLabel:InsLabel{}
     //public class BuildingLabel:InsLabel{}
     //public class PrintLabel:InsLabel{}
+    /// <summary>
+    /// 确认两个InsLabel是否可以合并。
+    /// </summary>
     public bool CanMerge(InsLabel label1, InsLabel label2)
     {
         if (label1.type == label2.type
@@ -84,6 +87,9 @@ public class ItemInstanceManager : MonoBehaviour
             return true;
         return false;
     }
+    /// <summary>
+    /// 获取可以代表一个实体特性的InsLabel，不会对实体本身进行修改。
+    /// </summary>
     public InsLabel GetLabel(ItemInstance ins)
     {
         InsLabel new_label = null;
@@ -156,11 +162,11 @@ public class ItemInstanceManager : MonoBehaviour
         //--------------------------------public------------------------------------
 
         /// <summary>
-        /// 获取自身作为ItemInstance的id
+        /// 获取自身作为ItemInstance（实体）的id
         /// </summary>
         public int GetId() { return id; }
         /// <summary>
-        /// 获取自身所属的Item模板的id
+        /// 获取自身所属的Item模板（物品种类）的id
         /// </summary>
         public int GetModelId() { return item_id; }
         public Vector3Int GetPosition() { return position; }
@@ -180,14 +186,22 @@ public class ItemInstanceManager : MonoBehaviour
 
         //--------------------------------private------------------------------------
         //--------------------------------public------------------------------------
+        /// <summary>
+        /// 获取物品实体的堆叠数量。
+        /// </summary>
         public int GetAmount()
         {
             return amount;
         }
+        /// <summary>
+        /// 设置物品实体的堆叠数量。
+        /// 注意：所有对可堆叠物品实体的堆叠数量的修改请一定要通过此修改函数！
+        /// 否则会出现贴图错误以及其他统计数据错误。
+        /// </summary>
         public void SetAmount(int new_amount)
         {
             StorageManager.Instance.AddItem(item_id, new_amount-amount);
-        
+
             amount = new_amount;
             string old_text = GetText();
             string[] strArray = old_text.Split('|');
@@ -755,13 +769,15 @@ public class ItemInstanceManager : MonoBehaviour
         int stage, new_stage;
         foreach (ItemInstance it in itemInstanceLists[ItemInstanceType.CropInstance])
         {
+            // Get the (old)growth , lifetime and growth_per_frame of the crop
             grow = ((CropInstance)it).growth;
             life = ((CropInstance)it).real_lifetime;
             grow_per_frame = ((CropInstance)it).growth_per_frame;
             if (grow >= life) continue;
-
+            // growth is affected by timeScale
             ((CropInstance)it).growth += grow_per_frame * TimeManager.Instance.timeScale;
 
+            // Ensure the stage
             stage = (int)(3 * (grow / life));
             new_stage = (int)(3 * ((grow + grow_per_frame * TimeManager.Instance.timeScale) / life));
             if (new_stage > stage)
@@ -772,6 +788,7 @@ public class ItemInstanceManager : MonoBehaviour
                 }
                 else
                 {
+                    // Reset the sprite to the one of the new stage
                     it.SetSprite(CropManager.Instance.GetSprite(it.item_id, new_stage));
                 }
             }
@@ -781,8 +798,9 @@ public class ItemInstanceManager : MonoBehaviour
     #endregion
     #region (2) 供外部调用的批量更新
     /// <summary>
-    /// 供CropManager的影响因素模块调用的批量更新函数
+    /// 供CropManager的影响因素模块调用的批量更新函数，会触发相应种类的作物实体更新自己的每固定帧生长值缓存。
     /// </summary>
+    /// <param name="crop_id">指定作物的ID，默认为-1表示更新所有作物</param>
     public void UpdateGrowthPerFrame(int crop_id = -1)
     {
         if (crop_id == -1)
@@ -827,6 +845,11 @@ public class ItemInstanceManager : MonoBehaviour
     }
     
     bool isTested = false;
+    /// <summary>
+    /// 临时测试函数，靠isTested标志位控制是否执行。
+    /// TODO：该方法使得FixedUpdate函数持续检查是否执行测试。
+    ///     我们期望一个更好的测试机制，既能完成测试又能不产生此影响（或许我们期望一个TestManager？）
+    /// </summary>
     public void Test()
     {
         //动态载入部分ItemInstance供测试
@@ -979,13 +1002,22 @@ public class ItemInstanceManager : MonoBehaviour
     }
 
     public Dictionary<ItemInstanceType, List<ItemInstance>> itemInstanceLists = new Dictionary<ItemInstanceType, List<ItemInstance>>();
-    public ItemInstance GetInstance(int iteminstance_id, ItemInstanceType type = ItemInstanceType.Total){
+    /// <summary>
+    /// 获取指定ID和类型的ItemInstance
+    /// 若该ID的实体不存在或实体类型不匹配，均返回null
+    /// </summary>
+    /// <param name="type">默认Total，查找所有类型</param>
+    public ItemInstance GetInstance(int iteminstance_id, ItemInstanceType type = ItemInstanceType.Total)
+    {
         ItemInstance aim_ins = null;
-        if (type != ItemInstanceType.Total) {
+        if (type != ItemInstanceType.Total)
+        {
             aim_ins = itemInstanceLists[type].Find(c => c.id == iteminstance_id);
         }
-        else {
-            for (ItemInstanceType i = 0; i < ItemInstanceType.Total; i++) {
+        else
+        {
+            for (ItemInstanceType i = 0; i < ItemInstanceType.Total; i++)
+            {
                 if (itemInstanceLists[i] is not null)
                     aim_ins = itemInstanceLists[i].Find(c => c.id == iteminstance_id);
                 if (aim_ins is not null)
@@ -993,7 +1025,8 @@ public class ItemInstanceManager : MonoBehaviour
             }
         }
 
-        if (aim_ins is null) {
+        if (aim_ins is null)
+        {
             UIManager.Instance.DebugTextAdd(
                 "[Log]Getting Item FAILED: the iteminstance_id " + iteminstance_id + " is not found in " + type.ToString() + " List. "
             );
@@ -1038,7 +1071,11 @@ public class ItemInstanceManager : MonoBehaviour
         return NearestPosition;
     }
     #region ======================ToolInstance Function Part=========================
-    public Dictionary<PawnManager.Pawn.EnhanceType, int> GetEnhance(ToolInstance tool_ins){
+    /// <summary>
+    /// 获取工具的强化信息
+    /// </summary>
+    public Dictionary<PawnManager.Pawn.EnhanceType, int> GetEnhance(ToolInstance tool_ins)
+    {
         Dictionary<PawnManager.Pawn.EnhanceType, int> res;
         ItemManager.Tool sample = (ItemManager.Tool)ItemManager.Instance.GetItem(tool_ins.item_id, ItemManager.ItemType.Tool);
         res = sample.enhancements;
@@ -1047,7 +1084,14 @@ public class ItemInstanceManager : MonoBehaviour
     #endregion
 
     #region ===================CropInstance Function Part=====================
-    public bool HarvestCrop(CropInstance crop_ins) {
+    /// <summary>
+    /// 收获作物实体。若作物成熟则收获并掉落相应材料实体，否则返回false。
+    /// 注意：当前实现处于调试状态，此函数不会检查作物是否成熟直接进行收获。
+    /// </summary>
+    /// <param name="crop_ins"></param>
+    /// <returns></returns>
+    public bool HarvestCrop(CropInstance crop_ins)
+    {
         // if (crop_ins.IsMature())
         // {
         Debug.Log("Harvesting Crop: " + crop_ins.id);
@@ -1060,20 +1104,27 @@ public class ItemInstanceManager : MonoBehaviour
         // }
         //return false;
     }
-
+    /// <summary>
+    /// 开采资源实体，使之掉落相应材料
+    /// </summary>
     public bool HarvestResource(ResourceInstance resourceInstance) {
         Debug.Log("Harvesting Resource: " + resourceInstance.id);
         DestroyItem(resourceInstance, DestroyMode.RemainAll);
         return true;
     }
+    /// <summary>
+    /// 毁坏作物实体，不会掉落任何材料
+    /// </summary>
     public bool RuinCrop(CropInstance crop_ins)
     {
         DestroyItem(crop_ins, DestroyMode.RemainNone);
         return true;
     }
     /// <summary>
-    /// 种植Plant但不会将使用的seed的数量-1
+    /// 在要求的位置种植一个该种子ID对应的作物种类的作物实体。
+    /// 注意：传入的int是种子种类ID，显然不会完成种子实体的消耗工作，需要配合种子实体的GetAmount和SetAmount函数。
     /// </summary>
+    /// <returns>返回是否成功种植</returns>
     public bool PlantSeed(int seedId, Vector3Int position){
         // Check
         ItemManager.Material seed = (ItemManager.Material)ItemManager.Instance.GetItem(seedId, ItemManager.ItemType.Material);

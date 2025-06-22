@@ -26,7 +26,9 @@ public class CropManager : MonoBehaviour
     public Dictionary<int, LinearFactor> pestDisasterEnvFactorDict = new Dictionary<int, LinearFactor>();
     public LinearFactor globalBuffEnvFactor = null;
     public Dictionary<int, float> growthPerFrameDict = new Dictionary<int, float>();
-    // For real life time
+    // For real life time，some environment conditions will have different impacts on different crops
+    // So every crop has its own fertility, humidity, and light factors
+    // These factors should be initialized with the message from CropList at every beginning of game
     public Dictionary<int, EnvFactor> fertilityFactorDict = new Dictionary<int, EnvFactor>();
     public Dictionary<int, EnvFactor> humidityFactorDict = new Dictionary<int, EnvFactor>();
     public Dictionary<int, EnvFactor> lightFactorDict = new Dictionary<int, EnvFactor>();
@@ -80,13 +82,25 @@ public class CropManager : MonoBehaviour
     #endregion
     #region 2.公有函数部分
     #region (1)接受改动
+    /// <summary>
+    /// 本函数用于设置对某种Crop的虫害灾害影响。
+    /// 该函数会创建一个新的EnvFactor，并将其注册到pestDisasterEnvFactorDict中。
+    /// 由于影响growthPerFrameDict的EnvFactor是可变的，所以会在设置后触发更新growthPerFrameDict
+    /// 然后连锁触发ItemInstanceManager更新相应CropInstance的growth_per_frame缓存
+    /// </summary>
+    /// <param name="crop_id">目前合法值在[0, Crop种类总数-1]</param>
+    /// <param name="decrease_rate">合法值在[0, 1]</param>
+    /// <returns>返回是否成功设置虫害灾害影响</returns>
     public bool SetCropPestDisaster(int crop_id, float decrease_rate){
         // Safety check
+        // TODO：若后续Crop的id不再按从0顺序不间断排列，则参数crop_id唯一合法标准是“合法CropID”，
+        // 需要更新（或直接删除部分）SafetyCheck方法。
         if (crop_id < 0 || crop_id >= cropList.Count){
             UIManager.Instance.DebugTextAdd("<<Error>>SetCropPestDisaster received invalid crop_id: " + crop_id.ToString());
             return false;
         }
-        if (decrease_rate < 0.0f || decrease_rate > 1.0f){
+        if (decrease_rate < 0.0f || decrease_rate > 1.0f)
+        {
             UIManager.Instance.DebugTextAdd("<<Error>>SetCropPestDisaster received invalid decrease_rate: " + decrease_rate.ToString());
             return false;
         }
@@ -104,14 +118,24 @@ public class CropManager : MonoBehaviour
         ItemInstanceManager.Instance.UpdateGrowthPerFrame(crop_id);
         return true;
     }
+    /// <summary>
+    /// 本函数用于移除某种Crop的虫害灾害影响。
+    /// 该函数会从pestDisasterEnvFactorDict中移除对应的EnvFactor。
+    /// 由于影响growthPerFrameDict的EnvFactor是可变的，所以在移除后会触发更新growthPerFrameDict
+    /// 然后连锁触发ItemInstanceManager更新相应CropInstance的growth_per_frame缓存
+    /// </summary>
+    /// <param name="crop_id">目前合法值在[0, Crop种类总数-1]</param>
+    /// <returns>返回是否成功移除虫害灾害影响；移除不成功包括了当前不存在针对该Crop的虫害灾害影响的情况</returns>
     public bool RemoveCropPestDisaster(int crop_id){
         // Safety check
-        if(crop_id < 0 || crop_id >= cropList.Count){
+        // TODO：若后续Crop的id不再按从0顺序不间断排列，则参数crop_id唯一合法标准是“合法CropID”，
+        // 需要更新（或直接删除部分）SafetyCheck方法。
+        if (crop_id < 0 || crop_id >= cropList.Count){
             UIManager.Instance.DebugTextAdd("<<Error>>RemoveCropPestDisaster received invalid crop_id: " + crop_id.ToString());
             return false;
         }
         // Remove the EnvFactor from the pestDisasterEnvFactorDict
-        if(pestDisasterEnvFactorDict.ContainsKey(crop_id)){
+        if (pestDisasterEnvFactorDict.ContainsKey(crop_id)){
             pestDisasterEnvFactorDict.Remove(crop_id);
             // Update the growthPerFrameDict without the EnvFactor
             UpdateGrowthPerFrameDict(crop_id);
@@ -119,12 +143,19 @@ public class CropManager : MonoBehaviour
             ItemInstanceManager.Instance.UpdateGrowthPerFrame(crop_id);
             return true;
         }
-        else{
+        else
+        {
             UIManager.Instance.DebugTextAdd("<<Error>>RemoveCropPestDisaster received invalid crop_id: " + crop_id.ToString());
             return false;
         }
     }
-    public bool SetGlobalBuffEnvFactor(float global_rate){
+    /// <summary>
+    /// 本函数用于设置全局Crop生长增益/削弱的倍率
+    /// </summary>
+    /// <param name="global_rate">合法值为大于0的浮点数</param>
+    /// <returns>返回是否成功设置全局Crop生长倍率</returns>
+    public bool SetGlobalBuffEnvFactor(float global_rate)
+    {
         // Safety check
         if (global_rate < 0.0f)
         {
@@ -153,22 +184,35 @@ public class CropManager : MonoBehaviour
             - 各种可以扰动的环境因子（pest disaster, global buff等）修改growthPerFrame的接口。
         同时ItemInstanceManager需要提供一个接口供CropManager更新相应CropInstance的growth_per_frame。
     */
+    /// <summary>
+    /// 获取属于某种Crop的CropInstance的growth_per_frame缓存
+    /// </summary>
+    /// <param name="crop_id">目前合法值在[0, Crop种类总数-1]</param>
+    /// <returns>返回该Crop的growth_per_frame缓存，查询失败会返回0.0f</returns>
     public float GetGrowthPerFrame(int crop_id)
     {
         // Safety check
-        if (crop_id < 0 || crop_id >= cropList.Count)
-        {
+        // TODO：若后续Crop的id不再按从0顺序不间断排列，则参数crop_id唯一合法标准是“合法CropID”。
+        // 需要更新（或直接删除部分）SafetyCheck方法。
+        if (crop_id < 0 || crop_id >= cropList.Count){
             UIManager.Instance.DebugTextAdd("<<Error>>GetGrowthPerFrame received invalid crop_id: " + crop_id.ToString());
             return 0.0f;
         }
         // Return the growth per frame for the crop
         return growthPerFrameDict[crop_id];
     }
+    /// <summary>
+    /// 携带环境数据获取属于某种Crop的CropInstance的real_lifetime缓存
+    /// </summary>
+    /// <param name="crop_id">目前合法值在[0, Crop种类总数-1]</param>
+    /// <param name="env_data">环境数据</param>
+    /// <returns>返回该Crop的real_lifetime缓存，查询失败会返回0.0f</returns>
     public float GetRealLifetime(int crop_id, MapManager.MapData env_data)
     {
         // Safety check
-        if (crop_id < 0 || crop_id >= cropList.Count || env_data == null)
-        {
+        // TODO：若后续Crop的id不再按从0顺序不间断排列，则参数crop_id唯一合法标准是“合法CropID”。
+        // 需要更新（或直接删除部分）SafetyCheck方法。
+        if (crop_id < 0 || crop_id >= cropList.Count || env_data == null){
             UIManager.Instance.DebugTextAdd(
                 "<<Error>>GetRealLifetime received null: "
                 + "crop: " + ((crop_id < 0 || crop_id >= cropList.Count) ? "null" : "not null")
@@ -236,6 +280,9 @@ public class CropManager : MonoBehaviour
     /// </summary>
     void InitCropListData()
     {
+        // 区分编辑器和运行时环境
+        // AssetsDatabase方法只有Editor开发者模式下可以调用
+        // 发行版/build版需要用Resources.Load
 #if UNITY_EDITOR
         string[] guids = AssetDatabase.FindAssets("t:Crop", new[] { "Assets/Resources/CropData" });
         foreach (string guid in guids)
@@ -314,30 +361,45 @@ public class CropManager : MonoBehaviour
         return;
     }
     //=========================================Public Function Part=======================================
-    public Crop GetCrop(int id) {
+    /// <summary>
+    /// 获取指定id的Crop，ID有Dict定位速度快
+    /// </summary>
+    public Crop GetCrop(int id)
+    {
         cropDict.TryGetValue(id, out Crop crop);
-        if (crop != null) {
+        if (crop != null)
+        {
             return crop;
         }
         Debug.LogError("GetCrop收到无效id: " + id.ToString());
         return null;
     }
-    public Crop GetCrop(string name) {
-        for(int i = 0; i < cropList.Count; i++) {
-            if (cropList[i].name == name) {
+    /// <summary>
+    /// 获取指定name的Crop，依靠遍历速度慢，不建议在高重复场景使用
+    /// </summary>
+    public Crop GetCrop(string name)
+    {
+        for (int i = 0; i < cropList.Count; i++)
+        {
+            if (cropList[i].name == name)
+            {
                 return cropList[i];
             }
-        }   
+        }
         Debug.LogError("GetCrop收到无效name: " + name.ToString());
         return null;
     }
     public Sprite GetSprite(int crop_id, int growth_stage) {
         // Safety check
-        if (crop_id >= CropSpritesCount || crop_id < 0) {
+        // TODO：若后续Crop的id不再按从0顺序不间断排列，则参数crop_id唯一合法标准是“合法CropID”，
+        // 需要更新（或直接删除部分）SafetyCheck方法。
+        if (crop_id >= CropSpritesCount || crop_id < 0)
+        {
             UIManager.Instance.DebugTextAdd("[ERROR] Crop with id: " + crop_id + " beyond the legal range!");
             return null;
         }
-        else if (growth_stage >= GROWTH_STAGE_COUNT || growth_stage < 0) {
+        else if (growth_stage >= GROWTH_STAGE_COUNT || growth_stage < 0)
+        {
             UIManager.Instance.DebugTextAdd("[ERROR] growth_stage: " + crop_id + " beyond the legal range!");
             return null;
         }
