@@ -442,8 +442,16 @@ public class MouseInteractManager : MonoBehaviour
                         UIManager.Instance.ShowTraderMenuPanel();
                         TraderManager.Instance.inTraderPanel = true;
                     }
+                    else if (instance is ItemInstanceManager.ToolInstance tool)//TODO: Unhealthy
+                    {
+                        mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                        Vector3Int onMouseCellPos = mapManager.landTilemap.WorldToCell(mouseWorldPos);
 
+                        if (Instance.pawnController != null)
+                            Instance.pawnController.GetToolAtPositionByPlayer(onMouseCellPos);
+                    }
                 }
+                    
             }
 
             if (currentState is StatePawn)
