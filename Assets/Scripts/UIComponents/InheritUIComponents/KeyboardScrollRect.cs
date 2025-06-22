@@ -4,11 +4,13 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+// 会有缩放比例大时移动慢，缩放比例小时移动快的问题
+// TODO: 需要研究ScrollRect的运行逻辑解决
 public class KeyboardScrollRect : ScrollRect
 {
     public bool allowKeyboardInput = true;
 
-    const float SCROLL_SPEED = 0.4f; 
+    const float SCROLL_SPEED = 0.4f;
 
     public override void OnScroll(PointerEventData data)
     {
@@ -26,12 +28,12 @@ public class KeyboardScrollRect : ScrollRect
 
         float extra_speed = 1.0f;
 
-        if(Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
             extra_speed = 2.0f;
         }
 
-        float ver = Input.GetAxisRaw("Vertical"); 
+        float ver = Input.GetAxisRaw("Vertical");
 
         if (Mathf.Abs(ver) > 0.01f)
         {
@@ -43,7 +45,7 @@ public class KeyboardScrollRect : ScrollRect
         float hor = Input.GetAxisRaw("Horizontal");
         if (Mathf.Abs(hor) > 0.01f)
         {
-            horizontalNormalizedPosition += hor * Time.deltaTime * SCROLL_SPEED * extra_speed; 
+            horizontalNormalizedPosition += hor * Time.deltaTime * SCROLL_SPEED * extra_speed;
             horizontalNormalizedPosition = Mathf.Clamp01(horizontalNormalizedPosition);
         }
     }
