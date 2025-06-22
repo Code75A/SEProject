@@ -1,7 +1,6 @@
 
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
 using UnityEditor;
 
 
@@ -55,7 +54,7 @@ public class BuildManager : MonoBehaviour
     {
         for (int i = 0; i < (int)BuildingType.Total; i++)
             buildingLists.Add((BuildingType)i, new List<Building>());
-
+#if UNITY_EDITOR
         //TODO: 目前的material_list直接参考id，后续应该改为引用
         string[] guids = AssetDatabase.FindAssets("t:Building", new[] { "Assets/Resources/BuildingData" });
         foreach (string guid in guids)
@@ -64,7 +63,8 @@ public class BuildManager : MonoBehaviour
             Building building = AssetDatabase.LoadAssetAtPath<Building>(path);
             if (building != null)
             {
-                if (!buildingLists.ContainsKey(building.type)){
+                if (!buildingLists.ContainsKey(building.type))
+                {
                     Debug.LogWarning($"Building type {building.type} not found in buildingLists, adding it now.");
                     buildingLists[building.type] = new List<Building>();
                 }
@@ -72,6 +72,21 @@ public class BuildManager : MonoBehaviour
                 buildingLists[building.type].Add(building);
             }
         }
+#else
+        // 非编辑器下用 Resources.LoadAll 加载
+        Building[] buildings = Resources.LoadAll<Building>("BuildingData");
+        foreach (var building in buildings)
+        {
+            if (building != null)
+            {
+                if (!buildingLists.ContainsKey(building.type)){
+                    buildingLists[building.type] = new List<Building>();
+                }
+                building.InitMaterialList();
+                buildingLists[building.type].Add(building);
+            }
+        }
+#endif
     }
 
     public Building GetBuilding(int id){

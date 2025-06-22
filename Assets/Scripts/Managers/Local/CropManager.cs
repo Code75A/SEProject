@@ -1,11 +1,5 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Data.Common;
-using System.Xml.Serialization;
-using Unity.VisualScripting;
 using UnityEditor;
-using UnityEditor.VersionControl;
 using UnityEngine;
 
 public class CropManager : MonoBehaviour
@@ -240,17 +234,30 @@ public class CropManager : MonoBehaviour
     /// <summary>
     /// private: temporarily initialize the cropList with some default crops.
     /// </summary>
-    void InitCropListData(){
+    void InitCropListData()
+    {
+#if UNITY_EDITOR
         string[] guids = AssetDatabase.FindAssets("t:Crop", new[] { "Assets/Resources/CropData" });
         foreach (string guid in guids)
         {
             string path = AssetDatabase.GUIDToAssetPath(guid);
             Crop crop = AssetDatabase.LoadAssetAtPath<Crop>(path);
+            if (crop != null)
+            {
+                crop.InitHarvestList();
+                cropList.Add(crop);
+            }
+        }
+#else
+        Crop[] crops = Resources.LoadAll<Crop>("CropData");
+        foreach (var crop in crops)
+        {
             if (crop != null){
                 crop.InitHarvestList();
                 cropList.Add(crop);
             }
         }
+#endif
     }
     /// <summary>
     /// private, init cropDict with cropList
