@@ -180,6 +180,7 @@ public class PawnManager : MonoBehaviour {
                 Debug.LogWarning("未找到匹配的工具数据");
             }
         }
+        ResolveTask(pawn); 
     }
     public void InstantiatePawn(Pawn pawn, Vector3Int startPos)
     {
