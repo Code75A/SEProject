@@ -52,18 +52,33 @@ public class PawnManager : MonoBehaviour {
     }
 
     #endregion
-
     public struct attribute
     {
-        public int plant;
-        public int harvest;
-        public int build;
+        private int _plant;
+        private int _harvest;
+        private int _build;
+
+        public int plant
+        {
+            get => _plant;
+            set => _plant = Mathf.Clamp(value, 0, 3);
+        }
+        public int harvest
+        {
+            get => _harvest;
+            set => _harvest = Mathf.Clamp(value, 0, 3);
+        }
+        public int build
+        {
+            get => _build;
+            set => _build = Mathf.Clamp(value, 0, 3);
+        }
 
         public attribute(int plant, int harvest, int build)
         {
-            this.plant = plant;
-            this.harvest = harvest;
-            this.build = build;
+            _plant = Mathf.Clamp(plant, 0, 3);
+            _harvest = Mathf.Clamp(harvest, 0, 3);
+            _build = Mathf.Clamp(build, 0, 3);
         }
     }
 
@@ -83,7 +98,7 @@ public class PawnManager : MonoBehaviour {
         public int materialAmount = 0; //物品数量
         public ItemInstanceManager.ItemInstanceType materialType; //物品类型
 
-        public attribute attributes = new attribute(0,0,0); //小人属性
+        public attribute attributes = new attribute(0, 0, 0); //小人属性
 
         //工具类型EnhanceType枚举，与小人属性挂钩，itemmanager调用
         public enum EnhanceType
