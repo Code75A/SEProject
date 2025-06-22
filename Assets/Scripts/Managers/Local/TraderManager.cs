@@ -21,7 +21,7 @@ public class TraderManager : MonoBehaviour
     }
 
     #region 常数
-    const int DEFAULT_GOODS_COUNT = 5;
+    const int DEFAULT_GOODS_COUNT = 16;
     const int DEFAULT_BALANCE = 4000;
     public static int TRADER_ID = 100; 
     #endregion
@@ -31,6 +31,8 @@ public class TraderManager : MonoBehaviour
     public float spawnProbabilityIncrement = 0.1f;
     public float spawnProbabilityMax = 0.9f;
     public float currentSpawnProbability = 1f;
+
+    List<GoodsContentController> currentTradeOptions = new List<GoodsContentController>();
 
     public int goodsCount = DEFAULT_GOODS_COUNT;
     public int balance = DEFAULT_BALANCE;
@@ -87,19 +89,26 @@ public class TraderManager : MonoBehaviour
 
             int tempPrice = 100;
             goodsContent.Init(trader_goods, tempPrice, trader_goods_number);
+
+            currentTradeOptions.Add(goodsContent);
         }
+        Debug.Log("商人TradeOptions完成，当前商品数量：" + currentTradeOptions.Count);
     }
 
     private void Init()
     {
         // 初始化商品列表
-        
+
         if (availableItems == null || availableItems.Count == 0)
         {
             foreach (var testItem in ItemManager.Instance.itemLists[ItemManager.ItemType.Material])
             {
-                if(testItem.name != "金币")
+                if (testItem.name != "金币")
                     availableItems.Add(testItem);
+            }
+            foreach (var testItem in ItemManager.Instance.itemLists[ItemManager.ItemType.Tool])
+            {
+                availableItems.Add(testItem);
             }
         }
 
@@ -112,6 +121,8 @@ public class TraderManager : MonoBehaviour
     private void GenerateTraderGoods()
     {
         trader.goods.Clear();
+        currentTradeOptions.Clear();
+
         List<ItemManager.Item> tempItems = new List<ItemManager.Item>(availableItems);
         Dictionary<ItemManager.Item, float> tempWeights = new Dictionary<ItemManager.Item, float>(itemWeights);
 
@@ -137,7 +148,7 @@ public class TraderManager : MonoBehaviour
 
             int goods_num = UnityEngine.Random.Range(0, 999);
 
-            trader.goods.Add(new KeyValuePair<ItemManager.Item, int>(chosen,goods_num));
+            trader.goods.Add(new KeyValuePair<ItemManager.Item, int>(chosen, goods_num));
             tempItems.Remove(chosen);
             tempWeights.Remove(chosen);
         }
@@ -148,6 +159,40 @@ public class TraderManager : MonoBehaviour
             if (!itemHistory.ContainsKey(item)) itemHistory[item] = 0;
             itemHistory[item]++;
         }
+        Debug.Log("商人商品生成完成，当前商品数量：" + trader.goods.Count);
+    }
+    public void ConcludeTrade()
+    {
+        List<KeyValuePair<int, int>> tradeMaterialList = new List<KeyValuePair<int, int>>();
+        int currentTotalPrice = 0;
+        // 交易完成后，清空当前交易选项
+        foreach (var goodsContent in currentTradeOptions)
+        {
+            currentTotalPrice += goodsContent.total_price;
+        }
+
+        int playerBalance = StorageManager.Instance.GetTotalItemCount(ItemManager.Instance.GetItem("金币",ItemManager.ItemType.Material).id);
+
+        if (currentTotalPrice > playerBalance)
+        {
+            Debug.LogWarning("交易失败，余额不足");
+            return;
+        }
+        else
+        {
+            // 扣除玩家余额
+            StorageManager.Instance.AddItem(ItemManager.Instance.GetItem("金币", ItemManager.ItemType.Material).id, -currentTotalPrice);
+            foreach (var goodsContent in currentTradeOptions)
+            {
+                if (goodsContent.current_total > 0)
+                    tradeMaterialList.Add(new KeyValuePair<int, int>(goodsContent.item_id, goodsContent.current_total));
+            }
+            MapManager.Instance.SetMaterial(MapManager.Instance.TRADER_POS, tradeMaterialList);
+
+            Debug.Log("交易成功，扣除金币：" + currentTotalPrice);
+        }
+        
+        
     }
 
     public void DailyRefresh()
