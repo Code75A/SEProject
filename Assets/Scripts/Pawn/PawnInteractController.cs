@@ -142,9 +142,9 @@ public class PawnInteractController : MonoBehaviour
             Debug.Log("目标位置不可通行或已有其他角色！");
         }
     }
-    public void GrowCropInPositionByPlayer(Vector3Int onMouseCellPos)
+    public void GrowCropInPositionByPlayer(List<Vector3Int> onMouseCellPos)
     {
-        if (MapManager.Instance.IsPlantable(onMouseCellPos) && !MapManager.Instance.HasItemAt(onMouseCellPos))
+        if (MapManager.Instance.IsPlantable(onMouseCellPos[0]) && !MapManager.Instance.HasItemAt(onMouseCellPos[0]))
         {
             if (pawn != null)
             {
@@ -160,7 +160,7 @@ public class PawnInteractController : MonoBehaviour
                     }
                 }
 
-                pawn.handlingTask = new TaskManager.Task(onMouseCellPos, TaskManager.TaskTypes.PlantALL, 0, -1, -1);
+                pawn.handlingTask = new TaskManager.PlantALLTask(onMouseCellPos[0], TaskManager.TaskTypes.PlantALL, 0, -1, onMouseCellPos);
 
                 PawnManager.Instance.HandleTask(pawn);
             }
