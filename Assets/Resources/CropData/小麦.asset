@@ -24,4 +24,4 @@ MonoBehaviour:
   light_factor_type: 2
   harvest_statistics:
   - Key: 13
-    Value: 50
+    Value: 500

@@ -18,6 +18,8 @@ public class MapManager : MonoBehaviour
     public Vector3Int[] DIAGONAL_DIRECTIONS = {new Vector3Int(1, 1, 0), new Vector3Int(1, -1, 0), new Vector3Int(-1, 1, 0), new Vector3Int(-1, -1, 0)};
     public const int DEBUG_MAX_PILE_NUM = 100;//TODO: 区分不同物品堆叠数量
 
+    public Vector3Int TRADER_POS= new Vector3Int(32, 34, 0);
+
     const int OFFSET_MIN = -1000000;
     const int OFFSET_MAX = 1000000;
 
@@ -562,9 +564,18 @@ public class MapManager : MonoBehaviour
             else{
                 int unload_material_num = Math.Min(material_list[0].Value, DEBUG_MAX_PILE_NUM);
                 mapDatas[cur_check_pos.x, cur_check_pos.y].has_item = true;
+                
                 mapDatas[cur_check_pos.x, cur_check_pos.y].item = ItemInstanceManager.Instance.SpawnItem(
                     cur_check_pos, material_list[0].Key, ItemInstanceManager.ItemInstanceType.MaterialInstance, unload_material_num);
-                
+
+                //TODO: Unhealthy
+                if (mapDatas[cur_check_pos.x, cur_check_pos.y].item == null)
+                {
+                    unload_material_num = 1;
+                    mapDatas[cur_check_pos.x, cur_check_pos.y].item = ItemInstanceManager.Instance.SpawnItem(
+                    cur_check_pos, material_list[0].Key, ItemInstanceManager.ItemInstanceType.ToolInstance, unload_material_num);
+                }
+
                 int material_num = material_list[0].Value - unload_material_num;
                 if (material_num == 0)
                     material_list.RemoveAt(0);

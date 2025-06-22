@@ -175,9 +175,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   texture: {fileID: 452183125961926608}
   item_name: 
+  item_id: 0
   description: {fileID: 4464678208973176580}
   collider_upper: {fileID: 3596139553160464305}
   collider_lower: {fileID: 2326720773390457944}
+  current_total: 0
+  total_price: 0
 --- !u!1 &5066737595705785944
 GameObject:
   m_ObjectHideFlags: 0
