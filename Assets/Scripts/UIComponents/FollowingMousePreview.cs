@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
+// 有一些显示方面的小瑕疵，需要Debug
 public class FollowingMousePreview : MonoBehaviour
 {
     public GameObject content;
@@ -15,15 +16,15 @@ public class FollowingMousePreview : MonoBehaviour
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         Color color = spriteRenderer.color;
-        color.a = 0.5f; 
+        color.a = 0.5f;
         spriteRenderer.color = color;
     }
 
     void Update()
     {
         Vector3 mousePosition = Input.mousePosition;
-        mousePosition.z = Camera.main.nearClipPlane; 
-        
+        mousePosition.z = Camera.main.nearClipPlane;
+
         transform.localScale = content.transform.localScale;
 
         transform.position = Camera.main.ScreenToWorldPoint(mousePosition);
