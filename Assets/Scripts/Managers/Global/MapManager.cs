@@ -411,12 +411,18 @@ public class MapManager : MonoBehaviour
             data.item = ItemInstanceManager.Instance.SpawnItem(data.position, building.id, ItemInstanceManager.ItemInstanceType.BuildingInstance);
             //Debug.Log(data.item.id + "商人生成");
         }
+        {//生成种子测试
+            MapData data = mapDatas[33, 34];
+            ItemInstanceManager.Instance.SpawnItem(new Vector3Int(33, 34, 0), 9, ItemInstanceManager.ItemInstanceType.MaterialInstance, amount: 99);
+        }
         
         const float ORE_SPAWN_LINE = 0.85f;
         for (int x = 0; x < 64; x++)
         {
             for (int y = 0; y < 64; y++)
             {
+                if(x>=30 && x<35 && y>=30 && y<35) continue; //跳过测试草地
+
                 if (landformDatas[x, y] > ORE_SPAWN_LINE)
                 {
                     ItemInstanceManager.Instance.SpawnItem(new Vector3Int(x, y, 0), 16, ItemInstanceManager.ItemInstanceType.ResourceInstance);

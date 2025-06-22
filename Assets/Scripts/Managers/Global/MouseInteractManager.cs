@@ -40,6 +40,8 @@ public class MouseInteractManager : MonoBehaviour
 
     private Vector3 mouseWorldPos;
 
+    public Vector3Int FromMouseCellPos;
+
     #region 鼠标交互射线状态缓存
     RaycastHit2D hitSprite;
     RaycastHit2D[] hits;
@@ -283,21 +285,6 @@ public class MouseInteractManager : MonoBehaviour
         }
         currentState = NullState;
     }
-    void Start(){
-        //UNHEALTHY
-        // const float ORE_SPAWN_LINE = 0.85f;
-        // for (int x = 0; x < 64; x++)
-        // {
-        //     for (int y = 0; y < 64; y++)
-        //     {
-        //         if (mapManager.landformDatas[x, y] > ORE_SPAWN_LINE)
-        //         {
-        //             ItemInstanceManager.Instance.SpawnItem(new Vector3Int(x, y, 0), 16, ItemInstanceManager.ItemInstanceType.ResourceInstance);
-        //             mapManager.mapDatas[x, y].can_build = false;
-        //         }
-        //     }
-        // }
-    }
 
     int GetSortingLayerOrder(Collider2D col){
         var renderer = col.GetComponent<Renderer>();
@@ -352,6 +339,8 @@ public class MouseInteractManager : MonoBehaviour
                 if (InstructStateAvailable())
                 {
                     Vector3Int cellPos = mapManager.landTilemap.WorldToCell(mouseWorldPos);
+                    //FromMouseCellPos = cellPos;//TODO: 记录矩形拖动操作鼠标点击位置
+
                     if (mapManager.IsInBoard(cellPos))
                     {
                         if (InstructDirector.TryGetValue((currentState as StateInstruct).instruct_type, out Action<Vector3Int> action))
@@ -427,6 +416,49 @@ public class MouseInteractManager : MonoBehaviour
             Debug.Log("左键:" + currentState.GetType());
         }
 
+        // if (Input.GetMouseButtonUp(0))
+        // {
+        //     if (currentState is StateInstruct)
+        //     {
+        //         Vector3Int ToMouseCellPos = mapManager.landTilemap.WorldToCell(mouseWorldPos);
+        //         Vector3Int UpLeftPos = new Vector3Int(//DownLeftPos
+        //             Mathf.Min(FromMouseCellPos.x, ToMouseCellPos.x),
+        //             Mathf.Min(FromMouseCellPos.y, ToMouseCellPos.y),
+        //             0);
+        //         Vector3Int DownRightPos = new Vector3Int(//UpRightPos
+        //             Mathf.Max(FromMouseCellPos.x, ToMouseCellPos.x),
+        //             Mathf.Max(FromMouseCellPos.y, ToMouseCellPos.y),
+        //             0);
+
+        //         List<Vector3Int> plantableCells = new List<Vector3Int>();
+        //         for (int x = UpLeftPos.x; x <= DownRightPos.x; x++)
+        //         {
+        //             for (int y = UpLeftPos.y; y <= DownRightPos.y; y++)
+        //             {
+        //                 Vector3Int cellPos = new Vector3Int(x, y, 0);
+        //                 if (mapManager.IsInBoard(cellPos))
+        //                 {
+        //                     if (mapManager.GetMapData(cellPos).can_plant)
+        //                     {
+        //                         plantableCells.Add(cellPos);
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //         foreach (Vector3Int cell in plantableCells)
+        //         {
+        //             Debug.Log("可种植位置: " + cell);
+        //         }
+
+        //         if (selectingPawn != null)
+        //         {
+        //             pawnController.GrowCropInPositionByPlayer(plantableCells);
+        //         }
+        //         else Debug.LogError("When ApplyInstruct, selectingPawn is Null");
+                
+        //     }
+        // }
+
         if (Input.GetMouseButtonDown(1))
         {
             GetMouseInteract();
@@ -451,7 +483,7 @@ public class MouseInteractManager : MonoBehaviour
                             Instance.pawnController.GetToolAtPositionByPlayer(onMouseCellPos);
                     }
                 }
-                    
+
             }
 
             if (currentState is StatePawn)
@@ -542,7 +574,14 @@ public class MouseInteractManager : MonoBehaviour
     }
     public void ApplyInstructGrow(Vector3Int pos)
     {
-        //TODO: Grow指令
+        if (selectingPawn != null){
+            List<Vector3Int> plantableCells = new List<Vector3Int>();
+            plantableCells.Add(pos);
+            pawnController.GrowCropInPositionByPlayer(plantableCells);
+        }
+        else{
+            Debug.LogError("When ApplyInstructGrow, selectingPawn is Null");
+        }
     }
     public void ApplyInstructHarvest(Vector3Int pos) {
         if (selectingPawn != null){

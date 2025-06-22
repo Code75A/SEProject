@@ -21,5 +21,5 @@ MonoBehaviour:
   durability: -1
   can_build: 1
   can_walk: 1
-  can_plant: 0
+  can_plant: 1
   material_statistics: []
