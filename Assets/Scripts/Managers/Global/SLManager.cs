@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO; // 用于文件操作
@@ -13,266 +15,153 @@ using System.Linq; // 用于列表操作
 public class SLManager : MonoBehaviour
 {
     public static SLManager Instance;
-    // #region "BuildManagerData"
-    // [System.Serializable]
+    #region "BuildManagerData"
+    [System.Serializable]
     
-    // public class BuildManagerData
-    // {
-    //     public Dictionary<BuildingType, List<BuildingData>> buildingLists;
+    public class BuildManagerData
+    {
+        public Dictionary<BuildingType, List<BuildingData>> buildingLists;
 
-    //     [System.Serializable]
-    //     public class BuildingData
-    //     {
-    //         public int id;
-    //         public string name;
-    //         public string texturePath; // 存储纹理路径
-    //         public BuildingType type;
-    //         public int width, height;
-    //         public int durability;
-    //         public bool can_build;
-    //         public bool can_walk;
-    //         public bool can_plant;
-    //         public List<KeyValuePair<int, int>> material_list;
-    //     }
-    // }
+        [System.Serializable]
+        public class BuildingData
+        {
+            public int id;
+            public string name;
+            public string texturePath; // 存储纹理路径
+            public BuildingType type;
+            public int width, height;
+            public int durability;
+            public bool can_build;
+            public bool can_walk;
+            public bool can_plant;
+            public List<KeyValuePair<int, int>> material_list;
+        }
+    }
 
-    // private string savePath => Path.Combine(Application.persistentDataPath, "BuildManagerData.json");
+    private string savePath => Path.Combine(Application.persistentDataPath, "BuildManagerData.json");
 
-    // // 保存 BuildManager 的静态数据
-    // public void SaveBuildManager()
-    // {
-    //     BuildManagerData data = new BuildManagerData
-    //     {
-    //         buildingLists = new Dictionary<BuildingType, List<BuildManagerData.BuildingData>>()
-    //     };
+    // 保存 BuildManager 的静态数据
+    public void SaveBuildManager()
+    {
+        BuildManagerData data = new BuildManagerData
+        {
+            buildingLists = new Dictionary<BuildingType, List<BuildManagerData.BuildingData>>()
+        };
 
-    //     foreach (var kvp in BuildManager.Instance.buildingLists)
-    //     {
-    //         var buildingDataList = new List<BuildManagerData.BuildingData>();
-    //         foreach (var building in kvp.Value)
-    //         {
-    //             buildingDataList.Add(new BuildManagerData.BuildingData
-    //             {
-    //                 id = building.id,
-    //                 name = building.build_name,
-    //                 texturePath = building.texture != null ? building.texture.name : null, // 假设纹理名可用作路径
-    //                 type = building.type,
-    //                 width = building.width,
-    //                 height = building.height,
-    //                 durability = building.durability,
-    //                 can_build = building.can_build,
-    //                 can_walk = building.can_walk,
-    //                 can_plant = building.can_plant,
-    //                 material_list = building.material_list
-    //             });
-    //         }
-    //         data.buildingLists[kvp.Key] = buildingDataList;
-    //     }
+        foreach (var kvp in BuildManager.Instance.buildingLists)
+        {
+            var buildingDataList = new List<BuildManagerData.BuildingData>();
+            foreach (var building in kvp.Value)
+            {
+                buildingDataList.Add(new BuildManagerData.BuildingData
+                {
+                    id = building.id,
+                    name = building.build_name,
+                    texturePath = building.texture != null ? building.texture.name : null, // 假设纹理名可用作路径
+                    type = building.type,
+                    width = building.width,
+                    height = building.height,
+                    durability = building.durability,
+                    can_build = building.can_build,
+                    can_walk = building.can_walk,
+                    can_plant = building.can_plant,
+                    material_list = building.material_list
+                });
+            }
+            data.buildingLists[kvp.Key] = buildingDataList;
+        }
 
-    //     string json = JsonConvert.SerializeObject(data, Formatting.Indented);
-    //     File.WriteAllText(savePath, json);
-    //     Debug.Log($"BuildManager data saved to {savePath}");
-    // }
+        string json = JsonConvert.SerializeObject(data, Formatting.Indented);
+        File.WriteAllText(savePath, json);
+        Debug.Log($"BuildManager data saved to {savePath}");
+    }
 
-    // // 加载 BuildManager 的静态数据
-    // public void LoadBuildManager()
-    // {
-    //     if (!File.Exists(savePath))
-    //     {
-    //         Debug.LogWarning("Save file not found!");
-    //         return;
-    //     }
+    // 加载 BuildManager 的静态数据
+    public void LoadBuildManager()
+    {
+        if (!File.Exists(savePath))
+        {
+            Debug.LogWarning("Save file not found!");
+            return;
+        }
 
-    //     string json = File.ReadAllText(savePath);
-    //     BuildManagerData data = JsonConvert.DeserializeObject<BuildManagerData>(json);
+        string json = File.ReadAllText(savePath);
+        BuildManagerData data = JsonConvert.DeserializeObject<BuildManagerData>(json);
 
-    //     foreach (var kvp in data.buildingLists)
-    //     {
-    //         if (!BuildManager.Instance.buildingLists.ContainsKey(kvp.Key))
-    //             BuildManager.Instance.buildingLists[kvp.Key] = new List<Building>();
+        foreach (var kvp in data.buildingLists)
+        {
+            if (!BuildManager.Instance.buildingLists.ContainsKey(kvp.Key))
+                BuildManager.Instance.buildingLists[kvp.Key] = new List<Building>();
 
-    //         foreach (var buildingData in kvp.Value)
-    //         {
-    //             BuildManager.Instance.buildingLists[kvp.Key].Add(new Building
-    //             {
-    //                 id = buildingData.id,
-    //                 build_name = buildingData.name,
-    //                 texture = Resources.Load<Sprite>(buildingData.texturePath), // 假设纹理存储在 Resources 文件夹
-    //                 type = buildingData.type,
-    //                 width = buildingData.width,
-    //                 height = buildingData.height,
-    //                 durability = buildingData.durability,
-    //                 can_build = buildingData.can_build,
-    //                 can_walk = buildingData.can_walk,
-    //                 can_plant = buildingData.can_plant,
-    //                 material_list = buildingData.material_list
-    //             });
-    //         }
-    //     }
+            foreach (var buildingData in kvp.Value)
+            {
+                BuildManager.Instance.buildingLists[kvp.Key].Add(new Building
+                {
+                    id = buildingData.id,
+                    build_name = buildingData.name,
+                    texture = Resources.Load<Sprite>(buildingData.texturePath), // 假设纹理存储在 Resources 文件夹
+                    type = buildingData.type,
+                    width = buildingData.width,
+                    height = buildingData.height,
+                    durability = buildingData.durability,
+                    can_build = buildingData.can_build,
+                    can_walk = buildingData.can_walk,
+                    can_plant = buildingData.can_plant,
+                    material_list = buildingData.material_list
+                });
+            }
+        }
 
-    //     Debug.Log("BuildManager data loaded successfully.");
-    // }
+        Debug.Log("BuildManager data loaded successfully.");
+    }
 
-    // // 测试保存和加载 BuildManager 数据的方法
-    // public void TestSaveAndLoadBuildManagerData()
-    // {
-    //     Debug.Log("TestSaveAndLoadBuildManagerData called.");
+    // 测试保存和加载 BuildManager 数据的方法
+    public void TestSaveAndLoadBuildManagerData()
+    {
+        Debug.Log("TestSaveAndLoadBuildManagerData called.");
         
-    //     // 创建测试数据
-    //     BuildManager.Instance.buildingLists = new Dictionary<BuildingType, List<Building>>();
+        // 创建测试数据
+        BuildManager.Instance.buildingLists = new Dictionary<BuildingType, List<Building>>();
 
-    //     BuildManager.Instance.buildingLists[BuildingType.Dev] = new List<Building>
-    //     {
-    //         new Building
-    //         {
-    //             id = 1,
-    //             build_name = "Test Dev Building",
-    //             texture = null, // 假设没有纹理
-    //             type = BuildingType.Dev,
-    //             width = 5,
-    //             height = 5,
-    //             durability = 100,
-    //             can_build = true,
-    //             can_walk = false,
-    //             can_plant = false,
-    //             material_list = new List<KeyValuePair<int, int>> { new KeyValuePair<int, int>(1, 10) }
-    //         }
-    //     };
+        BuildManager.Instance.buildingLists[BuildingType.Dev] = new List<Building>
+        {
+            new Building
+            {
+                id = 1,
+                build_name = "Test Dev Building",
+                texture = null, // 假设没有纹理
+                type = BuildingType.Dev,
+                width = 5,
+                height = 5,
+                durability = 100,
+                can_build = true,
+                can_walk = false,
+                can_plant = false,
+                material_list = new List<KeyValuePair<int, int>> { new KeyValuePair<int, int>(1, 10) }
+            }
+        };
 
-    //     // 保存数据
-    //     SaveBuildManager();
+        // 保存数据
+        SaveBuildManager();
 
-    //     // 清空现有数据
-    //     BuildManager.Instance.buildingLists.Clear();
+        // 清空现有数据
+        BuildManager.Instance.buildingLists.Clear();
 
-    //     // 加载数据
-    //     LoadBuildManager();
-    //     Debug.Log("Data loaded from file.");
+        // 加载数据
+        LoadBuildManager();
+        Debug.Log("Data loaded from file.");
 
-    //     // 验证加载的数据
-    //     foreach (var kvp in BuildManager.Instance.buildingLists)
-    //     {
-    //         Debug.Log($"Building Type: {kvp.Key}");
-    //         foreach (var building in kvp.Value)
-    //         {
-    //             Debug.Log($"Building Name: {building.build_name}, ID: {building.id}, Durability: {building.durability}");
-    //         }
-    //     }
-    // }
-    // #endregion
-
-    // #region "CropManagerData"
-    // [System.Serializable]
-    // public class CropManagerData
-    // {
-    //     public List<CropData> cropList;
-
-    //     [System.Serializable]
-    //     public class CropData
-    //     {
-    //         public int id;
-    //         public string name;
-    //         public float lifetime;
-    //     }
-    // }
-
-    // private string cropSavePath => Path.Combine(Application.persistentDataPath, "CropManagerData.json");
-
-    // public void SaveCropManager()
-    // {
-    //     if (CropManager.Instance == null)
-    //     {
-    //         Debug.LogError("CropManager.Instance is null. Cannot save data.");
-    //         return;
-    //     }
-
-    //     CropManagerData data = new CropManagerData
-    //     {
-    //         cropList = new List<CropManagerData.CropData>()
-    //     };
-
-    //     foreach (var crop in CropManager.Instance.cropList)
-    //     {
-    //         data.cropList.Add(new CropManagerData.CropData
-    //         {
-    //             id = crop.id,
-    //             name = crop.name,
-    //             lifetime = crop.lifetime
-    //         });
-    //     }
-
-    //     string json = JsonConvert.SerializeObject(data, Formatting.Indented);
-    //     File.WriteAllText(cropSavePath, json);
-    //     Debug.Log($"CropManager data saved to {cropSavePath}");
-    // }
-
-    // // 加载 CropManager 的静态数据
-    // public void LoadCropManager()
-    // {
-    //     if (!File.Exists(cropSavePath))
-    //     {
-    //         Debug.LogWarning("CropManager save file not found!");
-    //         return;
-    //     }
-
-    //     if (CropManager.Instance == null)
-    //     {
-    //         Debug.LogError("CropManager.Instance is null. Cannot load data.");
-    //         return;
-    //     }
-
-    //     string json = File.ReadAllText(cropSavePath);
-    //     CropManagerData data = JsonConvert.DeserializeObject<CropManagerData>(json);
-
-    //     CropManager.Instance.cropList.Clear();
-    //     foreach (var cropData in data.cropList)
-    //     {
-    //         CropManager.Instance.cropList.Add(new CropManager.Crop
-    //         {
-    //             id = cropData.id,
-    //             name = cropData.name,
-    //             lifetime = cropData.lifetime
-    //         });
-    //     }
-
-    //     Debug.Log("CropManager data loaded successfully.");
-    // }
-
-    // // 测试保存和加载 CropManager 数据的方法
-    // public void TestSaveAndLoadCropManagerData()
-    // {
-    //     Debug.Log("TestSaveAndLoadCropManagerData called.");
-
-    //     if (CropManager.Instance == null)
-    //     {
-    //         Debug.LogError("CropManager.Instance is null. Cannot test save and load.");
-    //         return;
-    //     }
-
-    //     // 创建测试数据
-    //     CropManager.Instance.cropList = new List<CropManager.Crop>
-    //     {
-    //         new CropManager.Crop { id = 0, name = "测试作物1", lifetime = 10.0f },
-    //         new CropManager.Crop { id = 1, name = "测试作物2", lifetime = 5.0f }
-    //     };
-
-    //     // 保存数据
-    //     SaveCropManager();
-
-    //     // 清空现有数据
-    //     CropManager.Instance.cropList.Clear();
-
-    //     // 加载数据
-    //     LoadCropManager();
-
-    //     // 验证加载的数据
-    //     foreach (var crop in CropManager.Instance.cropList)
-    //     {
-    //         Debug.Log($"Crop Name: {crop.name}, ID: {crop.id}, Lifetime: {crop.lifetime}");
-    //     }
-    // }
-    // #endregion
-
+        // 验证加载的数据
+        foreach (var kvp in BuildManager.Instance.buildingLists)
+        {
+            Debug.Log($"Building Type: {kvp.Key}");
+            foreach (var building in kvp.Value)
+            {
+                Debug.Log($"Building Name: {building.build_name}, ID: {building.id}, Durability: {building.durability}");
+            }
+        }
+    }
+    #endregion
     #region "ItemManagerData"
     [System.Serializable]
     public class ItemManagerData
@@ -479,139 +368,211 @@ public class SLManager : MonoBehaviour
     #endregion
 
     #region "MapManagerData"
-    [System.Serializable]
     public class MapManagerData
     {
-        public List<MapData> mapDataList;
+        public List<SerializableMapData> tiles = new();
+        public bool randomSeed;
+        public int seed;
+        public float lac;
+        public float minValue;
+        public float maxValue;
 
-        [System.Serializable]
-        public class MapData
+        public class SerializableMapData
         {
-            public int x, y; // 格子坐标
-            public int type; // 格子类型
+            public int x, y;                       // 坐标
+            public int type;                       // MapManager.tileTypes 枚举索引
+
+            public bool has_item;
+            public ItemInstanceData item;
+
+            public bool has_pawn;
+            public bool will_has_pawn;
+
             public bool can_walk;
             public bool can_build;
             public bool can_plant;
-            public bool has_print; // 是否显示蓝图
-            public bool has_building; // 是否有建筑
+
             public float fertility;
             public float humidity;
             public float light;
             public float walk_speed;
         }
+
+        public class ItemInstanceData
+        {
+            public int item_id;                    // 物品/建筑 id
+            public int amount;                     // 堆叠数量
+            public string item_type;               // ItemInstanceManager.ItemInstanceType 字符串
+        }
     }
 
-    private string mapSavePath => Path.Combine(Application.persistentDataPath, "MapManagerData.json");
+    /* ----------------------------------------------------------------------
+     *  文件路径
+     * ------------------------------------------------------------------ */
+    private string MapSavePath =>
+        Path.Combine(Application.persistentDataPath, "MapManagerData.json");
 
+    /* ----------------------------------------------------------------------
+     *  保存 MapManager
+     * ------------------------------------------------------------------ */
     public void SaveMapManager()
     {
         if (MapManager.Instance == null)
         {
-            Debug.LogError("MapManager.Instance is null. Cannot save data.");
+            Debug.LogError("MapManager.Instance is null – cannot save map data.");
             return;
         }
 
-        MapManagerData data = new MapManagerData
+        MapManagerData saveData = new()
         {
-            mapDataList = new List<MapManagerData.MapData>()
+            randomSeed = MapManager.Instance.random_seed,
+            seed       = MapManager.Instance.seed,
+            lac        = MapManager.Instance.lac,
+            minValue   = MapManager.Instance.min_value,
+            maxValue   = MapManager.Instance.max_value
         };
 
         for (int x = 0; x < MapManager.MAP_SIZE; x++)
         {
             for (int y = 0; y < MapManager.MAP_SIZE; y++)
             {
-                var mapData = MapManager.Instance.mapDatas[x, y];
-                data.mapDataList.Add(new MapManagerData.MapData
+                MapManager.MapData src = MapManager.Instance.mapDatas[x, y];
+                if (src == null) continue; // 异常保护
+
+                MapManagerData.SerializableMapData dst = new()
                 {
                     x = x,
                     y = y,
-                    type = (int)mapData.type,
-                    can_walk = mapData.can_walk,
-                    can_build = mapData.can_build,
-                    can_plant = mapData.can_plant,
-                    has_print = mapData.has_print,
-                    has_building = mapData.has_building,
-                    fertility = mapData.fertility,
-                    humidity = mapData.humidity,
-                    light = mapData.light,
-                    walk_speed = mapData.walk_speed
-                });
+                    type = (int)src.type,
+
+                    has_item      = src.has_item,
+                    has_pawn      = src.has_pawn,
+                    will_has_pawn = src.will_has_pawn,
+
+                    can_walk  = src.can_walk,
+                    can_build = src.can_build,
+                    can_plant = src.can_plant,
+
+                    fertility  = src.fertility,
+                    humidity   = src.humidity,
+                    light      = src.light,
+                    walk_speed = src.walk_speed
+                };
+
+                if (src.item != null)
+                {
+                    int amount = 1;
+                    // 只有 MaterialInstance 才有 GetAmount 方法
+                    if (src.item is ItemInstanceManager.MaterialInstance materialInstance)
+                    {
+                        amount = materialInstance.GetAmount();
+                    }
+                    // 其他类型可根据需要设置 amount，默认 1
+                    dst.item = new MapManagerData.ItemInstanceData
+                    {
+                        item_id   = src.item.item_id,
+                        amount    = amount,
+                        item_type = src.item.GetType().Name // 例如 CropInstance
+                    };
+                }
+
+                saveData.tiles.Add(dst);
             }
         }
 
-        string json = JsonConvert.SerializeObject(data, Formatting.Indented);
-        File.WriteAllText(mapSavePath, json);
-        Debug.Log($"MapManager data saved to {mapSavePath}");
+        string json = JsonConvert.SerializeObject(saveData, Formatting.Indented);
+        File.WriteAllText(MapSavePath, json);
+        Debug.Log($"[SLManager] Map data saved → {MapSavePath}");
     }
 
+    /* ----------------------------------------------------------------------
+     *  加载 MapManager
+     * ------------------------------------------------------------------ */
     public void LoadMapManager()
     {
-        if (!File.Exists(mapSavePath))
+        if (!File.Exists(MapSavePath))
         {
-            Debug.LogWarning("MapManager save file not found!");
+            Debug.LogWarning("Map save file not found – aborting load.");
             return;
         }
-
         if (MapManager.Instance == null)
         {
-            Debug.LogError("MapManager.Instance is null. Cannot load data.");
+            Debug.LogError("MapManager.Instance is null – cannot load map data.");
             return;
         }
 
-        string json = File.ReadAllText(mapSavePath);
+        string json = File.ReadAllText(MapSavePath);
         MapManagerData data = JsonConvert.DeserializeObject<MapManagerData>(json);
-
-        foreach (var mapData in data.mapDataList)
+        if (data == null)
         {
-            var mapCell = MapManager.Instance.mapDatas[mapData.x, mapData.y];
-            mapCell.type = (MapManager.tileTypes)mapData.type;
-            mapCell.texture = MapManager.Instance.tiles[mapData.type];
-            mapCell.can_walk = mapData.can_walk;
-            mapCell.can_build = mapData.can_build;
-            mapCell.can_plant = mapData.can_plant;
-            mapCell.has_print = mapData.has_print;
-            mapCell.has_building = mapData.has_building;
-            mapCell.fertility = mapData.fertility;
-            mapCell.humidity = mapData.humidity;
-            mapCell.light = mapData.light;
-            mapCell.walk_speed = mapData.walk_speed;
-        }
-
-        MapManager.Instance.GenerateMapTiles(); // 重新生成地图瓦片
-        Debug.Log("MapManager data loaded successfully.");
-    }
-
-    public void TestSaveAndLoadMapManagerData()
-    {
-        Debug.Log("TestSaveAndLoadMapManagerData called.");
-
-        if (MapManager.Instance == null)
-        {
-            Debug.LogError("MapManager.Instance is null. Cannot test save and load.");
+            Debug.LogError("Failed to deserialize map data.");
             return;
         }
 
-        // 修改部分地图数据作为测试
-        MapManager.Instance.mapDatas[0, 0].type = MapManager.tileTypes.water;
-        MapManager.Instance.mapDatas[0, 0].can_walk = false;
-        MapManager.Instance.mapDatas[0, 0].has_print = true;
-        MapManager.Instance.mapDatas[0, 0].has_building = true;
+        /* ---- 还原基础参数 ---- */
+        MapManager.Instance.random_seed = data.randomSeed;
+        MapManager.Instance.seed        = data.seed;
+        MapManager.Instance.lac         = data.lac;
+        MapManager.Instance.min_value   = data.minValue;
+        MapManager.Instance.max_value   = data.maxValue;
 
-        // 保存数据
-        SaveMapManager();
+        /* ---- 逐格加载 ---- */
+        foreach (var tile in data.tiles)
+        {
+            int x = tile.x;
+            int y = tile.y;
+            if (x < 0 || x >= MapManager.MAP_SIZE || y < 0 || y >= MapManager.MAP_SIZE) continue;
 
-        // 清空现有数据
-        MapManager.Instance.GenerateMapData();
+            MapManager.MapData dst = MapManager.Instance.mapDatas[x, y] ?? new MapManager.MapData();
+            MapManager.Instance.mapDatas[x, y] = dst;
 
-        // 加载数据
-        LoadMapManager();
+            dst.position = new Vector3Int(x, y, 0);
+            dst.type     = (MapManager.tileTypes)tile.type;
+            dst.texture  = MapManager.Instance.tiles[(int)dst.type];
 
-        // 验证加载的数据
-        var mapData = MapManager.Instance.mapDatas[0, 0];
-        Debug.Log($"Tile at (0, 0): Type = {mapData.type}, CanWalk = {mapData.can_walk}, HasPrint = {mapData.has_print}, HasBuilding = {mapData.has_building}");
+            dst.has_item      = tile.has_item;
+            dst.has_pawn      = tile.has_pawn;
+            dst.will_has_pawn = tile.will_has_pawn;
+
+            dst.can_walk  = tile.can_walk;
+            dst.can_build = tile.can_build;
+            dst.can_plant = tile.can_plant;
+
+            dst.fertility  = tile.fertility;
+            dst.humidity   = tile.humidity;
+            dst.light      = tile.light;
+            dst.walk_speed = tile.walk_speed;
+
+            /* ---- 还原 item ---- */
+            if (tile.item != null)
+            {
+                ItemInstanceManager.ItemInstanceType instType = (ItemInstanceManager.ItemInstanceType)Enum.Parse(
+                    typeof(ItemInstanceManager.ItemInstanceType),
+                    tile.item.item_type); // 不要Replace
+
+                dst.item = ItemInstanceManager.Instance.SpawnItem(
+                    dst.position,
+                    tile.item.item_id,
+                    instType,
+                    tile.item.amount);
+            }
+            else if (dst.item != null)
+            {
+                // 原本有 item 但存档说没有 → 清理
+                ItemInstanceManager.Instance.DestroyItem(dst.item, ItemInstanceManager.DestroyMode.RemainNone);
+                dst.item = null;
+            }
+
+            /* ---- 更新瓦片外观 ---- */
+            MapManager.Instance.landTilemap.SetTile(dst.position, dst.texture);
+
+            /* ---- 更新 walkVectors ---- */
+            MapManager.Instance.walkVectors[x, y] = dst.can_walk;
+        }
+
+        Debug.Log("[SLManager] Map data loaded successfully.");
     }
     #endregion
-
 
     #region "TaskManagerData"
     [System.Serializable]
@@ -761,7 +722,7 @@ public class SLManager : MonoBehaviour
     }
     #endregion
 
-    
+
     #region "PawnManagerData"
     [System.Serializable]
     public class PawnManagerData
@@ -777,9 +738,22 @@ public class SLManager : MonoBehaviour
             public float moveSpeed;
             public float workSpeed;
             public int capacity;
+            public int instantCapacity; // 新增
+            public int materialId;      // 新增
+            public int materialAmount;  // 新增
+            public int materialType;    // 新增（枚举转int存储）
+            public AttributeData attributes; // 新增
             public ToolData handlingTool;
             public List<TaskData> pawnTaskList;
             public SerializableVector3 position;
+        }
+
+        [System.Serializable]
+        public class AttributeData // 新增
+        {
+            public int plant;
+            public int harvest;
+            public int build;
         }
 
         [System.Serializable]
@@ -857,6 +831,16 @@ public class SLManager : MonoBehaviour
                 moveSpeed = pawn.moveSpeed,
                 workSpeed = pawn.workSpeed,
                 capacity = pawn.capacity,
+                instantCapacity = pawn.instantCapacity, // 新增
+                materialId = pawn.materialId,           // 新增
+                materialAmount = pawn.materialAmount,   // 新增
+                materialType = (int)pawn.materialType,  // 新增
+                attributes = new PawnManagerData.AttributeData // 新增
+                {
+                    plant = pawn.attributes.plant,
+                    harvest = pawn.attributes.harvest,
+                    build = pawn.attributes.build
+                },
                 handlingTool = pawn.handlingTool != null ? new PawnManagerData.ToolData
                 {
                     id = pawn.handlingTool.id,
@@ -920,6 +904,15 @@ public class SLManager : MonoBehaviour
                 moveSpeed = pawnData.moveSpeed,
                 workSpeed = pawnData.workSpeed,
                 capacity = pawnData.capacity,
+                instantCapacity = pawnData.instantCapacity, // 新增
+                materialId = pawnData.materialId,           // 新增
+                materialAmount = pawnData.materialAmount,   // 新增
+                materialType = (ItemInstanceManager.ItemInstanceType)pawnData.materialType, // 新增
+                attributes = pawnData.attributes != null ? new PawnManager.attribute(
+                    pawnData.attributes.plant,
+                    pawnData.attributes.harvest,
+                    pawnData.attributes.build
+                ) : new PawnManager.attribute(0, 0, 0), // 新增
                 handlingTool = pawnData.handlingTool != null ? new ItemManager.Tool
                 {
                     id = pawnData.handlingTool.id,
@@ -1010,11 +1003,903 @@ public class SLManager : MonoBehaviour
         }
     }
     #endregion
-    
+
+    #region "ItemInstanceManagerData"
+    [System.Serializable]
+    public class ItemInstanceManagerData
+    {
+        public List<ItemInstanceData> instances;
+
+        [System.Serializable]
+        public class ItemInstanceData
+        {
+            public int id;
+            public string type; // 用字符串存储类型
+            public int item_id;
+            public SerializableVector3Int position;
+            // ToolInstance
+            public int durability;
+            // MaterialInstance
+            public int amount;
+            // CropInstance
+            public float growth;
+            public float real_lifetime;
+            public float growth_per_frame;
+            public List<KeyValuePair<int, int>> harvest_list;
+            // BuildingInstance
+            public List<KeyValuePair<int, int>> material_list;
+            public int content_id; // 存储内容物id
+            // PrintInstance
+            public List<PrintMaterialProgress> print_material_list;
+            // ResourceInstance
+            public int resource_durability; // 新增
+        }
+
+        [System.Serializable]
+        public class PrintMaterialProgress
+        {
+            public int item_id;
+            public int current;
+            public int need;
+        }
+
+        [System.Serializable]
+        public class SerializableVector3Int
+        {
+            public int x, y, z;
+            public SerializableVector3Int() { }
+            public SerializableVector3Int(Vector3Int v) { x = v.x; y = v.y; z = v.z; }
+            public Vector3Int ToVector3Int() => new Vector3Int(x, y, z);
+        }
+    }
+
+    private string itemInstanceSavePath => Path.Combine(Application.persistentDataPath, "ItemInstanceManagerData.json");
+
+    public void SaveItemInstanceManager()
+    {
+        if (ItemInstanceManager.Instance == null)
+        {
+            Debug.LogError("ItemInstanceManager.Instance is null. Cannot save data.");
+            return;
+        }
+
+        ItemInstanceManagerData data = new ItemInstanceManagerData
+        {
+            instances = new List<ItemInstanceManagerData.ItemInstanceData>()
+        };
+
+        foreach (var kvp in ItemInstanceManager.Instance.itemInstanceLists)
+        {
+            foreach (var itemInstance in kvp.Value)
+            {
+                var d = new ItemInstanceManagerData.ItemInstanceData
+                {
+                    id = itemInstance.id,
+                    type = itemInstance.type.ToString(),
+                    item_id = itemInstance.item_id,
+                    position = new ItemInstanceManagerData.SerializableVector3Int(itemInstance.position)
+                };
+
+                switch (itemInstance.type)
+                {
+                    case ItemInstanceManager.ItemInstanceType.ToolInstance:
+                        d.durability = ((ItemInstanceManager.ToolInstance)itemInstance).durability;
+                        break;
+                    case ItemInstanceManager.ItemInstanceType.MaterialInstance:
+                        d.amount = ((ItemInstanceManager.MaterialInstance)itemInstance).amount;
+                        break;
+                    case ItemInstanceManager.ItemInstanceType.CropInstance:
+                        var crop = (ItemInstanceManager.CropInstance)itemInstance;
+                        d.growth = crop.growth;
+                        d.real_lifetime = crop.real_lifetime;
+                        d.growth_per_frame = crop.growth_per_frame;
+                        d.harvest_list = crop.harvest_list != null ? new List<KeyValuePair<int, int>>(crop.harvest_list) : null;
+                        break;
+                    case ItemInstanceManager.ItemInstanceType.BuildingInstance:
+                        var build = (ItemInstanceManager.BuildingInstance)itemInstance;
+                        d.durability = build.durability;
+                        d.material_list = build.material_list != null ? new List<KeyValuePair<int, int>>(build.material_list) : null;
+                        d.content_id = build.content != null ? build.content.id : -1;
+                        break;
+                    case ItemInstanceManager.ItemInstanceType.PrintInstance:
+                        var print = (ItemInstanceManager.PrintInstance)itemInstance;
+                        d.print_material_list = new List<ItemInstanceManagerData.PrintMaterialProgress>();
+                        if (print.material_list != null)
+                        {
+                            foreach (var p in print.material_list)
+                            {
+                                d.print_material_list.Add(new ItemInstanceManagerData.PrintMaterialProgress
+                                {
+                                    item_id = p.Key,
+                                    current = p.Value.current,
+                                    need = p.Value.need
+                                });
+                            }
+                        }
+                        break;
+                    case ItemInstanceManager.ItemInstanceType.ResourceInstance:
+                        d.resource_durability = ((ItemInstanceManager.ResourceInstance)itemInstance).durability;
+                        break;
+                }
+                data.instances.Add(d);
+            }
+        }
+
+        string json = JsonConvert.SerializeObject(data, Formatting.Indented);
+        File.WriteAllText(itemInstanceSavePath, json);
+        Debug.Log($"ItemInstanceManager data saved to {itemInstanceSavePath}");
+    }
+
+    public void LoadItemInstanceManager()
+    {
+        if (!File.Exists(itemInstanceSavePath))
+        {
+            Debug.LogWarning("ItemInstanceManager save file not found!");
+            return;
+        }
+
+        if (ItemInstanceManager.Instance == null)
+        {
+            Debug.LogError("ItemInstanceManager.Instance is null. Cannot load data.");
+            return;
+        }
+
+        string json = File.ReadAllText(itemInstanceSavePath);
+        ItemInstanceManagerData data = JsonConvert.DeserializeObject<ItemInstanceManagerData>(json);
+
+        // 清空现有数据
+        ItemInstanceManager.Instance.itemInstanceLists.Clear();
+
+        foreach (var d in data.instances)
+        {
+            var type = (ItemInstanceManager.ItemInstanceType)System.Enum.Parse(typeof(ItemInstanceManager.ItemInstanceType), d.type);
+            ItemInstanceManager.ItemInstance ins = null;
+            switch (type)
+            {
+                case ItemInstanceManager.ItemInstanceType.ToolInstance:
+                    ins = new ItemInstanceManager.ToolInstance
+                    {
+                        id = d.id,
+                        type = type,
+                        item_id = d.item_id,
+                        position = d.position.ToVector3Int(),
+                        durability = d.durability
+                    };
+                    break;
+                case ItemInstanceManager.ItemInstanceType.MaterialInstance:
+                    ins = new ItemInstanceManager.MaterialInstance
+                    {
+                        id = d.id,
+                        type = type,
+                        item_id = d.item_id,
+                        position = d.position.ToVector3Int(),
+                        amount = d.amount
+                    };
+                    break;
+                case ItemInstanceManager.ItemInstanceType.CropInstance:
+                    ins = new ItemInstanceManager.CropInstance
+                    {
+                        id = d.id,
+                        type = type,
+                        item_id = d.item_id,
+                        position = d.position.ToVector3Int(),
+                        growth = d.growth,
+                        real_lifetime = d.real_lifetime,
+                        growth_per_frame = d.growth_per_frame,
+                        harvest_list = d.harvest_list != null ? new List<KeyValuePair<int, int>>(d.harvest_list) : null
+                    };
+                    break;
+                case ItemInstanceManager.ItemInstanceType.BuildingInstance:
+                    ins = new ItemInstanceManager.BuildingInstance
+                    {
+                        id = d.id,
+                        type = type,
+                        item_id = d.item_id,
+                        position = d.position.ToVector3Int(),
+                        durability = d.durability,
+                        material_list = d.material_list != null ? new List<KeyValuePair<int, int>>(d.material_list) : null,
+                        // content 暂时置空，后面统一设置
+                    };
+                    break;
+                case ItemInstanceManager.ItemInstanceType.PrintInstance:
+                    var print = new ItemInstanceManager.PrintInstance
+                    {
+                        id = d.id,
+                        type = type,
+                        item_id = d.item_id,
+                        position = d.position.ToVector3Int(),
+                        material_list = new List<KeyValuePair<int, ItemInstanceManager.PrintInstance.Progress>>()
+                    };
+                    if (d.print_material_list != null)
+                    {
+                        foreach (var p in d.print_material_list)
+                        {
+                            print.material_list.Add(new KeyValuePair<int, ItemInstanceManager.PrintInstance.Progress>(
+                                p.item_id,
+                                new ItemInstanceManager.PrintInstance.Progress { current = p.current, need = p.need }
+                            ));
+                        }
+                    }
+                    ins = print;
+                    break;
+                case ItemInstanceManager.ItemInstanceType.ResourceInstance:
+                    ins = new ItemInstanceManager.ResourceInstance
+                    {
+                        id = d.id,
+                        type = type,
+                        item_id = d.item_id,
+                        position = d.position.ToVector3Int(),
+                        durability = d.resource_durability
+                    };
+                    break;
+            }
+            if (ins != null)
+            {
+                Sprite texture = null;
+                // 例如：texture = ItemManager.Instance.GetItem(ins.item_id)?.texture;
+                texture = ItemManager.Instance.GetItem(ins.item_id)?.texture;
+                ItemInstanceManager.Instance.InitInstance(ins, texture);
+                if (!ItemInstanceManager.Instance.itemInstanceLists.ContainsKey(type))
+                    ItemInstanceManager.Instance.itemInstanceLists[type] = new List<ItemInstanceManager.ItemInstance>();
+                ItemInstanceManager.Instance.itemInstanceLists[type].Add(ins);
+                // 如果有idToInstance等索引，也可以在这里同步
+            }
+        }
+
+        Debug.Log("ItemInstanceManager data loaded successfully.");
+    }
+
+    public void TestSaveAndLoadItemInstanceManagerData()
+    {
+        Debug.Log("TestSaveAndLoadItemInstanceManagerData called.");
+
+        if (ItemInstanceManager.Instance == null)
+        {
+            Debug.LogError("ItemInstanceManager.Instance is null. Cannot test save and load.");
+            return;
+        }
+
+        // 创建测试数据
+        ItemInstanceManager.Instance.itemInstanceLists = new Dictionary<ItemInstanceManager.ItemInstanceType, List<ItemInstanceManager.ItemInstance>>
+        {
+            [ItemInstanceManager.ItemInstanceType.ToolInstance] = new List<ItemInstanceManager.ItemInstance>
+            {
+                new ItemInstanceManager.ToolInstance { id = 1, type = ItemInstanceManager.ItemInstanceType.ToolInstance, item_id = 1001, position = new Vector3Int(0, 0, 0), durability = 75 }
+            },
+            [ItemInstanceManager.ItemInstanceType.MaterialInstance] = new List<ItemInstanceManager.ItemInstance>
+            {
+                new ItemInstanceManager.MaterialInstance { id = 2, type = ItemInstanceManager.ItemInstanceType.MaterialInstance, item_id = 2001, position = new Vector3Int(1, 0, 0), amount = 10 }
+            },
+            [ItemInstanceManager.ItemInstanceType.CropInstance] = new List<ItemInstanceManager.ItemInstance>
+            {
+                new ItemInstanceManager.CropInstance { id = 3, type = ItemInstanceManager.ItemInstanceType.CropInstance, item_id = 3001, position = new Vector3Int(0, 1, 0), growth = 0.5f, real_lifetime = 5.0f, growth_per_frame = 0.1f }
+            },
+            [ItemInstanceManager.ItemInstanceType.BuildingInstance] = new List<ItemInstanceManager.ItemInstance>
+            {
+                new ItemInstanceManager.BuildingInstance { id = 4, type = ItemInstanceManager.ItemInstanceType.BuildingInstance, item_id = 4001, position = new Vector3Int(1, 1, 0), durability = 100, material_list = new List<KeyValuePair<int, int>> { new KeyValuePair<int, int>(2001, 5) } }
+            },
+            [ItemInstanceManager.ItemInstanceType.PrintInstance] = new List<ItemInstanceManager.ItemInstance>
+            {
+                new ItemInstanceManager.PrintInstance
+                {
+                    id = 5,
+                    type = ItemInstanceManager.ItemInstanceType.PrintInstance,
+                    item_id = 5001,
+                    position = new Vector3Int(0, 2, 0),
+                    material_list = new List<KeyValuePair<int, ItemInstanceManager.PrintInstance.Progress>>
+                    {
+                        new KeyValuePair<int, ItemInstanceManager.PrintInstance.Progress>(2001, new ItemInstanceManager.PrintInstance.Progress { current = 2, need = 5 })
+                    }
+                }
+            }
+        };
+
+        // 保存数据
+        SaveItemInstanceManager();
+
+        // 清空现有数据
+        ItemInstanceManager.Instance.itemInstanceLists.Clear();
+
+        // 加载数据
+        LoadItemInstanceManager();
+
+        // 验证加载的数据
+        foreach (var kvp in ItemInstanceManager.Instance.itemInstanceLists)
+        {
+            foreach (var itemInstance in kvp.Value)
+            {
+                Debug.Log($"ItemInstance ID: {itemInstance.id}, Type: {itemInstance.GetType().Name}, Position: {itemInstance.position}");
+            }
+        }
+    }
+    #endregion
+
+    #region "CropManagerData"
+    [System.Serializable]
+    public class CropManagerData
+    {
+        public List<CropData> crops;
+        public List<PestDisasterData> pestDisasterEnvFactors;
+        public float globalBuffChangeRate;
+        public List<GrowthPerFrameData> growthPerFrames;
+
+        [System.Serializable]
+        public class CropData
+        {
+            public int id;
+            public string name;
+            public float lifetime;
+            public float best_fertility;
+            public float best_humidity;
+            public float best_light;
+            public int seed_id;
+            // 可扩展字段
+        }
+
+        [System.Serializable]
+        public class PestDisasterData
+        {
+            public int crop_id;
+            public float change_rate;
+        }
+
+        [System.Serializable]
+        public class GrowthPerFrameData
+        {
+            public int crop_id;
+            public float growth_per_frame;
+        }
+    }
+
+    private string cropManagerSavePath => Path.Combine(Application.persistentDataPath, "CropManagerData.json");
+
+    public void SaveCropManager()
+    {
+        if (CropManager.Instance == null)
+        {
+            Debug.LogError("CropManager.Instance is null. Cannot save data.");
+            return;
+        }
+
+        CropManagerData data = new CropManagerData
+        {
+            crops = new List<CropManagerData.CropData>(),
+            pestDisasterEnvFactors = new List<CropManagerData.PestDisasterData>(),
+            growthPerFrames = new List<CropManagerData.GrowthPerFrameData>(),
+            globalBuffChangeRate = CropManager.Instance.globalBuffEnvFactor != null ? CropManager.Instance.globalBuffEnvFactor.change_rate : 1.0f
+        };
+
+        // 保存作物基础数据
+        foreach (var crop in CropManager.Instance.cropList)
+        {
+            var d = new CropManagerData.CropData
+            {
+                id = crop.id,
+                name = crop.name,
+                lifetime = crop.lifetime,
+                best_fertility = crop.best_fertility,
+                best_humidity = crop.best_humidity,
+                best_light = crop.best_light,
+                seed_id = crop.seed_id
+            };
+            data.crops.Add(d);
+        }
+
+        // 保存 pestDisasterEnvFactorDict
+        foreach (var kvp in CropManager.Instance.pestDisasterEnvFactorDict)
+        {
+            if (kvp.Value != null)
+            {
+                data.pestDisasterEnvFactors.Add(new CropManagerData.PestDisasterData
+                {
+                    crop_id = kvp.Key,
+                    change_rate = kvp.Value.change_rate
+                });
+            }
+        }
+
+        // 保存 growthPerFrameDict
+        foreach (var kvp in CropManager.Instance.growthPerFrameDict)
+        {
+            data.growthPerFrames.Add(new CropManagerData.GrowthPerFrameData
+            {
+                crop_id = kvp.Key,
+                growth_per_frame = kvp.Value
+            });
+        }
+
+        string json = JsonConvert.SerializeObject(data, Formatting.Indented);
+        File.WriteAllText(cropManagerSavePath, json);
+        Debug.Log($"CropManager data saved to {cropManagerSavePath}");
+    }
+
+    public void LoadCropManager()
+    {
+        if (!File.Exists(cropManagerSavePath))
+        {
+            Debug.LogWarning("CropManager save file not found!");
+            return;
+        }
+
+        if (CropManager.Instance == null)
+        {
+            Debug.LogError("CropManager.Instance is null. Cannot load data.");
+            return;
+        }
+
+        string json = File.ReadAllText(cropManagerSavePath);
+        CropManagerData data = JsonConvert.DeserializeObject<CropManagerData>(json);
+
+        CropManager.Instance.cropList.Clear();
+        CropManager.Instance.cropDict.Clear();
+        CropManager.Instance.SeedIdDict.Clear();
+        CropManager.Instance.pestDisasterEnvFactorDict.Clear();
+        CropManager.Instance.growthPerFrameDict.Clear();
+
+        // 恢复作物基础数据
+        foreach (var d in data.crops)
+        {
+            Crop crop = ScriptableObject.CreateInstance<Crop>();
+            crop.id = d.id;
+            crop.name = d.name;
+            crop.lifetime = d.lifetime;
+            crop.best_fertility = d.best_fertility;
+            crop.best_humidity = d.best_humidity;
+            crop.best_light = d.best_light;
+            crop.seed_id = d.seed_id;
+
+            CropManager.Instance.cropList.Add(crop);
+            CropManager.Instance.cropDict[crop.id] = crop;
+            CropManager.Instance.SeedIdDict[crop.id] = crop.seed_id;
+        }
+
+        // 恢复 pestDisasterEnvFactorDict
+        foreach (var pd in data.pestDisasterEnvFactors)
+        {
+            var factor = ScriptableObject.CreateInstance<LinearFactor>();
+            factor.change_rate = pd.change_rate;
+            CropManager.Instance.pestDisasterEnvFactorDict[pd.crop_id] = factor;
+        }
+
+        // 恢复 globalBuffEnvFactor
+        if (CropManager.Instance.globalBuffEnvFactor == null)
+            CropManager.Instance.globalBuffEnvFactor = ScriptableObject.CreateInstance<LinearFactor>();
+        CropManager.Instance.globalBuffEnvFactor.change_rate = data.globalBuffChangeRate;
+
+        // 恢复 growthPerFrameDict
+        foreach (var gpf in data.growthPerFrames)
+        {
+            CropManager.Instance.growthPerFrameDict[gpf.crop_id] = gpf.growth_per_frame;
+        }
+
+        Debug.Log("CropManager data loaded successfully.");
+    }
+    #endregion
+
+    #region "TimeManagerData"
+    /*
+    可以使用的前提是把TimeManager的私有字段暴露出来。
+    public static TimeManager Instance { get; set; }   //单例模式，确保只有一个timemanager
+    public float realityTime { get; set; } = 0f; // 现实时间
+    public float gameTime { get; set; } = 0f; // 游戏内时间
+    这样修改这几行代码就可以了，否则不建议启用
+    */
+    [System.Serializable]
+    public class TimeManagerData
+    {
+        public float realityTime;
+        public float gameTime;
+        public float timeScale;
+        public int currentDay;
+        public int currentSeason;
+    }
+
+    private string timeManagerSavePath => Path.Combine(Application.persistentDataPath, "TimeManagerData.json");
+
+    public void SaveTimeManager()
+    {
+        if (TimeManager.Instance == null)
+        {
+            Debug.LogError("TimeManager.Instance is null. Cannot save data.");
+            return;
+        }
+
+        TimeManagerData data = new TimeManagerData
+        {
+            realityTime = TimeManager.Instance.realityTime,
+            gameTime = TimeManager.Instance.gameTime,
+            timeScale = TimeManager.Instance.timeScale,
+            currentDay = TimeManager.Instance.GetCurrentDay(),
+            currentSeason = (int)TimeManager.Instance.GetCurrentSeason()
+        };
+
+        string json = JsonConvert.SerializeObject(data, Formatting.Indented);
+        File.WriteAllText(timeManagerSavePath, json);
+        Debug.Log($"TimeManager data saved to {timeManagerSavePath}");
+    }
+
+    public void LoadTimeManager()
+    {
+        if (!File.Exists(timeManagerSavePath))
+        {
+            Debug.LogWarning("TimeManager save file not found!");
+            return;
+        }
+
+        if (TimeManager.Instance == null)
+        {
+            Debug.LogError("TimeManager.Instance is null. Cannot load data.");
+            return;
+        }
+
+        string json = File.ReadAllText(timeManagerSavePath);
+        TimeManagerData data = JsonConvert.DeserializeObject<TimeManagerData>(json);
+
+        // 反射或暴露接口设置私有字段
+        TimeManager.Instance.realityTime = data.realityTime;
+        TimeManager.Instance.gameTime = data.gameTime;
+        TimeManager.Instance.timeScale = data.timeScale;
+        TimeManager.Instance.currentDay = data.currentDay;
+        TimeManager.Instance.currentSeason = (TimeManager.Seasons)data.currentSeason;
+        Debug.Log("TimeManager data loaded successfully.");
+    }
+    #endregion
+
+    #region "TraderManagerData"
+    [System.Serializable]
+    public class TraderManagerData
+    {
+        public bool isTraderActive;
+        public float currentSpawnProbability;
+        public int balance;
+        public List<TraderGoodsData> goods;
+        public List<ItemHistoryData> itemHistory; // 新增
+
+        [System.Serializable]
+        public class TraderGoodsData
+        {
+            public int item_id;
+            public int amount;
+        }
+
+        [System.Serializable]
+        public class ItemHistoryData
+        {
+            public int item_id;
+            public int count;
+        }
+    }
+
+    private string traderManagerSavePath => Path.Combine(Application.persistentDataPath, "TraderManagerData.json");
+
+    public void SaveTraderManager()
+    {
+        if (TraderManager.Instance == null || TraderManager.Instance.trader == null)
+        {
+            Debug.LogError("TraderManager.Instance or trader is null. Cannot save data.");
+            return;
+        }
+
+        TraderManagerData data = new TraderManagerData
+        {
+            isTraderActive = TraderManager.Instance.isTraderActive,
+            currentSpawnProbability = TraderManager.Instance.currentSpawnProbability,
+            balance = TraderManager.Instance.balance,
+            goods = new List<TraderManagerData.TraderGoodsData>(),
+            itemHistory = new List<TraderManagerData.ItemHistoryData>() // 新增
+        };
+
+        foreach (var pair in TraderManager.Instance.trader.goods)
+        {
+            data.goods.Add(new TraderManagerData.TraderGoodsData
+            {
+                item_id = pair.Key.id,
+                amount = pair.Value
+            });
+        }
+
+        foreach (var pair in TraderManager.Instance.itemHistory)
+        {
+            data.itemHistory.Add(new TraderManagerData.ItemHistoryData
+            {
+                item_id = pair.Key.id,
+                count = pair.Value
+            });
+        }
+
+        string json = JsonConvert.SerializeObject(data, Formatting.Indented);
+        File.WriteAllText(traderManagerSavePath, json);
+        Debug.Log($"TraderManager data saved to {traderManagerSavePath}");
+    }
+
+    public void LoadTraderManager()
+    {
+        if (!File.Exists(traderManagerSavePath))
+        {
+            Debug.LogWarning("TraderManager save file not found!");
+            return;
+        }
+
+        if (TraderManager.Instance == null || TraderManager.Instance.trader == null)
+        {
+            Debug.LogError("TraderManager.Instance or trader is null. Cannot load data.");
+            return;
+        }
+
+        string json = File.ReadAllText(traderManagerSavePath);
+        TraderManagerData data = JsonConvert.DeserializeObject<TraderManagerData>(json);
+
+        TraderManager.Instance.isTraderActive = data.isTraderActive;
+        TraderManager.Instance.currentSpawnProbability = data.currentSpawnProbability;
+        TraderManager.Instance.balance = data.balance;
+
+        TraderManager.Instance.trader.goods.Clear();
+        foreach (var g in data.goods)
+        {
+            var item = ItemManager.Instance.GetItem(g.item_id); // 修改这里
+            if (item != null)
+                TraderManager.Instance.trader.goods.Add(new KeyValuePair<ItemManager.Item, int>(item, g.amount));
+        }
+
+        TraderManager.Instance.itemHistory.Clear();
+        if (data.itemHistory != null)
+        {
+            foreach (var h in data.itemHistory)
+            {
+                var item = ItemManager.Instance.GetItem(h.item_id); // 修改这里
+                if (item != null)
+                    TraderManager.Instance.itemHistory[item] = h.count;
+            }
+        }
+
+        Debug.Log("TraderManager data loaded successfully.");
+    }
+
+    public void TestSaveAndLoadTraderManagerData()
+    {
+        Debug.Log("TestSaveAndLoadTraderManagerData called.");
+
+        if (TraderManager.Instance == null || TraderManager.Instance.trader == null)
+        {
+            Debug.LogError("TraderManager.Instance or trader is null. Cannot test save and load.");
+            return;
+        }
+
+        // 修改一些数据用于测试
+        TraderManager.Instance.isTraderActive = true;
+        TraderManager.Instance.currentSpawnProbability = 0.5f;
+        TraderManager.Instance.balance = 1234;
+        TraderManager.Instance.trader.goods = new List<KeyValuePair<ItemManager.Item, int>>
+        {
+            new KeyValuePair<ItemManager.Item, int>(ItemManager.Instance.itemLists[ItemManager.ItemType.Material][0], 10),
+            new KeyValuePair<ItemManager.Item, int>(ItemManager.Instance.itemLists[ItemManager.ItemType.Material][1], 20)
+        };
+        TraderManager.Instance.itemHistory.Clear();
+        TraderManager.Instance.itemHistory[ItemManager.Instance.itemLists[ItemManager.ItemType.Material][0]] = 5;
+        TraderManager.Instance.itemHistory[ItemManager.Instance.itemLists[ItemManager.ItemType.Material][1]] = 8;
+
+        // 保存
+        SaveTraderManager();
+
+        // 清空
+        TraderManager.Instance.isTraderActive = false;
+        TraderManager.Instance.currentSpawnProbability = 0f;
+        TraderManager.Instance.balance = 0;
+        TraderManager.Instance.trader.goods.Clear();
+        TraderManager.Instance.itemHistory.Clear();
+
+        // 加载
+        LoadTraderManager();
+
+        // 验证
+        Debug.Log($"isTraderActive: {TraderManager.Instance.isTraderActive}, currentSpawnProbability: {TraderManager.Instance.currentSpawnProbability}, balance: {TraderManager.Instance.balance}");
+        foreach (var g in TraderManager.Instance.trader.goods)
+        {
+            Debug.Log($"Goods: {g.Key.name}, Amount: {g.Value}");
+        }
+        foreach (var h in TraderManager.Instance.itemHistory)
+        {
+            Debug.Log($"ItemHistory: {h.Key.name}, Count: {h.Value}");
+        }
+    }
+    #endregion
+
+    #region "EventManagerData"
+    [System.Serializable]
+    public class EventManagerData
+    {
+        public List<EventData> events = new List<EventData>();
+
+        [System.Serializable]
+        public class EventData
+        {
+            public string eventType; // EventType枚举
+            public string name;
+            public int arrival;
+            public int end;
+            public int predictability_level;
+
+            // Weather
+            public string weather_type;
+
+            // PestDisaster
+            public int aim_crop;
+            public int damage_rate;
+        }
+    }
+
+    private string eventManagerSavePath => Path.Combine(Application.persistentDataPath, "EventManagerData.json");
+
+    public void SaveEventManager()
+    {
+        if (EventManager.Instance == null)
+        {
+            Debug.LogError("EventManager.Instance is null. Cannot save data.");
+            return;
+        }
+
+        var data = new EventManagerData();
+
+        // 反射或类型判断，序列化所有事件
+        var eventListField = typeof(EventManager).GetField("eventList", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var eventList = eventListField.GetValue(EventManager.Instance) as List<EventManager.Event>;
+        foreach (var e in eventList)
+        {
+            var ed = new EventManagerData.EventData
+            {
+                eventType = e.type.ToString(),
+                name = e.name,
+                arrival = e.arrival,
+                end = e.end,
+                predictability_level = e.predictability_level
+            };
+            if (e is EventManager.Weather w)
+            {
+                ed.weather_type = w.weather_type.ToString();
+            }
+            else if (e is EventManager.PestDisaster p)
+            {
+                ed.aim_crop = p.aim_crop;
+                ed.damage_rate = p.damage_rate;
+            }
+            data.events.Add(ed);
+        }
+
+        string json = JsonConvert.SerializeObject(data, Formatting.Indented);
+        File.WriteAllText(eventManagerSavePath, json);
+        Debug.Log($"EventManager data saved to {eventManagerSavePath}");
+    }
+
+    public void LoadEventManager()
+    {
+        if (!File.Exists(eventManagerSavePath))
+        {
+            Debug.LogWarning("EventManager save file not found!");
+            return;
+        }
+        if (EventManager.Instance == null)
+        {
+            Debug.LogError("EventManager.Instance is null. Cannot load data.");
+            return;
+        }
+
+        string json = File.ReadAllText(eventManagerSavePath);
+        var data = JsonConvert.DeserializeObject<EventManagerData>(json);
+
+        var eventListField = typeof(EventManager).GetField("eventList", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var eventList = eventListField.GetValue(EventManager.Instance) as List<EventManager.Event>;
+        eventList.Clear();
+
+        foreach (var ed in data.events)
+        {
+            EventManager.Event e = null;
+            var typeEnum = (EventManager.EventType)System.Enum.Parse(typeof(EventManager.EventType), ed.eventType);
+            switch (typeEnum)
+            {
+                case EventManager.EventType.Weather:
+                    var w = new EventManager.Weather
+                    {
+                        type = typeEnum,
+                        name = ed.name,
+                        arrival = ed.arrival,
+                        end = ed.end,
+                        predictability_level = ed.predictability_level,
+                        weather_type = (EventManager.Weather.WeatherType)System.Enum.Parse(typeof(EventManager.Weather.WeatherType), ed.weather_type)
+                    };
+                    e = w;
+                    break;
+                case EventManager.EventType.PestDisaster:
+                    var p = new EventManager.PestDisaster
+                    {
+                        type = typeEnum,
+                        name = ed.name,
+                        arrival = ed.arrival,
+                        end = ed.end,
+                        predictability_level = ed.predictability_level,
+                        aim_crop = ed.aim_crop,
+                        damage_rate = ed.damage_rate
+                    };
+                    e = p;
+                    break;
+                default:
+                    e = new EventManager.Event
+                    {
+                        type = typeEnum,
+                        name = ed.name,
+                        arrival = ed.arrival,
+                        end = ed.end,
+                        predictability_level = ed.predictability_level
+                    };
+                    break;
+            }
+            eventList.Add(e);
+        }
+        Debug.Log("EventManager data loaded successfully.");
+    }
+
+    public void TestSaveAndLoadEventManagerData()
+    {
+        Debug.Log("TestSaveAndLoadEventManagerData called.");
+
+        if (EventManager.Instance == null)
+        {
+            Debug.LogError("EventManager.Instance is null. Cannot test save and load.");
+            return;
+        }
+
+        // 构造测试数据
+        var eventListField = typeof(EventManager).GetField("eventList", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var eventList = eventListField.GetValue(EventManager.Instance) as List<EventManager.Event>;
+        eventList.Clear();
+
+        var weather = new EventManager.Weather
+        {
+            type = EventManager.EventType.Weather,
+            name = "Sunny Day",
+            arrival = 1,
+            end = 2,
+            predictability_level = 1,
+            weather_type = EventManager.Weather.WeatherType.Sunny
+        };
+        var pest = new EventManager.PestDisaster
+        {
+            type = EventManager.EventType.PestDisaster,
+            name = "Locust Attack",
+            arrival = 3,
+            end = 4,
+            predictability_level = 2,
+            aim_crop = 101,
+            damage_rate = 30
+        };
+        eventList.Add(weather);
+        eventList.Add(pest);
+
+        // 保存
+        SaveEventManager();
+
+        // 清空
+        eventList.Clear();
+
+        // 加载
+        LoadEventManager();
+
+        // 验证
+        foreach (var e in eventList)
+        {
+            Debug.Log($"Event: {e.name}, Type: {e.type}, Arrival: {e.arrival}, End: {e.end}, Predictability: {e.predictability_level}");
+            if (e is EventManager.Weather w)
+                Debug.Log($"WeatherType: {w.weather_type}");
+            if (e is EventManager.PestDisaster p)
+                Debug.Log($"AimCrop: {p.aim_crop}, DamageRate: {p.damage_rate}");
+        }
+    }
+    #endregion
+
+
 
     void Awake()
     {
-        
+
         if (Instance == null)
         {
             Instance = this;
@@ -1030,25 +1915,78 @@ public class SLManager : MonoBehaviour
     {
         //代码运行的时候可能会出现ArgumentException: An item with the same key has already been added
         //这个是正常现象，因为在测试的时候会重复添加相同的key
-        //TestSaveAndLoadBuildManagerData();
-        //TestSaveAndLoadCropManagerData(); // 调用测试方法
-        //TestSaveAndLoadItemManagerData(); // 调用测试方法
-        //TestSaveAndLoadMapManagerData(); // 调用测试方法
-        //TestSaveAndLoadTaskManagerData(); // 调用测试方法
-        //TestSaveAndLoadPawnManagerData(); // 调用测试方法
+        //LoadItemManager();
+        //StartCoroutine(DelayedLoad());
+        
+    }
+    IEnumerator DelayedLoad()
+    {
+        // 等待所有依赖的Manager单例初始化
+        while (
+            MapManager.Instance == null ||
+            TaskManager.Instance == null ||
+            PawnManager.Instance == null ||
+            //ItemManager.Instance == null ||
+            CropManager.Instance == null ||
+            TimeManager.Instance == null ||
+            TraderManager.Instance == null ||
+            ItemInstanceManager.Instance == null
+        )
+        {
+            Debug.LogWarning("Waiting for all Managers to initialize...");
+            yield return null;
+        }
+        /*
+        // 依次加载数据，顺序建议如下（先基础数据，后依赖数据）
+        //LoadItemManager();
+        LoadCropManager();
+        //LoadMapManager();
+        LoadTaskManager();
+        LoadPawnManager();
+        LoadItemInstanceManager();
+        LoadTimeManager();
+        LoadTraderManager();
+        */
+        Debug.Log("All managers loaded successfully.");
     }
     void OnDestroy()
     {
         // 在销毁时保存数据
-        //SaveBuildManager();
-        //SaveCropManager();
         //SaveItemManager();
-        //SaveMapManager();
-        //SaveTaskManager();
-        //SavePawnManager();
-        //Debug.Log("Data saved on destroy.");
+        /*
+        SaveMapManager();
+        SaveTaskManager();
+        SavePawnManager();
+        SaveItemInstanceManager();
+        SaveCropManager();
+        SaveTimeManager();
+        SaveTraderManager();
+        */
     }
-
-    // 保存 CropManager 的静态数据
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.F4))
+        {
+            //SaveItemManager();            
+            SaveMapManager();
+            SaveTaskManager();
+            SavePawnManager();
+            SaveItemInstanceManager();
+            SaveCropManager();
+            SaveTimeManager();
+            SaveTraderManager();
+        }
+        if (Input.GetKeyDown(KeyCode.F5))
+        {
+            //LoadItemManager();            
+            LoadMapManager();
+            LoadTaskManager();
+            LoadPawnManager();
+            LoadItemInstanceManager();
+            LoadCropManager();
+            LoadTimeManager();
+            LoadTraderManager();
+        }
+    }
     
 }
