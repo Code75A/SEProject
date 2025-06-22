@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eaa4eff4df7f7c1478f6bd9d0842e2d7, type: 3}
+  m_Name: 50_BigStature
+  m_EditorClassIdentifier: 
+  id: 50
+  build_name: "\u4E00\u4E2A\u9177\u70AB\u7684\u7ED3\u6784"
+  texture: {fileID: 2138451137, guid: 824fcbf5fa6a8214fa68bee50e97c5fb, type: 3}
+  type: 1
+  width: 1
+  height: 1
+  durability: 5000
+  can_build: 0
+  can_walk: 0
+  can_plant: 0
+  material_statistics:
+  - Key: 5
+    Value: 200
+  - Key: 6
+    Value: 500
+  - Key: 13
+    Value: 500
