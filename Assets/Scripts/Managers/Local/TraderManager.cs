@@ -35,8 +35,8 @@ public class TraderManager : MonoBehaviour
     public int goodsCount = DEFAULT_GOODS_COUNT;
     public int balance = DEFAULT_BALANCE;
 
-    private Dictionary<ItemManager.Item, float> itemWeights = new();
-    private Dictionary<ItemManager.Item, int> itemHistory = new();
+    public Dictionary<ItemManager.Item, float> itemWeights = new();
+    public Dictionary<ItemManager.Item, int> itemHistory = new();
     public List<ItemManager.Item> availableItems = new();
     #endregion
 
