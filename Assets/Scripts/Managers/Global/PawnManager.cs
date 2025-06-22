@@ -82,6 +82,7 @@ public class PawnManager : MonoBehaviour {
         }
     }
 
+
     public class Pawn
     {
         public int id;
@@ -95,7 +96,12 @@ public class PawnManager : MonoBehaviour {
 
         public int instantCapacity = CAPACITY; //当前运载容量
         public int materialId = 0;
-        public int materialAmount = 0; //物品数量
+        public int _materialAmount = 0;
+        public int materialAmount
+        {
+            get => _materialAmount;
+            set => _materialAmount = Mathf.Max(value, 0);
+        }
         public ItemInstanceManager.ItemInstanceType materialType; //物品类型
 
         public attribute attributes = new attribute(0, 0, 0); //小人属性
@@ -1119,6 +1125,7 @@ public class PawnManager : MonoBehaviour {
 
         //需要种子总数，以及种植位置1
         int seed_amount = positions.Count;
+        Debug.Log($"需要种子总数: {seed_amount}");
         Vector3Int first_plant_pos = positions[0];
 
         PawnInteractController controller = pawn.Instance.GetComponent<PawnInteractController>();
@@ -1133,6 +1140,7 @@ public class PawnManager : MonoBehaviour {
         while (pawn.materialAmount < seed_amount)
         {
             int instant_seed_need = seed_amount - pawn.materialAmount;
+            Debug.Log($"当前小人携带种子数量: {pawn.materialAmount}，需要种子数量: {instant_seed_need}");
             yield return StartCoroutine(Pawnmovetoload(pawn, first_plant_pos, instant_seed_need, plantseedid));
         }
 
