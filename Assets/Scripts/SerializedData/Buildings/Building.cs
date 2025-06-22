@@ -1,10 +1,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum BuildingType{
-    Dev,Wall,Farm,Storage,Total
+public enum BuildingType
+{
+    Dev, Wall, Farm, Storage, Total
 }
-
+// Dev: 调试用地形覆盖
+// Wall: 墙体，阻挡移动
+// Farm: 农田
+//   TODO: 允许种植作物 by 添加Crop槽位
+// Storage: 储物类
+//   TODO: 允许存储物品 by 与ResourceManager交互
 [CreateAssetMenu(menuName = "Concrete/Buildings/Building")]
 public class Building : ScriptableObject
 {
