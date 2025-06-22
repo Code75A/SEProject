@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.IO;
+using UnityEngine; // 添加这一行
 
 public class IDManager
 {
@@ -62,5 +64,46 @@ public class IDManager
     public bool IsIdUsed(int id)
     {
         return usedIds.Contains(id);
+    }
+
+    // 保存到文件
+    public void SaveToFile(string path)
+    {
+        var data = new SerializableData
+        {
+            UsedIds = new List<int>(usedIds),
+            AvailableIds = new List<int>(availableIds),
+            NextId = nextId
+        };
+        var json = JsonUtility.ToJson(data);
+        File.WriteAllText(path, json);
+    }
+
+    // 从文件加载
+    public void LoadFromFile(string path)
+    {
+        if (!File.Exists(path)) return;
+        try
+        {
+            var json = File.ReadAllText(path);
+            var data = JsonUtility.FromJson<SerializableData>(json);
+            if (data == null || data.UsedIds == null || data.AvailableIds == null)
+                return;
+            usedIds = new HashSet<int>(data.UsedIds);
+            availableIds = new Queue<int>(data.AvailableIds);
+            nextId = data.NextId;
+        }
+        catch
+        {
+            // 可加日志
+        }
+    }
+
+    [System.Serializable] // 必须加这个
+    private class SerializableData
+    {
+        public List<int> UsedIds;
+        public List<int> AvailableIds;
+        public int NextId;
     }
 }
