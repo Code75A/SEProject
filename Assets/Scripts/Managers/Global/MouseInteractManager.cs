@@ -521,7 +521,19 @@ public class MouseInteractManager : MonoBehaviour
         }
         
     }
-    public void ApplyInstructGrow(Vector3Int pos) {
+    public void ApplyInstructGetTool(Vector3Int pos)
+    {
+        if (selectingPawn != null)
+        {
+            pawnController.GetToolAtPositionByPlayer(pos);
+        }
+        else
+        {
+            Debug.LogError("When ApplyInstructGetTool, selectingPawn is Null");
+        }
+    }
+    public void ApplyInstructGrow(Vector3Int pos)
+    {
         //TODO: Grow指令
     }
     public void ApplyInstructHarvest(Vector3Int pos) {

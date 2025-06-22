@@ -53,22 +53,17 @@ public class PawnManager : MonoBehaviour {
 
     #endregion
 
-        public struct attribute {
-        int a;
-        int b;
-        int c;
+    public struct attribute
+    {
+        public int plant;
+        public int harvest;
+        public int build;
 
-        private attribute(int a1, int b2, int c3)
+        public attribute(int plant, int harvest, int build)
         {
-            a = a1;
-            b = b2;
-            c = c3;
-        }
-        public void updata_attribute(int da, int db, int dc)
-        {
-            a = da;
-            b = db;
-            c = dc;
+            this.plant = plant;
+            this.harvest = harvest;
+            this.build = build;
         }
     }
 
@@ -87,6 +82,8 @@ public class PawnManager : MonoBehaviour {
         public int materialId = 0;
         public int materialAmount = 0; //物品数量
         public ItemInstanceManager.ItemInstanceType materialType; //物品类型
+
+        public attribute attributes = new attribute(0,0,0); //小人属性
 
         //工具类型EnhanceType枚举，与小人属性挂钩，itemmanager调用
         public enum EnhanceType
@@ -109,12 +106,18 @@ public class PawnManager : MonoBehaviour {
     // 根据工具增强属性修改移动速度和搬运容量
     // todo:增加放下工具的处理逻辑，重置基础属性
     //调用可能：UI组件直接调用？
-    public void GetToolAttribute(Pawn pawn, ItemManager.Tool tool) {
+    public void GetToolAttribute(Pawn pawn, ItemManager.Tool tool)
+    {
         //暂定比例增强，可后续改动算法
         float baseSpeed = pawn.moveSpeed;
-        float speedModifier = 1 + (tool.enhancements[PawnManager.Pawn.EnhanceType.Speed] / 100f);
+        float speedModifier = 1 + (tool.enhancements[Pawn.EnhanceType.Speed] / 100f);
         float actualSpeed = baseSpeed * speedModifier;
         pawn.moveSpeed = actualSpeed;
+        
+        float baseWorkspeed = pawn.workSpeed;
+        float workModifier = 1 + (tool.enhancements[Pawn.EnhanceType.Power] / 100f);
+        float actualWorkSpeed = baseWorkspeed * workModifier;
+        pawn.workSpeed = actualWorkSpeed;
         //todo:搬运容量itemManager.tool.capacity尚未实现，暂时不修改搬运容量
         //todo:工作速度待考虑，可能不同任务的加成不同
 
@@ -133,9 +136,56 @@ public class PawnManager : MonoBehaviour {
         pawn.capacity = CAPACITY; // 重置容量
     }
 
-    public void InstantiatePawn(Pawn pawn, Vector3Int startPos) {
+    public System.Collections.IEnumerator HandleGetToolTask(Pawn pawn)
+    {
+        Vector3Int targetPosition = pawn.handlingTask.target_position;
+        // 获取 PawnInteractController
+        PawnInteractController controller = pawn.Instance.GetComponent<PawnInteractController>();
+        if (controller == null)
+        {
+            Debug.LogWarning("PawnInteractController 未挂载在 Pawn 实例上！");
+            yield break;
+        }
 
-        if (pawn == null || pawn.Instance != null) {
+        // 2. 移动到物品位置（beginPosition）
+        // controller.MovePawnToPosition(task.beginPosition, pawn);
+        // // 等待 Pawn 到达
+        // yield return new WaitWhile(() => controller.isMoving);
+        TaskManager.Task Transporttaskstart = pawn.handlingTask;
+        pawn.handlingTask = new TaskManager.Task(
+            position: targetPosition,
+            type: TaskManager.TaskTypes.Move,
+            task_id: -1
+        );
+        //AddPawnTask(pawn, Transporttaskstart);
+        //HandleTask(pawn);
+        StartCoroutine(HandleMoveTask(pawn));
+        //yield return StartCoroutine(ResolveMoveTask(pawn)); 
+        yield return new WaitUntil(() => !controller.isMoving); // 等待移动任务完成
+        pawn.isOnTask = true;
+        pawn.handlingTask = Transporttaskstart;
+
+        MapManager.MapData targetData = MapManager.Instance.GetMapData(targetPosition);
+        if (targetData != null && targetData.has_item && targetData.item is ItemInstanceManager.ToolInstance toolInstance)
+        {
+            var tool = ItemManager.Instance.GetItem(toolInstance.item_id, ItemManager.ItemType.Tool) as ItemManager.Tool;
+            if (tool != null)
+            {
+                HasTool(pawn, tool);
+                //toolInstance.SetAmount(toolInstance.GetAmount() - 1); // 减少工具数量
+                ItemInstanceManager.Instance.DestroyItem(toolInstance);
+            }
+            else
+            {
+                Debug.LogWarning("未找到匹配的工具数据");
+            }
+        }
+    }
+    public void InstantiatePawn(Pawn pawn, Vector3Int startPos)
+    {
+
+        if (pawn == null || pawn.Instance != null)
+        {
             UnityEngine.Debug.LogWarning("Pawn 或其已经实例化，无法实例化！");
             return;
         }
@@ -159,13 +209,15 @@ public class PawnManager : MonoBehaviour {
 
         // 获取已经挂在预制体上的 PawnInteractController 脚本
         PawnInteractController controller = pawn.Instance.GetComponent<PawnInteractController>();
-        if (controller != null) {
+        if (controller != null)
+        {
             controller.pawn = pawn; // 关键点
             controller.landTilemap = MapManager.Instance.landTilemap;
             controller.content = MapManager.Instance.content;
             controller.fromCellPos = startPos; // 设置起始位置
         }
-        else {
+        else
+        {
             Debug.LogWarning("PawnInteractController 没有挂载在 Pawn 预制体上！");
         }
     }
@@ -369,7 +421,9 @@ public class PawnManager : MonoBehaviour {
     private float GetWorkTime(Pawn pawn, TaskManager.Task task)
     {
         int TotalProcess = task.tasklevel * 100;
-        float time = TotalProcess / pawn.workSpeed;
+        TotalProcess = 4; //todo:测试用，后续删除
+        float workspeed = pawn.workSpeed; //工作速度，包含小人属性加成
+        float time = TotalProcess / workspeed;
         return time; //仅为简易实现，后续数值及算法有待调整
     }
 
@@ -679,7 +733,8 @@ public class PawnManager : MonoBehaviour {
             { TaskManager.TaskTypes.Transport, (pawn) => Instance.StartCoroutine(Instance.HandleTransportTask(pawn, pawn.handlingTask as TaskManager.TransportTask)) },
             { TaskManager.TaskTypes.BuildingTransport, (pawn) => Instance.StartCoroutine(Instance.HandleToPrintInstanceTransportTask(pawn, pawn.handlingTask as TaskManager.TransportTask)) },
             { TaskManager.TaskTypes.PlantOnly, (pawn) => Instance.StartCoroutine(Instance.HandlePlantOnlyTask(pawn)) },
-            { TaskManager.TaskTypes.PlantALL, (pawn) => Instance.StartCoroutine(Instance.HandlePlantALLTask(pawn)) }
+            { TaskManager.TaskTypes.PlantALL, (pawn) => Instance.StartCoroutine(Instance.HandlePlantALLTask(pawn)) },
+            { TaskManager.TaskTypes.GetTool, (pawn) => Instance.StartCoroutine(Instance.HandleGetToolTask(pawn)) }
     };
 
     Dictionary<BuildingType, Action<Pawn>> buildTaskHandler = new Dictionary<BuildingType, Action<Pawn>>{
@@ -817,10 +872,11 @@ public class PawnManager : MonoBehaviour {
             if (printInstance.IsFinished())
             {
                 float workTime = GetWorkTime(pawn, task);
+                workTime -= pawn.attributes.build;
                 Debug.Log($"开始建造任务，预计耗时: {workTime} 秒");
-                yield return new WaitForSeconds(2);
+                yield return new WaitForSeconds(workTime);
                 Debug.Log("buildingTask 完成!");
-
+                pawn.attributes.build += 1; // 假设每次建造增加1点建筑属性
                 ResolveTask(pawn);
                 //yield return StartCoroutine(ResolveTask(pawn));
                 yield break;
@@ -862,8 +918,8 @@ public class PawnManager : MonoBehaviour {
             // 假设位于下侧，可根据需要调整
             pawn.handlingTask = new TaskManager.Task(
                 position: FarmPosition.Value + new Vector3Int(0, -1, 0),
-                type : TaskManager.TaskTypes.Move,
-                task_id : -1
+                type: TaskManager.TaskTypes.Move,
+                task_id: -1
             );
             AddPawnTask(pawn, build_farm_task);
 
@@ -874,6 +930,7 @@ public class PawnManager : MonoBehaviour {
         else
         {
             float workTime = GetWorkTime(pawn, task);
+            workTime -= pawn.attributes.build; // 减去小人属性加成
             Debug.Log($"开始开垦任务，预计耗时: {workTime} 秒");
             yield return new WaitForSeconds(workTime);
             Debug.Log("FarmTask 完成!");
@@ -886,6 +943,7 @@ public class PawnManager : MonoBehaviour {
             }
             MapManager.Instance.SetTileFarm(mapData, BuildManager.Instance.GetBuilding(task.id));
             ResolveTask(pawn);
+            pawn.attributes.build += 1; // 假设每次开垦增加1点农田属性
             //yield return StartCoroutine(ResolveTask(pawn));
         }
     }
@@ -941,7 +999,8 @@ public class PawnManager : MonoBehaviour {
 
         // 3. 等待收割完成
         float workTime = GetWorkTime(pawn, task);
-        yield return new WaitForSeconds(0);
+        workTime -= pawn.attributes.harvest; // 减去小人属性加成
+        yield return new WaitForSeconds(workTime);
 
         // 4. 收割完成后，创建物品实例
         // 这里假设收割的物品是木材，实际情况可能需要根据任务类型来判断
@@ -1017,6 +1076,8 @@ public class PawnManager : MonoBehaviour {
         //     ) as ItemInstanceManager.MaterialInstance;
         //     Debug.Log($"收割任务完成，物品已创建在位置: {task.target_position}");
         // }
+
+        pawn.attributes.harvest += 1; // 收割任务完成后增加小人收割属性
     }
 
     //区域种植，给出种子id
@@ -1126,6 +1187,11 @@ public class PawnManager : MonoBehaviour {
         pawn.handlingTask = Transporttaskstart;
 
         Debug.Log("Pawn到达种植位置，开始种植任务...");
+
+        float workTime = GetWorkTime(pawn, task);
+        workTime -= pawn.attributes.plant; // 减去小人属性加成
+        yield return new WaitForSeconds(workTime);
+
         ItemInstanceManager.Instance.PlantSeed(
             seedId: plantseedid,
             position: position
@@ -1133,6 +1199,7 @@ public class PawnManager : MonoBehaviour {
         pawn.materialAmount -= 1;
         pawn.isOnTask = false;
         pawn.handlingTask = null;
+        pawn.attributes.plant += 1; // 种植任务完成后增加小人种植属性
     }
 
     //support:装载

@@ -20,7 +20,7 @@ public class TaskManager : MonoBehaviour
         Harvest,
         Transport,//单纯运输任务，不涉及蓝图交互、箱子交互等内容
         BuildingTransport, // 建造运输任务,需要与蓝图进行交互
-        Gettool, // 获取工具任务
+        GetTool, // 获取工具任务
         Total // 用于获取任务种类总数
     }
 

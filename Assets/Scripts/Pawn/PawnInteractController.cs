@@ -221,5 +221,35 @@ public class PawnInteractController : MonoBehaviour
             Debug.Log("目标位置不可收获或没有作物！");
         }
     }
+
+    public void GetToolAtPositionByPlayer(Vector3Int onMouseCellPos)
+    {
+        if (MapManager.Instance.HasItemAt(onMouseCellPos))
+        {
+            if (MapManager.Instance.HasToolAt(onMouseCellPos))
+            {
+                if (pawn.handlingTask != null)
+                {
+                    if (pawn.handlingTask.type != TaskManager.TaskTypes.Move)
+                    {
+                        //TODO 处理其它目前正在处理的任务（返还给taskManger）
+                    }
+                    else
+                    {
+                        //MapManager.Instance.SetWillPawnState(pawn.handlingTask.target_position, false);
+                    }
+                }
+
+                pawn.handlingTask = new TaskManager.Task(onMouseCellPos, TaskManager.TaskTypes.GetTool, 0, -1, -1);
+
+                PawnManager.Instance.HandleTask(pawn);
+            }
+        }
+        else
+        {
+            Debug.Log("目标位置没有工具！");
+        }
+    }
+
     #endregion
 }
